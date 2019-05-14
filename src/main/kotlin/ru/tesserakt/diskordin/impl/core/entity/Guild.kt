@@ -1,0 +1,92 @@
+package ru.tesserakt.diskordin.impl.core.entity
+
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
+import org.kodein.di.Kodein
+import org.kodein.di.generic.instance
+import ru.tesserakt.diskordin.core.client.IDiscordClient
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
+import ru.tesserakt.diskordin.core.entity.*
+import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
+import ru.tesserakt.diskordin.core.rest.service.GuildService
+import ru.tesserakt.diskordin.util.AsyncStore
+import ru.tesserakt.diskordin.util.Identified
+import java.time.Duration
+
+class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
+    @FlowPreview
+    override suspend fun findRole(id: Snowflake): IRole? = roles
+        .filter { it.id == id }
+        .singleOrNull()
+
+    override val client: IDiscordClient by instance()
+    override val iconHash: String? = raw.icon
+    override val splashHash: String? = raw.splash
+
+    @FlowPreview
+    override val owner: Identified<IMember> = AsyncStore(raw.owner_id.asSnowflake()) { id ->
+        members.filter { it.id == id }.single()
+    }
+
+    @FlowPreview
+    override val afkChannel: AsyncStore<Snowflake?, IVoiceChannel?> = AsyncStore(raw.afk_channel_id?.asSnowflake()) {
+        channels.map { it.id }
+            .filter { chId -> it == chId }
+            .singleOrNull() as IVoiceChannel
+    }
+
+    override val afkChannelTimeout: Duration = Duration.ofSeconds(raw.afk_timeout.toLong())
+
+    override val verificationLevel = VerificationLevel.of(raw.verification_level)
+
+    @FlowPreview
+    override val roles: Flow<IRole> =
+        raw.roles
+            .map { Role(it, id, kodein) }
+            .asFlow()
+
+    @FlowPreview
+    override val members: Flow<IMember> = flow {
+        GuildService.Members
+            .getMembers(id.asLong(), arrayOf("limit" to 1000L))
+            .map { arr ->
+                arr.map { Member(it, id, kodein) }
+            }.fold(
+                { throw it },
+                { it.forEach { item -> emit(item) } }
+            )
+    }
+
+    @FlowPreview
+    override val channels: Flow<IGuildChannel> = flow {
+        GuildService.Channels
+            .getGuildChannels(id.asLong()).map { arr ->
+                arr.map {
+                    when (IChannel.Type.of(it.type)) {
+                        GuildText -> TextChannel(it, kodein)
+                        GuildVoice -> VoiceChannel(it, kodein)
+                        GuildCategory, GuildNews, GuildStore -> TODO()
+                        else -> throw IllegalArgumentException()
+                    }
+                }
+            }.fold(
+                { throw it },
+                { it.forEach { item -> emit(item) } }
+            )
+    }
+
+
+    override val id: Snowflake = raw.id.asSnowflake()
+
+    override val name: String = raw.name
+
+    override suspend fun delete(reason: String?) {
+        GuildService.General.deleteGuild(id.asLong())
+            .fold(
+                { throw it },
+                { null }
+            )
+    }
+}
