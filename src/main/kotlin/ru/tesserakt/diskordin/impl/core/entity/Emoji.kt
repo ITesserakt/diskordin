@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.getOrElse
 import arrow.core.handleError
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -26,13 +27,17 @@ class CustomEmoji constructor(
     override val kodein: Kodein
 ) : ICustomEmoji {
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it)!!
+        client.findGuild(it).getOrElse { throw NotCustomEmojiException() }
     }
 
     @FlowPreview
     override val roles: Flow<IRole> = flow {
         raw.roles?.map { it.asSnowflake() }
-            ?.map { client.findGuild(guildId)!!.findRole(it)!! }
+            ?.map {
+                client.findGuild(guildId)
+                    .flatMap { guild -> guild.findRole(it) }
+                    .getOrElse { throw NotCustomEmojiException() }
+            }
             ?.forEach { emit(it) } ?: throw NotCustomEmojiException()
     }
 

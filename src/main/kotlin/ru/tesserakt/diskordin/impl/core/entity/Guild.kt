@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.Option
+import arrow.core.toOption
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import org.kodein.di.Kodein
@@ -16,10 +18,13 @@ import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
 
 class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
+    override val id: Snowflake = raw.id.asSnowflake()
+
     @FlowPreview
-    override suspend fun findRole(id: Snowflake): IRole? = roles
+    override suspend fun findRole(id: Snowflake): Option<IRole> = roles
         .filter { it.id == id }
         .singleOrNull()
+        .toOption()
 
     override val client: IDiscordClient by instance()
     override val iconHash: String? = raw.icon
@@ -76,9 +81,6 @@ class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
                 { it.forEach { item -> emit(item) } }
             )
     }
-
-
-    override val id: Snowflake = raw.id.asSnowflake()
 
     override val name: String = raw.name
 

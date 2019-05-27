@@ -13,18 +13,15 @@ import ru.tesserakt.diskordin.core.rest.Routes
 
 internal object UserService {
     object General {
-
         suspend fun getCurrentUser() =
             Routes.getCurrentUser()
                 .newRequest()
                 .resolve<UserResponse>()
 
-
         suspend fun getUser(userId: Long) =
             Routes.getUser(userId)
                 .newRequest()
                 .resolve<UserResponse>()
-
 
         suspend fun editCurrentUser(request: UserEditRequest) =
             Routes.modifyCurrentUser()
@@ -33,13 +30,11 @@ internal object UserService {
     }
 
     object Guilds {
-
         suspend fun getCurrentUserGuilds(query: Array<out Pair<String, Long>>) =
             Routes.getCurrentUserGuilds()
                 .newRequest()
                 .queryParams(*query)
                 .resolve<Array<UserGuildResponse>>()
-
 
         suspend fun leaveGuild(guildId: Long) =
             Routes.leaveGuild(guildId)
@@ -48,18 +43,15 @@ internal object UserService {
     }
 
     object Channels {
-
         suspend fun getUserPrivateChannels() =
             Routes.getDMs()
                 .newRequest()
                 .resolve<Array<ChannelResponse>>()
 
-
         suspend fun joinPrivateChannel(request: DMCreateRequest) =
             Routes.createDM()
                 .newRequest()
                 .resolve<ChannelResponse>(request)
-
 
         @Deprecated("GameBridge SDK is deprecated for now", ReplaceWith("joinPrivateChannel"))
         suspend fun joinGroupDM(request: GroupDMCreateRequest) =
@@ -69,7 +61,6 @@ internal object UserService {
     }
 
     object Connections {
-
         suspend fun getCurrentUserConnections() =
             Routes.getConnections()
                 .newRequest()

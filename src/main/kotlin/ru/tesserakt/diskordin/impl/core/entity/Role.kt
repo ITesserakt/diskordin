@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.getOrElse
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -10,6 +11,7 @@ import ru.tesserakt.diskordin.core.data.computePermissions
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
+import ru.tesserakt.diskordin.core.rest.service.GuildService
 import ru.tesserakt.diskordin.util.Identified
 import java.awt.Color
 import java.util.*
@@ -17,7 +19,7 @@ import kotlin.NoSuchElementException
 
 class Role constructor(
     raw: RoleResponse,
-    guildId: Snowflake,
+    private val guildId: Snowflake,
     override val kodein: Kodein
 ) : IRole {
     @ExperimentalUnsignedTypes
@@ -34,7 +36,7 @@ class Role constructor(
     override val client: IDiscordClient by instance()
 
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it) ?: throw NoSuchElementException("Неверный id гильдии")
+        client.findGuild(it).getOrElse { throw NoSuchElementException("Guild id is not right") }
     }
 
     override val mention: String = "<@&$id>"
@@ -42,6 +44,9 @@ class Role constructor(
     override val name: String = raw.name
 
     override suspend fun delete(reason: String?) {
-        TODO("not implemented")
+        GuildService.Roles.deleteRole(guildId.asLong(), id.asLong(), reason).fold(
+            { throw it },
+            { null }
+        )
     }
 }

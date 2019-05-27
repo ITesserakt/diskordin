@@ -32,7 +32,7 @@ internal class Request(override val kodein: Kodein, val route: Route) : KodeinAw
     internal suspend inline fun <reified T : Any> resolve(
         body: Any? = null,
         type: ContentType = ContentType.Application.Json
-    ): Try<T> = Try {
+    ) = Try {
         logger.debug("Call to ${route.urlTemplate}")
         httpClient.request<T>(HttpRequestBuilder().apply {
             url("${Diskordin.API_URL}${route.urlTemplate}")

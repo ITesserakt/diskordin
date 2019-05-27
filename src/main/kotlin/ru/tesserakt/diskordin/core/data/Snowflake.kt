@@ -1,14 +1,12 @@
 package ru.tesserakt.diskordin.core.data
 
-import arrow.typeclasses.Order
 import java.time.Instant
 
 private const val DISCORD_EPOCH = 1420070400000
 
 @UseExperimental(ExperimentalUnsignedTypes::class)
-class Snowflake private constructor(private val id: ULong) : Order<Snowflake>, Comparable<Snowflake> {
-    override fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
-    override fun Snowflake.compare(b: Snowflake): Int = id.compareTo(b.id)
+class Snowflake private constructor(private val id: ULong) : Comparable<Snowflake> {
+    override operator fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
     override fun toString(): String = id.toString()
 
     fun asString() = toString()
@@ -37,4 +35,5 @@ fun String.asSnowflake() = Snowflake.of(this)
 
 fun Long.asSnowflake() = Snowflake.of(this)
 
+@ExperimentalUnsignedTypes
 fun ULong.asSnowflake() = Snowflake.of(this)

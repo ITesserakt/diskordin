@@ -13,10 +13,12 @@ import org.kodein.di.generic.eagerSingleton
 import org.kodein.di.generic.singleton
 import ru.tesserakt.diskordin.impl.core.client.DiscordClient
 import ru.tesserakt.diskordin.util.Loggers
+import ru.tesserakt.diskordin.util.ThrowingPolicy
 
 class DiscordClientBuilder private constructor() {
     lateinit var token: String
     lateinit var tokenType: TokenType
+    lateinit var globalThrowingPolicy: ThrowingPolicy
 
     companion object {
         internal lateinit var kodein: Kodein.Module

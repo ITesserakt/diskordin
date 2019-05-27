@@ -1,14 +1,16 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.core.orNull
+import arrow.core.Option
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.Diskordin
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.core.data.json.request.GuildCreateRequest
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IChannel.Type
@@ -25,20 +27,19 @@ data class DiscordClient(
     override val tokenType: TokenType,
     private val httpClient: HttpClient
 ) : IDiscordClient {
-
     override lateinit var self: Identified<IUser>
 
     override var isConnected: Boolean = false
         private set
 
     @FlowPreview
-    override val users: Flow<IUser> = TODO()
+    override val users: Flow<IUser> = emptyArray<User>().asFlow()
     @FlowPreview
-    override val guilds: Flow<IGuild> = TODO()
+    override val guilds: Flow<IGuild> = emptyArray<Guild>().asFlow()
 
     override suspend fun login() {
-        val rawSelf = UserService.General.getCurrentUser().fold(
-            { (throw it) as UserResponse },
+        val rawSelf = UserService.General.getCurrentUser().fold<UserResponse>(
+            { (throw it) },
             { return@fold it }
         )
         self = Identified(rawSelf.id.asSnowflake()) {
@@ -56,16 +57,14 @@ data class DiscordClient(
             .getUser(id.asLong())
             .map {
                 User(it, Diskordin.kodein)
+            }.toOption()
 
-            }
-            .orNull()
-
-    override suspend fun findGuild(id: Snowflake): IGuild? =
+    override suspend fun findGuild(id: Snowflake): Option<IGuild> =
         GuildService.General.getGuild(id.asLong())
             .map { Guild(it, Diskordin.kodein) }
-            .orNull()
+            .toOption()
 
-    override suspend fun findChannel(id: Snowflake): IChannel? = ChannelService.General.getChannel(id.asLong())
+    override suspend fun findChannel(id: Snowflake): Option<IChannel> = ChannelService.General.getChannel(id.asLong())
         .map {
             when (Type.of(it.type)) {
                 Type.GuildText -> TextChannel(it, Diskordin.kodein)
@@ -76,7 +75,7 @@ data class DiscordClient(
                 Type.GuildNews -> TODO()
                 Type.GuildStore -> TODO()
             }
-        }.orNull()
+        }.toOption()
 
-    override suspend fun createGuild(): IGuild = TODO()
+    override suspend fun createGuild(request: GuildCreateRequest): IGuild = TODO()
 }

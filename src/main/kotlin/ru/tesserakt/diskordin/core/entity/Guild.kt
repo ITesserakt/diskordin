@@ -2,6 +2,7 @@
 
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.core.Option
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -28,7 +29,7 @@ interface IGuild : IEntity, INamed, IDeletable {
     val channels: Flow<IGuildChannel>
 
 
-    suspend fun findRole(id: Snowflake): IRole?
+    suspend fun findRole(id: Snowflake): Option<IRole>
 
     @FlowPreview
     val members: Flow<IMember>
