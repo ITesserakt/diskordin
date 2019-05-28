@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 import arrow.core.Option
 import arrow.core.toOption
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
@@ -31,8 +32,10 @@ class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
     override val splashHash: String? = raw.splash
 
     @FlowPreview
-    override val owner: Identified<IMember> = AsyncStore(raw.owner_id.asSnowflake()) { id ->
-        members.filter { it.id == id }.single()
+    override val owner: Identified<IMember> = Identified(raw.owner_id.asSnowflake()) { id ->
+        client.coroutineScope.async {
+            members.filter { it.id == id }.single()
+        }
     }
 
     @FlowPreview

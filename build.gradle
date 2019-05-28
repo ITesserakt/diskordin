@@ -30,6 +30,9 @@ dependencies {
     compile "org.kodein.di:kodein-di-generic-jvm:$kodein_version"
 
     compile arrow('arrow-core-data')
+    compile arrow('arrow-core-extensions')
+    compile arrow('arrow-syntax')
+    compile arrow('arrow-extras-data')
     kapt arrow("arrow-meta")
     
     compile ktor("ktor-client-core")
@@ -56,10 +59,12 @@ wrapper {
     version = "5.4.1"
 }
 
+@SuppressWarnings("GrMethodMayBeStatic")
 GString arrow(String moduleName) {
     "io.arrow-kt:$moduleName:$ext.arrow_version"
 }
 
+@SuppressWarnings("GrMethodMayBeStatic")
 GString ktor(String moduleName) {
     "io.ktor:$moduleName:$ext.ktor_version"
 }

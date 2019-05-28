@@ -2,7 +2,10 @@ package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Option
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.Diskordin
@@ -27,6 +30,8 @@ data class DiscordClient(
     override val tokenType: TokenType,
     private val httpClient: HttpClient
 ) : IDiscordClient {
+    override val coroutineScope = CoroutineScope(Dispatchers.IO)
+
     override lateinit var self: Identified<IUser>
 
     override var isConnected: Boolean = false
@@ -43,7 +48,9 @@ data class DiscordClient(
             { return@fold it }
         )
         self = Identified(rawSelf.id.asSnowflake()) {
-            User(rawSelf, Diskordin.kodein)
+            coroutineScope.async {
+                User(rawSelf, Diskordin.kodein)
+            }
         }
         isConnected = true
     }

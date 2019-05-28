@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.kodein.di.Kodein
@@ -13,20 +14,22 @@ import ru.tesserakt.diskordin.core.entity.IAttachment
 import ru.tesserakt.diskordin.core.entity.IMessage
 import ru.tesserakt.diskordin.core.entity.IMessageChannel
 import ru.tesserakt.diskordin.core.entity.IUser
-import ru.tesserakt.diskordin.util.AsyncStore
 import ru.tesserakt.diskordin.util.Identified
 
 class Message(raw: MessageResponse, override val kodein: Kodein) : IMessage {
     override val client by instance<IDiscordClient>()
 
-
     override val channel: Identified<IMessageChannel> = Identified(raw.channel_id.asSnowflake()) {
-        client.findChannel(it) as IMessageChannel
+        client.coroutineScope.async {
+            client.findChannel(it) as IMessageChannel
+        }
     }
 
 
-    override val author: Identified<IUser> = AsyncStore(raw.author.id.asSnowflake()) {
-        User(raw.author, kodein)
+    override val author: Identified<IUser> = Identified(raw.author.id.asSnowflake()) {
+        client.coroutineScope.async {
+            User(raw.author, kodein)
+        }
     }
 
     override val content: String = raw.content

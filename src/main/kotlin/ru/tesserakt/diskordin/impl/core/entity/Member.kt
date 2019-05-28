@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.getOrElse
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.Kodein
@@ -30,7 +31,7 @@ class Member constructor(
     override val roles: Flow<IRole> = flow {
         raw.roles.map(Snowflake.Companion::of)
             .map {
-                guild.extractAsync()
+                guild.extract()
                     .await()
                     .findRole(it)
                     .getOrElse { throw IllegalArgumentException() }
@@ -51,7 +52,9 @@ class Member constructor(
 
 
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it).getOrElse { throw IllegalArgumentException("guildId is not right") }
+        client.coroutineScope.async {
+            client.findGuild(it).getOrElse { throw IllegalArgumentException("guildId is not right") }
+        }
     }
 
 

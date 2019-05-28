@@ -3,8 +3,7 @@ package ru.tesserakt.diskordin.core.client
 import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.multiton
-import org.kodein.di.generic.singleton
-import ru.tesserakt.diskordin.core.cache.*
+import ru.tesserakt.diskordin.core.cache.ObjectCache
 import ru.tesserakt.diskordin.core.entity.IEntity
 import kotlin.reflect.KClass
 
@@ -15,11 +14,6 @@ object Diskordin {
 
     val kodein = Kodein {
         import(DiscordClientBuilder.kodein)
-        bind() from singleton { GuildCache() }
-        bind() from singleton { ChannelCache() }
-        bind() from singleton { EmojiCache() }
-        bind() from singleton { InviteCache() }
-        bind() from singleton { UserCache() }
         bind() from multiton { type: KClass<out IEntity> ->
             ObjectCache(type)
         }

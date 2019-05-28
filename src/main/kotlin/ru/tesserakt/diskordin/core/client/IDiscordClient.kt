@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.core.client
 
 import arrow.core.Option
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -20,6 +21,8 @@ interface IDiscordClient {
     val users: Flow<IUser>
     @FlowPreview
     val guilds: Flow<IGuild>
+
+    val coroutineScope: CoroutineScope
 
     suspend fun login()
 

@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 import arrow.core.getOrElse
 import arrow.core.handleError
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.kodein.di.Kodein
@@ -54,7 +55,9 @@ open class GuildChannel(raw: ChannelResponse, override val kodein: Kodein) : Cha
     final override val guild: Identified<IGuild> = Identified(
         raw.guild_id?.asSnowflake() ?: throw NotGuildChannelException()
     ) {
-        client.findGuild(it).getOrElse { throw NotGuildChannelException() }
+        client.coroutineScope.async {
+            client.findGuild(it).getOrElse { throw NotGuildChannelException() }
+        }
     }
 
     final override val name: String = raw.name ?: throw NotGuildChannelException()
@@ -81,7 +84,9 @@ class PrivateChannel(raw: ChannelResponse, override val kodein: Kodein) : Channe
     override val owner: Identified<IUser> = Identified(
         raw.owner_id?.asSnowflake() ?: throw NotPrivateChannelException()
     ) {
-        client.findUser(it).getOrElse { throw NotPrivateChannelException() }
+        client.coroutineScope.async {
+            client.findUser(it).getOrElse { throw NotPrivateChannelException() }
+        }
     }
 
     @FlowPreview

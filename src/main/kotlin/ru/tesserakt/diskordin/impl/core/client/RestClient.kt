@@ -3,7 +3,10 @@ package ru.tesserakt.diskordin.impl.core.client
 import arrow.core.Option
 import arrow.core.handleError
 import arrow.core.handleErrorWith
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.Diskordin
@@ -28,6 +31,7 @@ class RestClient(
     override val token: String,
     override val tokenType: TokenType
 ) : IDiscordClient {
+    override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)
     override lateinit var self: Identified<IUser>
     override var isConnected: Boolean = false
     @FlowPreview
@@ -40,7 +44,9 @@ class RestClient(
             .getCurrentUser()
             .map {
                 self = Identified(it.id.asSnowflake()) { _ ->
-                    User(it, Diskordin.kodein)
+                    coroutineScope.async {
+                        User(it, Diskordin.kodein)
+                    }
                 }
             }.handleError(throwingPolicy::handle)
 

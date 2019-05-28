@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 import arrow.core.getOrElse
 import arrow.core.handleError
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.Kodein
@@ -27,7 +28,9 @@ class CustomEmoji constructor(
     override val kodein: Kodein
 ) : ICustomEmoji {
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it).getOrElse { throw NotCustomEmojiException() }
+        client.coroutineScope.async {
+            client.findGuild(it).getOrElse { throw NotCustomEmojiException() }
+        }
     }
 
     @FlowPreview
@@ -45,7 +48,9 @@ class CustomEmoji constructor(
     override val creator: Identified<IUser> = Identified(
         raw.user?.id?.asSnowflake() ?: throw NotCustomEmojiException()
     ) {
-        User(raw.user, kodein)
+        client.coroutineScope.async {
+            User(raw.user, kodein)
+        }
     }
 
     override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()

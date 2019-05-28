@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.getOrElse
+import kotlinx.coroutines.async
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -36,7 +37,10 @@ class Role constructor(
     override val client: IDiscordClient by instance()
 
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it).getOrElse { throw NoSuchElementException("Guild id is not right") }
+        client.coroutineScope.async {
+            client.findGuild(it)
+                .getOrElse { throw NoSuchElementException("Guild id is not right") }
+        }
     }
 
     override val mention: String = "<@&$id>"
