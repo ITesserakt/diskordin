@@ -6,7 +6,6 @@ import arrow.core.Option
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.util.AsyncStore
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
 
@@ -18,7 +17,7 @@ interface IGuild : IEntity, INamed, IDeletable {
     val owner: Identified<IMember>
 
 
-    val afkChannel: AsyncStore<Snowflake?, IVoiceChannel?>
+    val afkChannel: Identified<IVoiceChannel>?
     val afkChannelTimeout: Duration
 
     val verificationLevel: VerificationLevel

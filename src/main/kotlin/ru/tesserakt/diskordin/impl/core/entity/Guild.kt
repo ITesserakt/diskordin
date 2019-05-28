@@ -38,7 +38,7 @@ class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
     }
 
     @FlowPreview
-    override val afkChannel: Identified<VoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
+    override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
         Identified(it) { id ->
             client.coroutineScope.async {
                 channels.filter { channel -> channel.id == id }.single() as VoiceChannel
