@@ -9,7 +9,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import ru.tesserakt.diskordin.core.client.Diskordin
+import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -19,10 +19,10 @@ import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IChannel.Type
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IUser
-import ru.tesserakt.diskordin.core.rest.service.ChannelService
-import ru.tesserakt.diskordin.core.rest.service.GuildService
-import ru.tesserakt.diskordin.core.rest.service.UserService
 import ru.tesserakt.diskordin.impl.core.entity.*
+import ru.tesserakt.diskordin.impl.core.rest.service.ChannelService
+import ru.tesserakt.diskordin.impl.core.rest.service.GuildService
+import ru.tesserakt.diskordin.impl.core.rest.service.UserService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.ThrowingPolicy
 

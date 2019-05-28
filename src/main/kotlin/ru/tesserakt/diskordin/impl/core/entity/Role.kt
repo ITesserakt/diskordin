@@ -12,7 +12,7 @@ import ru.tesserakt.diskordin.core.data.computePermissions
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
-import ru.tesserakt.diskordin.core.rest.service.GuildService
+import ru.tesserakt.diskordin.impl.core.rest.service.GuildService
 import ru.tesserakt.diskordin.util.Identified
 import java.awt.Color
 import java.util.*

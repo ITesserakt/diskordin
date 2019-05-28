@@ -1,10 +1,11 @@
-package ru.tesserakt.diskordin.core.client
+package ru.tesserakt.diskordin
 
 import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.multiton
-import ru.tesserakt.diskordin.core.cache.ObjectCache
 import ru.tesserakt.diskordin.core.entity.IEntity
+import ru.tesserakt.diskordin.impl.core.cache.ObjectCache
+import ru.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import kotlin.reflect.KClass
 
 object Diskordin {

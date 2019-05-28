@@ -1,8 +1,8 @@
-package ru.tesserakt.diskordin.core.cache
+package ru.tesserakt.diskordin.impl.core.cache
 
 import kotlinx.coroutines.Deferred
 import org.kodein.di.generic.factory
-import ru.tesserakt.diskordin.core.client.Diskordin
+import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IEntity
 import ru.tesserakt.diskordin.util.Identified

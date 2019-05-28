@@ -13,7 +13,7 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.*
-import ru.tesserakt.diskordin.core.rest.service.EmojiService
+import ru.tesserakt.diskordin.impl.core.rest.service.EmojiService
 import ru.tesserakt.diskordin.util.Identified
 
 class Emoji(raw: EmojiResponse, override val kodein: Kodein) : IEmoji {

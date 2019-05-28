@@ -1,4 +1,4 @@
-package ru.tesserakt.diskordin.core.rest
+package ru.tesserakt.diskordin.impl.core.rest
 
 import arrow.core.Try
 import io.ktor.client.HttpClient
@@ -10,7 +10,7 @@ import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.generic.instance
 import org.slf4j.Logger
-import ru.tesserakt.diskordin.core.client.Diskordin
+import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.util.Loggers
 import io.ktor.http.HttpMethod.Companion as Method
 

@@ -1,9 +1,9 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.service
 
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
-import ru.tesserakt.diskordin.core.rest.Routes
+import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
 internal object InviteService {

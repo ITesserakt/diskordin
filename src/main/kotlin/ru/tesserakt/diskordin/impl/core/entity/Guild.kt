@@ -13,8 +13,7 @@ import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
-import ru.tesserakt.diskordin.core.rest.service.GuildService
-import ru.tesserakt.diskordin.util.AsyncStore
+import ru.tesserakt.diskordin.impl.core.rest.service.GuildService
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
 
@@ -39,10 +38,12 @@ class Guild(raw: GuildResponse, override val kodein: Kodein) : IGuild {
     }
 
     @FlowPreview
-    override val afkChannel: AsyncStore<Snowflake?, IVoiceChannel?> = AsyncStore(raw.afk_channel_id?.asSnowflake()) {
-        channels.map { it.id }
-            .filter { chId -> it == chId }
-            .singleOrNull() as IVoiceChannel
+    override val afkChannel: Identified<VoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
+        Identified(it) { id ->
+            client.coroutineScope.async {
+                channels.filter { channel -> channel.id == id }.single() as VoiceChannel
+            }
+        }
     }
 
     override val afkChannelTimeout: Duration = Duration.ofSeconds(raw.afk_timeout.toLong())

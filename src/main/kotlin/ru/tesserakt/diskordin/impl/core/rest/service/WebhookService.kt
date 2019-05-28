@@ -1,11 +1,11 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.service
 
 import ru.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.WebhookEditRequest
 import ru.tesserakt.diskordin.core.data.json.response.WebhookResponse
-import ru.tesserakt.diskordin.core.rest.Routes
+import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
 internal object WebhookService {

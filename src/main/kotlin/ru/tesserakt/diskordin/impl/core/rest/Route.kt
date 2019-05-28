@@ -1,7 +1,7 @@
-package ru.tesserakt.diskordin.core.rest
+package ru.tesserakt.diskordin.impl.core.rest
 
 import io.ktor.http.HttpMethod
-import ru.tesserakt.diskordin.core.client.Diskordin
+import ru.tesserakt.diskordin.Diskordin
 
 internal data class Route(
     val httpMethod: HttpMethod,

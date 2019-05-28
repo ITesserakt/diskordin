@@ -14,8 +14,8 @@ import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
-import ru.tesserakt.diskordin.core.rest.service.ChannelService
 import ru.tesserakt.diskordin.impl.core.entity.`object`.PermissionOverwrite
+import ru.tesserakt.diskordin.impl.core.rest.service.ChannelService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 

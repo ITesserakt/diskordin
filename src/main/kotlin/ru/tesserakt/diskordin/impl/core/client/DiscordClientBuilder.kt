@@ -1,4 +1,4 @@
-package ru.tesserakt.diskordin.core.client
+package ru.tesserakt.diskordin.impl.core.client
 
 import com.google.gson.FieldNamingPolicy
 import io.ktor.client.HttpClient
@@ -11,7 +11,8 @@ import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.eagerSingleton
 import org.kodein.di.generic.singleton
-import ru.tesserakt.diskordin.impl.core.client.DiscordClient
+import ru.tesserakt.diskordin.core.client.IDiscordClient
+import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.util.Loggers
 import ru.tesserakt.diskordin.util.ThrowingPolicy
 

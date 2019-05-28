@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.service
 
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.http.ContentType
@@ -9,7 +9,7 @@ import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
-import ru.tesserakt.diskordin.core.rest.Routes
+import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
 internal object ChannelService {
