@@ -7,7 +7,6 @@ import ru.tesserakt.diskordin.core.rest.Routes
 
 internal object VoiceService {
     object General {
-
         suspend fun getVoiceRegions() =
             Routes.getVoiceRegions()
                 .newRequest()

@@ -4,6 +4,10 @@ package ru.tesserakt.diskordin.util
 
 import arrow.core.identity
 import arrow.higherkind
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 
 @higherkind
 data class AsyncStore<S, V>(val state: S, val render: suspend (S) -> V) : AsyncStoreOf<S, V>, AsyncStoreKindedJ<S, V> {
@@ -13,7 +17,9 @@ data class AsyncStore<S, V>(val state: S, val render: suspend (S) -> V) : AsyncS
     fun <A> coflatMap(f: (AsyncStore<S, V>) -> A): AsyncStore<S, A> =
         AsyncStore(state) { next: S -> f(AsyncStore(next, render)) }
 
-    suspend fun extract(): V = render(state)
+    fun extractAsync(): Deferred<V> = CoroutineScope(Dispatchers.Unconfined).async {
+        render(state)
+    }
 
     fun duplicate(): AsyncStore<S, AsyncStore<S, V>> = coflatMap(::identity)
 

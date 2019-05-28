@@ -26,11 +26,15 @@ class Member constructor(
 
     override val nickname: String? = raw.nick
 
-
     @FlowPreview
     override val roles: Flow<IRole> = flow {
         raw.roles.map(Snowflake.Companion::of)
-            .map { guild.extract().findRole(it).getOrElse { throw IllegalArgumentException() } }
+            .map {
+                guild.extractAsync()
+                    .await()
+                    .findRole(it)
+                    .getOrElse { throw IllegalArgumentException() }
+            }
             .forEach { emit(it) }
     }
 

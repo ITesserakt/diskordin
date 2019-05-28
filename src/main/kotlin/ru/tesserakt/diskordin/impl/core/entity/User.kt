@@ -15,7 +15,6 @@ class User(raw: UserResponse, override val kodein: Kodein) : IUser {
 
     override val isBot: Boolean = raw.bot ?: false
 
-
     override val id: Snowflake = raw.id.asSnowflake()
 
     override val client: IDiscordClient by instance()

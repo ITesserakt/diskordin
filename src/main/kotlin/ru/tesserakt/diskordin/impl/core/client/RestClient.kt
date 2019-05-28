@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Option
 import arrow.core.handleError
+import arrow.core.handleErrorWith
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -58,6 +59,7 @@ class RestClient(
         GuildService.General
             .getGuild(id.asLong())
             .map { Guild(it, Diskordin.kodein) }
+            .handleErrorWith(throwingPolicy::handle)
             .toOption()
 
     override suspend fun findChannel(id: Snowflake): Option<IChannel> =
@@ -73,7 +75,9 @@ class RestClient(
             }.toOption()
 
     override suspend fun createGuild(request: GuildCreateRequest): IGuild =
-        GuildService.General.createGuild(request).fold(throwingPolicy::handle) {
-            Guild(it, Diskordin.kodein)
-        }
+        GuildService.General
+            .createGuild(request)
+            .map { Guild(it, Diskordin.kodein) }
+            .handleErrorWith(throwingPolicy::handle)
+            .fold({ throw it }, { it })
 }
