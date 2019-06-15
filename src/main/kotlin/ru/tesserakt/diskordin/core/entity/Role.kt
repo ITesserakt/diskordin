@@ -1,10 +1,11 @@
 package ru.tesserakt.diskordin.core.entity
 
 import ru.tesserakt.diskordin.core.data.Permission
+import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import java.awt.Color
 import java.util.*
 
-interface IRole : IGuildObject, IMentioned, INamed, IDeletable {
+interface IRole : IGuildObject, IMentioned, INamed, IDeletable, IEditable<IRole, RoleEditBuilder> {
     @ExperimentalUnsignedTypes
     val permissions: EnumSet<Permission>
     val color: Color

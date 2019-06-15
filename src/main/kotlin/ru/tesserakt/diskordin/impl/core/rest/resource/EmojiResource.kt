@@ -1,11 +1,13 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
+import ru.tesserakt.diskordin.core.data.json.request.EmojiCreateRequest
+import ru.tesserakt.diskordin.core.data.json.request.EmojiEditRequest
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 
-internal object EmojiService {
+internal object EmojiResource {
     object General {
 
         suspend fun getEmojis(guildId: Long) =
@@ -20,16 +22,19 @@ internal object EmojiService {
                 .resolve<EmojiResponse>()
 
 
-        suspend fun createEmoji(guildId: Long) =
+        suspend fun createEmoji(guildId: Long, request: EmojiCreateRequest) =
             Routes.createGuildEmoji(guildId)
                 .newRequest()
-                .resolve<EmojiResponse>()
+                .resolve<EmojiResponse>(request)
 
 
-        suspend fun modifyEmoji(guildId: Long, emojiId: Long) =
-            Routes.modifyGuildEmoji(guildId, emojiId)
-                .newRequest()
-                .resolve<EmojiResponse>()
+        suspend fun modifyEmoji(
+            guildId: Long,
+            emojiId: Long,
+            request: EmojiEditRequest
+        ) = Routes.modifyGuildEmoji(guildId, emojiId)
+            .newRequest()
+            .resolve<EmojiResponse>(request)
 
 
         suspend fun deleteEmoji(guildId: Long, emojiId: Long) =

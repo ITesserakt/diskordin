@@ -11,4 +11,6 @@ object Loggers {
             return LoggerFactory.getLogger(thisClass.java.declaringClass)
         return LoggerFactory.getLogger(thisClass.java)
     }
+
+    operator fun invoke(name: String): Logger = LoggerFactory.getLogger(name)
 }

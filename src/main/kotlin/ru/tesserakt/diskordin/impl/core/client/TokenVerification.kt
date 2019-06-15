@@ -12,13 +12,13 @@ private typealias VerificationResult<T> = Validated<TokenVerification.Verificati
 
 internal class TokenVerification(private val token: String, private val tokenType: TokenType) {
     fun verify(): VerificationResult<Snowflake> {
-        if (token.isBlank()) return VerificationError.BlankString.invalid()
-        if (token.contains(Regex("""\s"""))) return VerificationError.InvalidCharacters.invalid()
+        if (token.isBlank()) return VerificationError.BlankString()
+        if (token.contains(Regex("""\s"""))) return VerificationError.InvalidCharacters()
 
         if (tokenType == TokenType.Webhook || tokenType == TokenType.Bearer) return token.asSnowflake().valid()
 
         val parts = token.split('.')
-        if (parts.size != 3) return VerificationError.InvalidConstruction.invalid()
+        if (parts.size != 3) return VerificationError.InvalidConstruction()
 
         return turnToSnowflake(parts[0]).fold({ it.invalid() }, { it.valid() })
     }
@@ -27,7 +27,7 @@ internal class TokenVerification(private val token: String, private val tokenTyp
         fun padBase64String(encoded: String): VerificationResult<String> {
             if (encoded.indexOf('=') != -1) return encoded.valid()
             val padding = (4 - (encoded.length % 4)) % 4
-            if (padding == 3) return VerificationError.CorruptedId.invalid()
+            if (padding == 3) return VerificationError.CorruptedId()
             if (padding == 0) return encoded.valid()
             return encoded.padEnd(encoded.length + padding, '=').valid()
         }
@@ -43,5 +43,7 @@ internal class TokenVerification(private val token: String, private val tokenTyp
         object InvalidCharacters : VerificationError()
         object InvalidConstruction : VerificationError()
         object CorruptedId : VerificationError()
+
+        operator fun invoke() = this.invalid()
     }
 }

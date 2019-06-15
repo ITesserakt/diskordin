@@ -16,7 +16,6 @@ interface IPermissionOverwrite : IDiscordObject {
 
     val targetId: Either<RoleId, MemberId>
     val type: Type
-    @ExperimentalUnsignedTypes
     val allowed: EnumSet<Permission>
     val denied: EnumSet<Permission>
 

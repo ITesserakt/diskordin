@@ -1,99 +1,188 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.getOrElse
-import arrow.core.handleError
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.*
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
+import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.entity.*
+import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
+import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.impl.core.entity.`object`.PermissionOverwrite
-import ru.tesserakt.diskordin.impl.core.rest.service.ChannelService
+import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
+import ru.tesserakt.diskordin.impl.core.service.ChannelService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 
-open class Channel(raw: ChannelResponse, override val kodein: Kodein) : IChannel {
+sealed class Channel(raw: ChannelResponse, final override val kodein: Kodein = Diskordin.kodein) : IChannel {
     private val logger by Loggers
 
     final override val type: IChannel.Type = IChannel.Type.of(raw.type)
-
 
     final override val id: Snowflake = raw.id.asSnowflake()
 
     final override val client: IDiscordClient by instance()
 
-
     final override val mention: String = "<#$id>"
 
-
     final override suspend fun delete(reason: String?) {
-        ChannelService.General
-            .deleteChannel(id.asLong(), reason)
-            .handleError { throw it }
+        ChannelResource.General.deleteChannel(id.asLong(), reason)
     }
+
+    override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite =
+        ChannelService.newChannelInvite(id, builder)
+
+    @ExperimentalCoroutinesApi
+    override val invites: Flow<IInvite>
+        get() = flow {
+            ChannelService.getChannelInvites<IInvite>(id).forEach { emit(it) }
+        }
 }
 
-open class GuildChannel(raw: ChannelResponse, override val kodein: Kodein) : Channel(raw, kodein), IGuildChannel {
-    final override val position: Int = raw.position ?: throw NotGuildChannelException()
+sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
+    init {
+        requireNotNull(raw.guild_id)
+        requireNotNull(raw.permission_overwrites)
+        requireNotNull(raw.parent_id)
+        requireNotNull(raw.position)
+        requireNotNull(raw.name)
+    }
 
-    @FlowPreview
-    final override val permissionOverwrites: Flow<IPermissionOverwrite> = raw.permission_overwrites?.map {
+    final override val position: Int = raw.position!!
+
+    @ExperimentalCoroutinesApi
+    final override val permissionOverwrites: Flow<IPermissionOverwrite> = raw.permission_overwrites!!.map {
         PermissionOverwrite(it, kodein)
-    }?.asFlow() ?: throw NotGuildChannelException()
+    }.asFlow()
 
-
-    final override val parentCategory: Snowflake = raw.parent_id?.asSnowflake() ?: throw NotGuildChannelException()
-
+    final override val parentCategory: Snowflake = raw.parent_id!!.asSnowflake()
 
     final override val guild: Identified<IGuild> = Identified(
-        raw.guild_id?.asSnowflake() ?: throw NotGuildChannelException()
+        raw.guild_id!!.asSnowflake()
     ) {
         client.coroutineScope.async {
-            client.findGuild(it).getOrElse { throw NotGuildChannelException() }
+            client.findGuild(it)!!
         }
     }
 
-    final override val name: String = raw.name ?: throw NotGuildChannelException()
+    final override val name: String = raw.name!!
+
+    @ExperimentalCoroutinesApi
+    final override val invites: Flow<IGuildInvite>
+        get() = flow {
+            ChannelService.getChannelInvites<IGuildInvite>(id).forEach { emit(it) }
+        }
+
+    final override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite =
+        ChannelService.newChannelInvite(id, builder)
+
+    final override suspend fun editPermissions(
+        overwrite: IPermissionOverwrite,
+        builder: PermissionEditBuilder.() -> Unit
+    ) =
+        ChannelService.editChannelPermissions(id, overwrite, builder)
+
+    final override suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?) =
+        ChannelService.removeChannelPermissions(id, toRemove, reason)
 }
 
-class TextChannel(raw: ChannelResponse, override val kodein: Kodein) : GuildChannel(raw, kodein), ITextChannel {
-    override val isNSFW: Boolean = raw.nsfw ?: throw NotGuildChannelException()
+class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
+    @ExperimentalCoroutinesApi
+    override suspend fun getPinnedMessages(): List<IMessage> = messages.filter { it.isPinned }.toList()
+
+    override suspend fun typing() = ChannelService.triggerTyping(id)
+
+    override suspend fun createMessage(content: String): IMessage = createMessage {
+        this.content = content
+    }
+
+    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
+        ChannelService.createMessage(id, builder)
+
+    override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
+        ChannelService.bulkDeleteMessages(id, builder)
+
+    @ExperimentalCoroutinesApi
+    override val messages: Flow<IMessage>
+        get() = flow {
+            ChannelService.getMessages(id) {
+                this.limit = 1000
+            }.forEach { emit(it) }
+        }
+
+    init {
+        requireNotNull(raw.nsfw)
+        requireNotNull(raw.rate_limit_per_user)
+    }
+
+    override val isNSFW: Boolean = raw.nsfw!!
 
     override val topic: String? = raw.topic
 
-
     @ExperimentalUnsignedTypes
-    override val rateLimit: UShort = raw.rate_limit_per_user?.toUShort() ?: throw NotGuildChannelException()
+    override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
+
+    override suspend fun edit(builder: GuildChannelEditBuilder<ITextChannel>.() -> Unit) =
+        ChannelService.editChannel(id, builder)
 }
 
-class VoiceChannel(raw: ChannelResponse, override val kodein: Kodein) : GuildChannel(raw, kodein), IVoiceChannel {
-    override val bitrate: Int = raw.bitrate ?: throw NotGuildChannelException()
+class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
+    init {
+        requireNotNull(raw.bitrate)
+        requireNotNull(raw.user_limit)
+    }
 
-    override val userLimit: Int = raw.user_limit ?: throw NotGuildChannelException()
+    override val bitrate: Int = raw.bitrate!!
+
+    override val userLimit: Int = raw.user_limit!!
+
+    override suspend fun edit(builder: GuildChannelEditBuilder<IVoiceChannel>.() -> Unit) =
+        ChannelService.editChannel(id, builder)
 }
 
-class PrivateChannel(raw: ChannelResponse, override val kodein: Kodein) : Channel(raw, kodein), IPrivateChannel {
+class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
+    override suspend fun typing() = ChannelService.triggerTyping(id)
+
+    override suspend fun createMessage(content: String): IMessage = createMessage {
+        this.content = content
+    }
+
+    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
+        ChannelService.createMessage(id, builder)
+
+    override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
+        ChannelService.bulkDeleteMessages(id, builder)
+
+    init {
+        requireNotNull(raw.owner_id)
+        requireNotNull(raw.recipients)
+    }
 
     override val owner: Identified<IUser> = Identified(
-        raw.owner_id?.asSnowflake() ?: throw NotPrivateChannelException()
+        raw.owner_id!!.asSnowflake()
     ) {
         client.coroutineScope.async {
-            client.findUser(it).getOrElse { throw NotPrivateChannelException() }
+            client.findUser(it)!!
         }
     }
 
-    @FlowPreview
-    override val recipients: Flow<IUser> = raw.recipients
-        ?.map { User(it, kodein) }
-        ?.asFlow() ?: throw NotPrivateChannelException()
-}
+    @ExperimentalCoroutinesApi
+    override val recipients: Flow<IUser> = raw.recipients!!
+        .map { User(it, kodein) }
+        .asFlow()
 
-class NotPrivateChannelException : IllegalArgumentException("Not a private channel")
-class NotGuildChannelException : IllegalArgumentException("Not a guild channel")
+    @ExperimentalCoroutinesApi
+    override val messages: Flow<IMessage>
+        get() = flow {
+            ChannelService.getMessages(id) {
+                this.limit = 1000
+            }.forEach { emit(it) }
+        }
+}

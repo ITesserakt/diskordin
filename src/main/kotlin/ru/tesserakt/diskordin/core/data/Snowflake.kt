@@ -7,9 +7,9 @@ private const val DISCORD_EPOCH = 1420070400000
 @UseExperimental(ExperimentalUnsignedTypes::class)
 class Snowflake private constructor(private val id: ULong) : Comparable<Snowflake> {
     override operator fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
-    override fun toString(): String = id.toString()
+    override fun toString(): String = "Snowflake { $id }"
 
-    fun asString() = toString()
+    fun asString() = id.toString()
     fun asLong() = id.toLong()
 
     val timestamp: Instant

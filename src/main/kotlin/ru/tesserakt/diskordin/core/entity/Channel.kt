@@ -3,14 +3,19 @@
 
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
-import ru.tesserakt.diskordin.util.Identified
+import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
+import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IInvite
+import ru.tesserakt.diskordin.core.entity.builder.BulkDeleteBuilder
+import ru.tesserakt.diskordin.core.entity.builder.GuildChannelEditBuilder
+import ru.tesserakt.diskordin.core.entity.builder.MessageCreateBuilder
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
+    @ExperimentalCoroutinesApi
+    val invites: Flow<IInvite>
 
     enum class Type(value: Int) {
         GuildText(0),
@@ -34,35 +39,62 @@ interface IChannel : IMentioned, IDeletable {
             }
         }
     }
+
+    companion object {
+        fun <T : IChannel> typed(response: ChannelResponse) = when (Type.of(response.type)) {
+            GuildText -> TextChannel(response)
+            Private -> PrivateChannel(response)
+            GuildVoice -> VoiceChannel(response)
+            PrivateGroup, GuildCategory, GuildNews, GuildStore -> TODO()
+        } as T
+    }
+
+    suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite
 }
 
 interface IGuildChannel : IChannel, IGuildObject, INamed {
     val position: Int
-    @FlowPreview
+    @ExperimentalCoroutinesApi
     val permissionOverwrites: Flow<IPermissionOverwrite>
-
     val parentCategory: Snowflake
+    @ExperimentalCoroutinesApi
+    override val invites: Flow<IGuildInvite>
+
+    override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite
+    suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?)
+    suspend fun editPermissions(overwrite: IPermissionOverwrite, builder: PermissionEditBuilder.() -> Unit)
 }
 
-interface IVoiceChannel : IGuildChannel, IAudioChannel {
+interface IVoiceChannel : IGuildChannel, IAudioChannel,
+    IEditable<IVoiceChannel, GuildChannelEditBuilder<IVoiceChannel>> {
     val bitrate: Int
     val userLimit: Int
 }
 
-interface ITextChannel : IGuildChannel, IMessageChannel {
+interface ITextChannel : IGuildChannel, IMessageChannel,
+    IEditable<ITextChannel, GuildChannelEditBuilder<ITextChannel>> {
     val isNSFW: Boolean
     val topic: String?
 
     @ExperimentalUnsignedTypes
     val rateLimit: UShort
+
+    suspend fun getPinnedMessages(): List<IMessage>
 }
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
-
     val owner: Identified<IUser>
-    @FlowPreview
+    @ExperimentalCoroutinesApi
     val recipients: Flow<IUser>
 }
 
-interface IMessageChannel : IChannel
+interface IMessageChannel : IChannel {
+    @ExperimentalCoroutinesApi
+    val messages: Flow<IMessage>
+
+    suspend fun typing()
+    suspend fun createMessage(content: String): IMessage
+    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage
+    suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit)
+}
 interface IAudioChannel : IChannel

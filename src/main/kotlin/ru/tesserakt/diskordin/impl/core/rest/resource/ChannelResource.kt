@@ -1,9 +1,8 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
 import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.http.ContentType
 import ru.tesserakt.diskordin.core.data.json.request.*
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
@@ -12,13 +11,12 @@ import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
-internal object ChannelService {
+internal object ChannelResource {
     object General {
         suspend fun getChannel(channelId: Long) =
             Routes.getChannel(channelId)
                 .newRequest()
                 .resolve<ChannelResponse>()
-
 
         suspend fun modifyChannel(channelId: Long, request: ChannelEditRequest, reason: String?) =
             Routes.partialModifyChannel(channelId)
@@ -43,13 +41,11 @@ internal object ChannelService {
     }
 
     object Messages {
-
-        suspend fun getMessages(channelId: Long, vararg query: Pair<String, Long>) =
+        suspend fun getMessages(channelId: Long, query: List<Pair<String, *>>) =
             Routes.getMessages(channelId)
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .resolve<Array<MessageResponse>>()
-
 
         suspend fun getMessage(channelId: Long, messageId: Long) =
             Routes.getMessage(channelId, messageId)
@@ -60,7 +56,7 @@ internal object ChannelService {
         suspend fun createMessage(channelId: Long, request: MultiPartFormDataContent) =
             Routes.createMessage(channelId)
                 .newRequest()
-                .resolve<MessageResponse>(request, ContentType.MultiPart.FormData)
+                .resolve<MessageResponse>(request)
 
 
         suspend fun editMessage(channelId: Long, messageId: Long, request: MessageEditRequest) =
@@ -106,7 +102,7 @@ internal object ChannelService {
         suspend fun createReaction(channelId: Long, messageId: Long, emoji: String) =
             Routes.createReaction(channelId, messageId, emoji)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve<Unit>(Unit)
 
 
         suspend fun deleteOwnReaction(channelId: Long, messageId: Long, emoji: String) =
@@ -125,11 +121,11 @@ internal object ChannelService {
             channelId: Long,
             messageId: Long,
             emoji: String,
-            query: Array<out Pair<String, Long>>
+            query: List<Pair<String, *>>
         ) =
             Routes.getReactions(channelId, messageId, emoji)
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .resolve<Array<UserResponse>>()
 
 

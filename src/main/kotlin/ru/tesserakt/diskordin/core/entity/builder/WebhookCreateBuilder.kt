@@ -2,7 +2,7 @@ package ru.tesserakt.diskordin.core.entity.builder
 
 import ru.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
 
-class WebhookCreateBuilder : IAuditLogging<WebhookCreateRequest> {
+class WebhookCreateBuilder : AuditLogging<WebhookCreateRequest>() {
     lateinit var name: String
     var avatar: String? = null
 

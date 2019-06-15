@@ -1,11 +1,9 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
-import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.json.request.ChannelCreateRequest
-import ru.tesserakt.diskordin.core.data.json.response.OverwriteResponse
 import ru.tesserakt.diskordin.core.entity.IChannel
+import ru.tesserakt.diskordin.core.entity.IGuildChannel
 
-abstract class GuildChannelCreateBuilder : IAuditLogging<ChannelCreateRequest> {
+abstract class GuildChannelCreateBuilder<C : IGuildChannel> : AuditLogging<ChannelCreateRequest>() {
     lateinit var name: String
     protected abstract val type: IChannel.Type
     override var reason: String? = null
@@ -15,12 +13,11 @@ abstract class GuildChannelCreateBuilder : IAuditLogging<ChannelCreateRequest> {
     var parentId: Snowflake? = null
 }
 
-class TextChannelCreateBuilder : GuildChannelCreateBuilder() {
+class TextChannelCreateBuilder : GuildChannelCreateBuilder<TextChannel>() {
     override val type: IChannel.Type = IChannel.Type.GuildText
     var topic: String? = null
     var rateLimitPerUser: Int? = null
     var isNsfw: Boolean? = null
-
 
     override fun create(): ChannelCreateRequest = ChannelCreateRequest(
         name,
@@ -34,11 +31,10 @@ class TextChannelCreateBuilder : GuildChannelCreateBuilder() {
     )
 }
 
-class VoiceChannelCreateBuilder : GuildChannelCreateBuilder() {
+class VoiceChannelCreateBuilder : GuildChannelCreateBuilder<VoiceChannel>() {
     override val type: IChannel.Type = IChannel.Type.GuildVoice
     var bitrate: Int? = null
     var userLimit: Int? = null
-
 
     override fun create(): ChannelCreateRequest = ChannelCreateRequest(
         name,

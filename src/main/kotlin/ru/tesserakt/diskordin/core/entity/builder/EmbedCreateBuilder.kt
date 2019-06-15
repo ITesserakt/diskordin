@@ -1,10 +1,6 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
-import ru.tesserakt.diskordin.core.data.json.request.EmbedCreateRequest
-import java.awt.Color
-import java.time.Instant
-
-class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
+class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
     var title: String? = null
     var description: String? = null
     var url: String? = null
@@ -16,7 +12,7 @@ class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
     var author: (AuthorBuilder.() -> Unit)? = null
     var fields: Array<(FieldBuilder.() -> Unit)>? = null
 
-    class FieldBuilder : IBuilder<EmbedCreateRequest.FieldRequest> {
+    class FieldBuilder : BuilderBase<EmbedCreateRequest.FieldRequest>() {
         lateinit var name: String
         lateinit var value: Any
         var inline: Boolean? = null
@@ -28,7 +24,7 @@ class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
         )
     }
 
-    class AuthorBuilder : IBuilder<EmbedCreateRequest.AuthorRequest> {
+    class AuthorBuilder : BuilderBase<EmbedCreateRequest.AuthorRequest>() {
         var name: String? = null
         var url: String? = null
         var iconUrl: String? = null
@@ -40,7 +36,7 @@ class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
         )
     }
 
-    class ThumbnailBuilder : IBuilder<EmbedCreateRequest.ThumbnailRequest> {
+    class ThumbnailBuilder : BuilderBase<EmbedCreateRequest.ThumbnailRequest>() {
         var url: String? = null
 
         override fun create(): EmbedCreateRequest.ThumbnailRequest = EmbedCreateRequest.ThumbnailRequest(
@@ -48,7 +44,7 @@ class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
         )
     }
 
-    open class ImageBuilder : IBuilder<EmbedCreateRequest.ImageRequest> {
+    open class ImageBuilder : BuilderBase<EmbedCreateRequest.ImageRequest>() {
         var url: String? = null
 
         override fun create(): EmbedCreateRequest.ImageRequest = EmbedCreateRequest.ImageRequest(
@@ -56,7 +52,7 @@ class EmbedCreateBuilder : IBuilder<EmbedCreateRequest> {
         )
     }
 
-    class FooterBuilder : IBuilder<EmbedCreateRequest.FooterRequest> {
+    class FooterBuilder : BuilderBase<EmbedCreateRequest.FooterRequest>() {
         lateinit var text: String
         var url: String? = null
 

@@ -1,22 +1,23 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.getOrElse
-import arrow.core.handleError
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
+import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.*
-import ru.tesserakt.diskordin.impl.core.rest.service.EmojiService
+import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
+import ru.tesserakt.diskordin.impl.core.rest.resource.EmojiResource
+import ru.tesserakt.diskordin.impl.core.service.EmojiService
 import ru.tesserakt.diskordin.util.Identified
 
-class Emoji(raw: EmojiResponse, override val kodein: Kodein) : IEmoji {
+open class Emoji(raw: EmojiResponse, final override val kodein: Kodein = Diskordin.kodein) : IEmoji {
     override val client: IDiscordClient by instance()
 
     override val name: String = raw.name
@@ -24,26 +25,25 @@ class Emoji(raw: EmojiResponse, override val kodein: Kodein) : IEmoji {
 
 class CustomEmoji constructor(
     raw: EmojiResponse,
-    guildId: Snowflake,
-    override val kodein: Kodein
-) : ICustomEmoji {
+    guildId: Snowflake
+) : Emoji(raw), ICustomEmoji {
+    override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =
+        EmojiService.editEmoji(guild.state, id, builder)
+
     override val guild: Identified<IGuild> = Identified(guildId) {
         client.coroutineScope.async {
-            client.findGuild(it).getOrElse { throw NotCustomEmojiException() }
+            client.findGuild(it) ?: throw NotCustomEmojiException()
         }
     }
 
-    @FlowPreview
+    @ExperimentalCoroutinesApi
     override val roles: Flow<IRole> = flow {
-        raw.roles?.map { it.asSnowflake() }
+        raw.roles?.map(Long::asSnowflake)
             ?.map {
-                client.findGuild(guildId)
-                    .flatMap { guild -> guild.findRole(it) }
-                    .getOrElse { throw NotCustomEmojiException() }
+                client.findGuild(guildId)?.findRole(it) ?: throw NotCustomEmojiException()
             }
             ?.forEach { emit(it) } ?: throw NotCustomEmojiException()
     }
-
 
     override val creator: Identified<IUser> = Identified(
         raw.user?.id?.asSnowflake() ?: throw NotCustomEmojiException()
@@ -70,11 +70,8 @@ class CustomEmoji constructor(
     override val mention: String = "<${if (isAnimated) "a" else ""}:$name:$id>"
 
 
-    override suspend fun delete(reason: String?) {
-        EmojiService.General
-            .deleteEmoji(guild.state.asLong(), id.asLong())
-            .handleError { throw it }
-    }
+    override suspend fun delete(reason: String?) = EmojiResource.General
+        .deleteEmoji(guild.state.asLong(), id.asLong())
 }
 
 class NotCustomEmojiException : IllegalArgumentException("Not a custom emoji")

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.WebhookEditRequest
@@ -8,9 +8,8 @@ import ru.tesserakt.diskordin.core.data.json.response.WebhookResponse
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
-internal object WebhookService {
+internal object WebhookResource {
     object General {
-
         suspend fun createChannelWebhook(channelId: Long, request: WebhookCreateRequest, reason: String?) =
             Routes.createChannelWebhook(channelId)
                 .newRequest()
@@ -28,7 +27,7 @@ internal object WebhookService {
         suspend fun getGuildWebhooks(guildId: Long) =
             Routes.getGuildWebhooks(guildId)
                 .newRequest()
-                .resolve<WebhookResponse>()
+                .resolve<Array<WebhookResponse>>()
 
 
         suspend fun getWebhook(webhookId: Long) =

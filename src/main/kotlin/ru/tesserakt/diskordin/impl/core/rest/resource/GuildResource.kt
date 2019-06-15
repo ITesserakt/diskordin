@@ -1,13 +1,14 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.*
 import ru.tesserakt.diskordin.core.data.json.response.*
+import ru.tesserakt.diskordin.core.entity.query.Query
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
-internal object GuildService {
+internal object GuildResource {
     object General {
 
         suspend fun createGuild(request: GuildCreateRequest) =
@@ -78,10 +79,10 @@ internal object GuildService {
                 .resolve<GuildMemberResponse>()
 
 
-        suspend fun getMembers(guildId: Long, query: Array<out Pair<String, Long>>) =
+        suspend fun getMembers(guildId: Long, query: Query) =
             Routes.getMembers(guildId)
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .resolve<Array<GuildMemberResponse>>()
 
 
@@ -175,12 +176,10 @@ internal object GuildService {
                 .resolve<BanResponse>()
 
 
-        suspend fun createBan(guildId: Long, userId: Long, query: Array<out Pair<String, Long>>, reason: String?) =
+        suspend fun createBan(guildId: Long, userId: Long, query: Query) =
             Routes.createBan(guildId, userId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.queryParams(*query)
+                .queryParams(query)
                 .resolve<Unit>()
 
 
@@ -194,17 +193,17 @@ internal object GuildService {
 
     object Prunes {
 
-        suspend fun getPruneCount(guildId: Long, query: Array<out Pair<String, Long>>) =
+        suspend fun getPruneCount(guildId: Long, query: Query) =
             Routes.getPruneCount(guildId)
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .resolve<PruneResponse>()
 
 
-        suspend fun startPrune(guildId: Long, query: Array<out Pair<String, Long>>, reason: String?) =
+        suspend fun startPrune(guildId: Long, query: Query, reason: String?) =
             Routes.beginPrune(guildId)
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .additionalHeaders {
                     append("X-Audit-Log-Reason", reason)
                 }.resolve<PruneResponse>()

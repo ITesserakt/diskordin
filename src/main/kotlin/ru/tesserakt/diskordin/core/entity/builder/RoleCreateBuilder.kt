@@ -4,7 +4,7 @@ import ru.tesserakt.diskordin.core.data.json.request.GuildRoleCreateRequest
 import java.awt.Color
 import kotlin.properties.Delegates
 
-class RoleCreateBuilder : IAuditLogging<GuildRoleCreateRequest> {
+class RoleCreateBuilder : AuditLogging<GuildRoleCreateRequest>() {
     override var reason: String? = null
     lateinit var name: String
     var permissions: Int by Delegates.notNull()

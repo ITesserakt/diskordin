@@ -1,12 +1,12 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
-internal object InviteService {
+internal object InviteResource {
     object General {
 
         suspend fun getInvite(code: String) =

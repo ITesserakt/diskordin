@@ -6,15 +6,11 @@ import ru.tesserakt.diskordin.core.data.json.request.PermissionsEditRequest
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import java.util.*
 
-class PermissionEditBuilder : IAuditLogging<PermissionsEditRequest> {
-    @ExperimentalUnsignedTypes
+class PermissionEditBuilder : AuditLogging<PermissionsEditRequest>() {
     lateinit var allowed: EnumSet<Permission>
-    @ExperimentalUnsignedTypes
     lateinit var denied: EnumSet<Permission>
     lateinit var type: IPermissionOverwrite.Type
 
-
-    @ExperimentalUnsignedTypes
     override fun create(): PermissionsEditRequest = PermissionsEditRequest(
         allowed.computeCode().toInt(),
         denied.computeCode().toInt(),

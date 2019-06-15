@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.service
+package ru.tesserakt.diskordin.impl.core.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.GroupDMCreateRequest
@@ -9,9 +9,10 @@ import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.ConnectionResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
+import ru.tesserakt.diskordin.core.entity.query.Query
 import ru.tesserakt.diskordin.impl.core.rest.Routes
 
-internal object UserService {
+internal object UserResource {
     object General {
         suspend fun getCurrentUser() =
             Routes.getCurrentUser()
@@ -30,10 +31,10 @@ internal object UserService {
     }
 
     object Guilds {
-        suspend fun getCurrentUserGuilds(query: Array<out Pair<String, Long>>) =
+        suspend fun getCurrentUserGuilds(query: Query) =
             Routes.getCurrentUserGuilds()
                 .newRequest()
-                .queryParams(*query)
+                .queryParams(query)
                 .resolve<Array<UserGuildResponse>>()
 
         suspend fun leaveGuild(guildId: Long) =

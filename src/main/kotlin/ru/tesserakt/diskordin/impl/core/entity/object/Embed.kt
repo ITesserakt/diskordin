@@ -1,6 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity.`object`
 
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.kodein.di.Kodein
@@ -55,7 +55,7 @@ class Embed(raw: EmbedResponse, override val kodein: Kodein) : IEmbed {
         override val iconUrl: String? = raw.icon_url
     }
 
-    @FlowPreview
+    @ExperimentalCoroutinesApi
     override val fields: Flow<IEmbed.IField> = (raw.fields ?: emptyArray()).map { Field(it) }.asFlow()
 
     class Field(raw: FieldResponse) : IEmbed.IField {

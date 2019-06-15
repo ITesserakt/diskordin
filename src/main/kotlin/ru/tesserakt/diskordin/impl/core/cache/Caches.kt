@@ -18,7 +18,6 @@ sealed class CacheBase<T>(cache: Cache<out T> = mutableListOf()) :
 
 class ObjectCache<T : IEntity> internal constructor(@Suppress("UNUSED_PARAMETER") type: KClass<T>) : CacheBase<T>()
 
-private val genericCacheFun by Diskordin.kodein.factory<KClass<out IEntity>, ObjectCache<out IEntity>>()
+val genericCacheFun by Diskordin.kodein.factory<KClass<out IEntity>, ObjectCache<out IEntity>>()
 @Suppress("UNCHECKED_CAST")
-val <T : IEntity> KClass<T>.genericCache: ObjectCache<T>
-    get() = genericCacheFun(this) as ObjectCache<T>
+inline fun <reified T : IEntity> genericCache() = genericCacheFun(T::class) as ObjectCache<T>
