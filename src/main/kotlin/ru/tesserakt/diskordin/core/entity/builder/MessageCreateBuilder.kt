@@ -1,6 +1,9 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
+import kotlinx.io.streams.asInput
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.MessageCreateRequest
+import java.io.File
 
 class MessageCreateBuilder : BuilderBase<MessageCreateRequest>() {
     var content: String = ""

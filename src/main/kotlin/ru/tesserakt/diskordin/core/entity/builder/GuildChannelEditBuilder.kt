@@ -1,5 +1,8 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.request.ChannelEditRequest
+import ru.tesserakt.diskordin.core.data.json.response.OverwriteResponse
 import ru.tesserakt.diskordin.core.entity.IGuildChannel
 import ru.tesserakt.diskordin.core.entity.ITextChannel
 import ru.tesserakt.diskordin.core.entity.IVoiceChannel

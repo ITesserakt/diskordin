@@ -4,23 +4,34 @@ package ru.tesserakt.diskordin.impl.core.service
 
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.computeCode
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IEmoji
 import ru.tesserakt.diskordin.core.entity.IGuildChannel
+import ru.tesserakt.diskordin.core.entity.IMessage
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
+import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import ru.tesserakt.diskordin.core.entity.query.build
+import ru.tesserakt.diskordin.impl.core.cache.genericCache
+import ru.tesserakt.diskordin.impl.core.entity.Message
+import ru.tesserakt.diskordin.impl.core.entity.User
+import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
+import ru.tesserakt.diskordin.util.appendNullable
+import ru.tesserakt.diskordin.util.plus
 
 internal object ChannelService {
     private val channelCache = genericCache<IChannel>()
     private val messageCache = genericCache<IMessage>()
 
-    suspend inline fun <reified C : IChannel> getChannel(id: Snowflake): C? = runCatching {
+    suspend fun <C : IChannel> getChannel(id: Snowflake): C? = runCatching {
         ChannelResource.General.getChannel(id.asLong())
     }.mapCatching { IChannel.typed<C>(it) }.getOrNull()
 
-    suspend inline fun <reified C : IGuildChannel, reified B : GuildChannelEditBuilder<C>> editChannel(
+    suspend inline fun <C : IGuildChannel, reified B : GuildChannelEditBuilder<C>> editChannel(
         id: Snowflake,
         noinline builder: B.() -> Unit
     ): C = ChannelResource.General
@@ -37,7 +48,7 @@ internal object ChannelService {
     suspend fun getMessages(
         id: Snowflake,
         query: MessagesQuery.() -> Unit
-    ): List<IMessage> = ChannelResource.Messages
+    ) = ChannelResource.Messages
         .getMessages(id.asLong(), query.build())
         .map { Message(it) }
 

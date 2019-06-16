@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package ru.tesserakt.diskordin.core.data
 
 import java.time.Instant

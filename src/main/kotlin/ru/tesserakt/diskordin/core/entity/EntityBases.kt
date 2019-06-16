@@ -5,6 +5,9 @@ package ru.tesserakt.diskordin.core.entity
 
 import org.kodein.di.KodeinAware
 import ru.tesserakt.diskordin.core.client.IDiscordClient
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
+import ru.tesserakt.diskordin.util.Identified
 
 interface IEntity : IDiscordObject {
 

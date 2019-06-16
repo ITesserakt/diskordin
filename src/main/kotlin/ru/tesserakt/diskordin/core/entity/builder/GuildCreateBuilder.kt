@@ -1,6 +1,8 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
+import ru.tesserakt.diskordin.core.data.json.request.GuildCreateRequest
 import ru.tesserakt.diskordin.core.entity.IGuild
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Region
 import kotlin.properties.Delegates
 
 class GuildCreateBuilder : BuilderBase<GuildCreateRequest>() {

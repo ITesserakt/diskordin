@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.request
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+
 data class EmojiEditRequest(
     val name: String,
     val roles: Array<Snowflake>

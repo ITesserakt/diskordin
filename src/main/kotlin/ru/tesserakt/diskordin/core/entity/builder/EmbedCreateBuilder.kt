@@ -1,5 +1,9 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
+import ru.tesserakt.diskordin.core.data.json.request.EmbedCreateRequest
+import java.awt.Color
+import java.time.Instant
+
 class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
     var title: String? = null
     var description: String? = null

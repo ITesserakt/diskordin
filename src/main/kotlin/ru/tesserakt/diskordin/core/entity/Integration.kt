@@ -1,6 +1,8 @@
 package ru.tesserakt.diskordin.core.entity
 
 import ru.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
+import ru.tesserakt.diskordin.util.Identified
+import java.time.Instant
 
 interface IIntegration : IEntity, INamed, IEditable<IIntegration, IntegrationEditBuilder>, IDeletable, IGuildObject {
     val type: String

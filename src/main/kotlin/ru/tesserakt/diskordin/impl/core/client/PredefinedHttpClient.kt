@@ -1,12 +1,13 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import com.google.gson.FieldNamingPolicy
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.features.HttpResponseValidator
-import io.ktor.client.features.defaultRequest
+import io.ktor.client.features.*
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.header
+import ru.tesserakt.diskordin.util.Loggers
 
 internal class PredefinedHttpClient(private val token: String, private val tokenType: String) {
     private val logger = Loggers("HTTP client loader")

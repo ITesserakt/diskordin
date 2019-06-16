@@ -1,7 +1,12 @@
 package ru.tesserakt.diskordin.core.entity.builder
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.request.ChannelCreateRequest
+import ru.tesserakt.diskordin.core.data.json.response.OverwriteResponse
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IGuildChannel
+import ru.tesserakt.diskordin.impl.core.entity.TextChannel
+import ru.tesserakt.diskordin.impl.core.entity.VoiceChannel
 
 abstract class GuildChannelCreateBuilder<C : IGuildChannel> : AuditLogging<ChannelCreateRequest>() {
     lateinit var name: String

@@ -5,12 +5,17 @@ package ru.tesserakt.diskordin.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
-import ru.tesserakt.diskordin.core.entity.builder.BulkDeleteBuilder
-import ru.tesserakt.diskordin.core.entity.builder.GuildChannelEditBuilder
-import ru.tesserakt.diskordin.core.entity.builder.MessageCreateBuilder
+import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
+import ru.tesserakt.diskordin.core.entity.builder.*
+import ru.tesserakt.diskordin.impl.core.entity.PrivateChannel
+import ru.tesserakt.diskordin.impl.core.entity.TextChannel
+import ru.tesserakt.diskordin.impl.core.entity.VoiceChannel
+import ru.tesserakt.diskordin.util.Identified
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
@@ -40,6 +45,7 @@ interface IChannel : IMentioned, IDeletable {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     companion object {
         fun <T : IChannel> typed(response: ChannelResponse) = when (Type.of(response.type)) {
             GuildText -> TextChannel(response)

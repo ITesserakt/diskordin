@@ -1,8 +1,12 @@
 package ru.tesserakt.diskordin.core.entity.`object`
 
+import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import ru.tesserakt.diskordin.core.entity.IGuildObject
+import ru.tesserakt.diskordin.impl.core.entity.`object`.GuildInvite
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Invite
+import ru.tesserakt.diskordin.util.Identified
 
 interface IInvite : IDiscordObject {
     val code: String

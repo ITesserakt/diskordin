@@ -2,7 +2,12 @@ package ru.tesserakt.diskordin.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
+import ru.tesserakt.diskordin.impl.core.entity.CustomEmoji
+import ru.tesserakt.diskordin.impl.core.entity.Emoji
+import ru.tesserakt.diskordin.util.Identified
 
 interface IEmoji : INamed {
     companion object {

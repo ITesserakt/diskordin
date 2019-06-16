@@ -16,33 +16,24 @@ import ru.tesserakt.diskordin.util.Identified
 interface IDiscordClient {
     val token: String
     val tokenType: TokenType
-
     val self: Identified<ISelf>
     val isConnected: Boolean
+    val coroutineScope: CoroutineScope
+
+    suspend fun login()
+    fun logout()
+    suspend fun findUser(id: Snowflake): IUser?
+    suspend fun findGuild(id: Snowflake): IGuild?
+    suspend fun findChannel(id: Snowflake): IChannel?
+    suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild
+    suspend fun getInvite(code: String): IInvite?
+    suspend fun deleteInvite(code: String, reason: String?)
+    suspend fun getRegions(): List<IRegion>
+
     @ExperimentalCoroutinesApi
     val users: Flow<IUser>
     @ExperimentalCoroutinesApi
     val guilds: Flow<IGuild>
-
-    val coroutineScope: CoroutineScope
-
-    suspend fun login()
-
-    fun logout()
-
-    suspend fun findUser(id: Snowflake): IUser?
-
-    suspend fun findGuild(id: Snowflake): IGuild?
-
-    suspend fun findChannel(id: Snowflake): IChannel?
-
-    suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild
-
-    suspend fun getInvite(code: String): IInvite?
-
-    suspend fun deleteInvite(code: String, reason: String?)
-
-    suspend fun getRegions(): List<IRegion>
 }
 
 enum class TokenType {

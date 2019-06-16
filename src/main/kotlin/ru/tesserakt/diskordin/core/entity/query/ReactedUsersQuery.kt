@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.entity.query
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+
 class ReactedUsersQuery : IQuery {
     override fun create(): List<Pair<String, *>> = mapOf(
         "before" to before?.asLong(),
