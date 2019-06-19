@@ -14,4 +14,4 @@ inline operator fun <reified T : Enum<T>> EnumSet<T>.not(): EnumSet<T> {
 
 operator fun <T : Enum<T>> EnumSet<T>.plus(other: EnumSet<T>): EnumSet<T> = this or other
 operator fun <T : Enum<T>> EnumSet<T>.minus(other: EnumSet<T>): EnumSet<T> = this xor other
-operator fun <T : Enum<T>> EnumSet<T>.times(other: EnumSet<T>): EnumSet<T> = this and other
+operator fun <T : Enum<T>> EnumSet<T>.rem(other: EnumSet<T>): EnumSet<T> = this and other

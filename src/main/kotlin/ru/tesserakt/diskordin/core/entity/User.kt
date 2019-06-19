@@ -12,6 +12,8 @@ interface IUser : IMentioned, INamed {
         get() = username
     val discriminator: Short
     val isBot: Boolean
+
+    suspend infix fun asMember(guildId: Snowflake): IMember
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {

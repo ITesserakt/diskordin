@@ -22,6 +22,8 @@ class Member constructor(
     raw: GuildMemberResponse,
     guildId: Snowflake
 ) : IMember {
+    override suspend fun asMember(guildId: Snowflake): IMember = this
+
     override suspend fun addRole(role: IRole, reason: String?) =
         GuildService.addRoleToMember(guild.id, id, role.id, reason)
 
@@ -39,8 +41,6 @@ class Member constructor(
         GuildService.editMember(guild.id, id, builder).run {
             guild().members.first { it.id == id }
         }
-
-
 
     override val nickname: String? = raw.nick
 

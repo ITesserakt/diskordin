@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -20,6 +21,10 @@ open class User(raw: UserResponse) : IUser {
     final override val isBot: Boolean = raw.bot ?: false
 
     final override val id: Snowflake = raw.id.asSnowflake()
+
+    @ExperimentalCoroutinesApi
+    final override suspend fun asMember(guildId: Snowflake): IMember =
+        client.findGuild(guildId)!!.members.first { it.id == id }
 
     final override val mention: String = "<@$id>"
 }
