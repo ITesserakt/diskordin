@@ -72,13 +72,13 @@ interface IGuildChannel : IChannel, IGuildObject, INamed {
 }
 
 interface IVoiceChannel : IGuildChannel, IAudioChannel,
-    IEditable<IVoiceChannel, GuildChannelEditBuilder<IVoiceChannel>> {
+    IEditable<IVoiceChannel, VoiceChannelEditBuilder> {
     val bitrate: Int
     val userLimit: Int
 }
 
 interface ITextChannel : IGuildChannel, IMessageChannel,
-    IEditable<ITextChannel, GuildChannelEditBuilder<ITextChannel>> {
+    IEditable<ITextChannel, TextChannelEditBuilder> {
     val isNSFW: Boolean
     val topic: String?
 

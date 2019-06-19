@@ -12,7 +12,6 @@ import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
-import kotlin.reflect.KClass
 
 interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
     val iconHash: String?
@@ -26,11 +25,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     suspend fun findEmoji(emojiId: Snowflake): ICustomEmoji?
     suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji
     suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit)
-    suspend fun <C : IGuildChannel, B : GuildChannelCreateBuilder<C>> addChannel(
-        builder: B.() -> Unit,
-        clazz: KClass<B>
-    ): C
-
+    suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
+    suspend fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
     suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit)
     suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember
     suspend fun kick(member: IMember, reason: String?)

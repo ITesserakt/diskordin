@@ -1,25 +1,25 @@
 package ru.tesserakt.diskordin.impl.core.rest
 
+
 import io.ktor.client.HttpClient
 import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.request
 import io.ktor.client.request.url
 import io.ktor.http.HeadersBuilder
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.generic.instance
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import org.slf4j.Logger
-import ru.tesserakt.diskordin.Diskordin
 import ru.tesserakt.diskordin.util.Loggers
 import io.ktor.http.HttpMethod.Companion as Method
 
-internal class Request(override val kodein: Kodein, val route: Route) : KodeinAware {
-    val httpClient: HttpClient by instance()
-    val logger: Logger by Loggers
+internal class Requester(val route: Route) : KoinComponent {
+    private val httpClient: HttpClient by inject()
+    private val logger: Logger by Loggers
+    private val api_url = getKoin().getProperty("API_url", "")
 
-    var headersInit: (HeadersBuilder.() -> Unit)? = null
-    var paramsInit: Map<String, *>? = null
+    private var headersInit: (HeadersBuilder.() -> Unit)? = null
+    private var paramsInit: Map<String, *>? = null
 
     fun additionalHeaders(init: HeadersBuilder.() -> Unit) = apply {
         headersInit = init
@@ -33,7 +33,7 @@ internal class Request(override val kodein: Kodein, val route: Route) : KodeinAw
         body: Any? = null
     ): T = httpClient.request {
         logger.debug("Call to ${route.urlTemplate}")
-        url("${Diskordin.API_URL}${route.urlTemplate}")
+        url("$api_url${route.urlTemplate}")
 
         headersInit?.let { headers(it) }
         paramsInit?.forEach { p1, p2 -> parameter(p1, p2.toString()) }

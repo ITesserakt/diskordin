@@ -1,12 +1,8 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
-import ru.tesserakt.diskordin.Diskordin
-import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -21,14 +17,12 @@ import ru.tesserakt.diskordin.impl.core.service.ChannelService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 
-sealed class Channel(raw: ChannelResponse, final override val kodein: Kodein = Diskordin.kodein) : IChannel {
+sealed class Channel(raw: ChannelResponse) : IChannel {
     private val logger by Loggers
 
     final override val type: IChannel.Type = IChannel.Type.of(raw.type)
 
     final override val id: Snowflake = raw.id.asSnowflake()
-
-    final override val client: IDiscordClient by instance()
 
     final override val mention: String = "<#$id>"
 
@@ -59,18 +53,14 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 
     @ExperimentalCoroutinesApi
     final override val permissionOverwrites: Flow<IPermissionOverwrite> = raw.permission_overwrites!!.map {
-        PermissionOverwrite(it, kodein)
+        PermissionOverwrite(it)
     }.asFlow()
 
     final override val parentCategory: Snowflake = raw.parent_id!!.asSnowflake()
 
     final override val guild: Identified<IGuild> = Identified(
         raw.guild_id!!.asSnowflake()
-    ) {
-        client.coroutineScope.async {
-            client.findGuild(it)!!
-        }
-    }
+    ) { client.findGuild(it)!! }
 
     final override val name: String = raw.name!!
 
@@ -129,7 +119,7 @@ class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
     @ExperimentalUnsignedTypes
     override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
 
-    override suspend fun edit(builder: GuildChannelEditBuilder<ITextChannel>.() -> Unit) =
+    override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) =
         ChannelService.editChannel(id, builder)
 }
 
@@ -143,7 +133,7 @@ class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
 
     override val userLimit: Int = raw.user_limit!!
 
-    override suspend fun edit(builder: GuildChannelEditBuilder<IVoiceChannel>.() -> Unit) =
+    override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) =
         ChannelService.editChannel(id, builder)
 }
 
@@ -167,15 +157,11 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
 
     override val owner: Identified<IUser> = Identified(
         raw.owner_id!!.asSnowflake()
-    ) {
-        client.coroutineScope.async {
-            client.findUser(it)!!
-        }
-    }
+    ) { client.findUser(it)!! }
 
     @ExperimentalCoroutinesApi
     override val recipients: Flow<IUser> = raw.recipients!!
-        .map { User(it, kodein) }
+        .map { User(it) }
         .asFlow()
 
     @ExperimentalCoroutinesApi

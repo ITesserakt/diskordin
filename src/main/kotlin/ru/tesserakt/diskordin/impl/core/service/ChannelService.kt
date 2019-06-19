@@ -16,7 +16,6 @@ import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import ru.tesserakt.diskordin.core.entity.query.build
-import ru.tesserakt.diskordin.impl.core.cache.genericCache
 import ru.tesserakt.diskordin.impl.core.entity.Message
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
@@ -24,8 +23,8 @@ import ru.tesserakt.diskordin.util.appendNullable
 import ru.tesserakt.diskordin.util.plus
 
 internal object ChannelService {
-    private val channelCache = genericCache<IChannel>()
-    private val messageCache = genericCache<IMessage>()
+    //private val channelCache = genericCache<IChannel>()
+    //private val messageCache = genericCache<IMessage>()
 
     suspend fun <C : IChannel> getChannel(id: Snowflake): C? = runCatching {
         ChannelResource.General.getChannel(id.asLong())
@@ -90,10 +89,8 @@ internal object ChannelService {
         ChannelResource.Messages.bulkDeleteMessages(channelId.asLong(), builder.build())
 
     suspend fun getPinnedMessages(channelId: Snowflake) =
-        messageCache
-            .mapValues { it.value.await() }
-            .filterValues { it.isPinned && it.channel.state == channelId }
-            .values.toList()
+        ChannelResource.Messages.getPinnedMessages(channelId.asLong())
+            .map { Message(it) }
 
     suspend fun pinMessage(channelId: Snowflake, messageId: Snowflake) =
         ChannelResource.Messages.newPinnedMessage(channelId.asLong(), messageId.asLong())

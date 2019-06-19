@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -34,20 +33,19 @@ data class DiscordClient(
     private val logger by Loggers
 
     init {
-        TokenVerification(token, tokenType).verify().map {
-            self = Identified(it) {
-                coroutineScope.async {
-                    findUser(it)!! as Self
-                }
+        TokenVerification(token, tokenType).verify().map { id ->
+            self = Identified(id) {
+                findUser(it)!! as Self
             }
         }.handleLeftWith {
-            when (it) {
-                BlankString -> logger.error("Token cannot be blank")
-                CorruptedId -> logger.error("Token is corrupted!")
-                InvalidCharacters -> logger.error("Token contains invalid characters!")
-                InvalidConstruction -> logger.error("Token does not fit into right form!")
+            val message = when (it) {
+                BlankString -> "Token cannot be blank"
+                CorruptedId -> "Token is corrupted!"
+                InvalidCharacters -> "Token contains invalid characters!"
+                InvalidConstruction -> "Token does not fit into right form!"
             }
-            throw IllegalStateException()
+            logger.error(message)
+            throw IllegalStateException(message)
         }
     }
 
@@ -68,6 +66,7 @@ data class DiscordClient(
     }
 
     override fun logout() {
+
         httpClient.close()
     }
 

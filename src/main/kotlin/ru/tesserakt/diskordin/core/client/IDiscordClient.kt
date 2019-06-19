@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.core.client
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import org.koin.core.KoinComponent
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IGuild
@@ -13,7 +14,7 @@ import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.util.Identified
 
-interface IDiscordClient {
+interface IDiscordClient : KoinComponent {
     val token: String
     val tokenType: TokenType
     val self: Identified<ISelf>

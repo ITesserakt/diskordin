@@ -10,14 +10,13 @@ import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 import ru.tesserakt.diskordin.core.entity.query.build
-import ru.tesserakt.diskordin.impl.core.cache.genericCache
 import ru.tesserakt.diskordin.impl.core.entity.Connection
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.impl.core.rest.resource.UserResource
 
 internal object UserService {
-    private val userCache = genericCache<IUser>()
+    //private val userCache = genericCache<IUser>()
 
     suspend fun getCurrentUser(): IUser = User(UserResource.General.getCurrentUser())
 

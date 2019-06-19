@@ -12,7 +12,6 @@ import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.build
-import ru.tesserakt.diskordin.impl.core.cache.genericCache
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 import ru.tesserakt.diskordin.impl.core.entity.Integration
 import ru.tesserakt.diskordin.impl.core.entity.Member
@@ -24,9 +23,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
 internal object GuildService {
-    private val guildCache = genericCache<IGuild>()
-    private val channelCache = genericCache<IChannel>()
-    private val memberCache = genericCache<IMember>()
+//    private val guildCache = genericCache<IGuild>()
+//    private val channelCache = genericCache<IChannel>()
+//    private val memberCache = genericCache<IMember>()
 
     suspend fun createGuild(builder: GuildCreateBuilder.() -> Unit): IGuild =
         Guild(GuildResource.General.createGuild(builder.build()))
@@ -54,7 +53,7 @@ internal object GuildService {
         GuildResource.Channels.getGuildChannels(guildId.asLong())
             .map { IChannel.typed<IGuildChannel>(it) }
 
-    suspend fun <C : IGuildChannel, B : GuildChannelCreateBuilder<C>> createChannel(
+    suspend fun <C : IGuildChannel, B : GuildChannelCreateBuilder<out C>> createChannel(
         guildId: Snowflake,
         builder: B.() -> Unit,
         reifiedClass: KClass<B>

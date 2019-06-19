@@ -1,13 +1,10 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
-import ru.tesserakt.diskordin.Diskordin
-import ru.tesserakt.diskordin.core.client.IDiscordClient
+
+
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
@@ -17,8 +14,8 @@ import ru.tesserakt.diskordin.impl.core.rest.resource.EmojiResource
 import ru.tesserakt.diskordin.impl.core.service.EmojiService
 import ru.tesserakt.diskordin.util.Identified
 
-open class Emoji(raw: EmojiResponse, final override val kodein: Kodein = Diskordin.kodein) : IEmoji {
-    override val client: IDiscordClient by instance()
+open class Emoji(raw: EmojiResponse) : IEmoji {
+
 
     override val name: String = raw.name
 }
@@ -28,12 +25,10 @@ class CustomEmoji constructor(
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =
-        EmojiService.editEmoji(guild.state, id, builder)
+        EmojiService.editEmoji(guild.id, id, builder)
 
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.coroutineScope.async {
-            client.findGuild(it) ?: throw NotCustomEmojiException()
-        }
+        client.findGuild(it) ?: throw NotCustomEmojiException()
     }
 
     @ExperimentalCoroutinesApi
@@ -47,11 +42,7 @@ class CustomEmoji constructor(
 
     override val creator: Identified<IUser> = Identified(
         raw.user?.id?.asSnowflake() ?: throw NotCustomEmojiException()
-    ) {
-        client.coroutineScope.async {
-            User(raw.user, kodein)
-        }
-    }
+    ) { User(raw.user) }
 
     override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
 
@@ -62,7 +53,7 @@ class CustomEmoji constructor(
 
     override val id: Snowflake = raw.id?.asSnowflake() ?: throw NotCustomEmojiException()
 
-    override val client: IDiscordClient by instance()
+
 
     override val name: String = raw.name
 
@@ -71,7 +62,7 @@ class CustomEmoji constructor(
 
 
     override suspend fun delete(reason: String?) = EmojiResource.General
-        .deleteEmoji(guild.state.asLong(), id.asLong())
+        .deleteEmoji(guild.id.asLong(), id.asLong())
 }
 
 class NotCustomEmojiException : IllegalArgumentException("Not a custom emoji")

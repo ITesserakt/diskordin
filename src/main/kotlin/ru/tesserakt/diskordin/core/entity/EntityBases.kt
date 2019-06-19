@@ -3,22 +3,23 @@
 
 package ru.tesserakt.diskordin.core.entity
 
-import org.kodein.di.KodeinAware
+import org.koin.core.KoinComponent
+import org.koin.core.get
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
 import ru.tesserakt.diskordin.util.Identified
 
 interface IEntity : IDiscordObject {
-
     val id: Snowflake
 }
 
-interface IDiscordObject : KodeinAware {
+interface IDiscordObject : KoinComponent {
     val client: IDiscordClient
+        get() = get()
 }
 
-interface IGuildObject {
+interface IGuildObject : IDiscordObject {
     val guild: Identified<IGuild>
 }
 

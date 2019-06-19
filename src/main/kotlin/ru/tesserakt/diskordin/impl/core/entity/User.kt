@@ -1,12 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
-import ru.tesserakt.diskordin.Diskordin
-import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
@@ -15,7 +12,7 @@ import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.impl.core.service.UserService
 
-open class User(raw: UserResponse, final override val kodein: Kodein = Diskordin.kodein) : IUser {
+open class User(raw: UserResponse) : IUser {
     final override val username: String = raw.username
 
     final override val discriminator: Short = raw.discriminator.toShort()
@@ -23,8 +20,6 @@ open class User(raw: UserResponse, final override val kodein: Kodein = Diskordin
     final override val isBot: Boolean = raw.bot ?: false
 
     final override val id: Snowflake = raw.id.asSnowflake()
-
-    final override val client: IDiscordClient by instance()
 
     final override val mention: String = "<@$id>"
 }

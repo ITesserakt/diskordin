@@ -3,8 +3,8 @@ package ru.tesserakt.diskordin.impl.core.entity.`object`
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
+
+
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.json.response.*
 import ru.tesserakt.diskordin.core.entity.`object`.IEmbed
@@ -14,7 +14,7 @@ import java.awt.Color
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class Embed(raw: EmbedResponse, override val kodein: Kodein) : IEmbed {
+class Embed(raw: EmbedResponse) : IEmbed {
     override val title: String? = raw.title
 
     override val type: String? = raw.type
@@ -34,11 +34,11 @@ class Embed(raw: EmbedResponse, override val kodein: Kodein) : IEmbed {
         override val iconUrl: String? = raw.icon_url
     }
 
-    override val image: IImage? = raw.image?.let { Image(it, kodein) }
+    override val image: IImage? = raw.image?.let { Image(it) }
 
-    override val thumbnail: IImage? = raw.thumbnail?.let { Thumbnail(it, kodein) }
+    override val thumbnail: IImage? = raw.thumbnail?.let { Thumbnail(it) }
 
-    override val video: IVideo? = raw.video?.let { Video(it, kodein) }
+    override val video: IVideo? = raw.video?.let { Video(it) }
 
     override val provider: IEmbed.IProvider? = raw.provider?.let { Provider(it) }
 
@@ -64,5 +64,5 @@ class Embed(raw: EmbedResponse, override val kodein: Kodein) : IEmbed {
         override val inline: Boolean? = raw.inline
     }
 
-    override val client: IDiscordClient by instance()
+
 }

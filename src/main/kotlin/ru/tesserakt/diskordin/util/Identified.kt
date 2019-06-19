@@ -1,7 +1,12 @@
 package ru.tesserakt.diskordin.util
 
-import arrow.data.Store
-import kotlinx.coroutines.Deferred
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.entity.IEntity
 
-typealias Identified<T> = Store<Snowflake, Deferred<T>>
+class Identified<T : IEntity>(val id: Snowflake, private val render: suspend (Snowflake) -> T) {
+    suspend operator fun invoke() = render(id)
+    operator fun component1() = id
+    suspend operator fun component2() = this()
+
+    fun update(newId: Snowflake) = Identified(newId, render)
+}

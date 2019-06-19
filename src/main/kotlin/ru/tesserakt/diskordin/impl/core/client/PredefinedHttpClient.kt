@@ -7,16 +7,23 @@ import io.ktor.client.features.*
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.header
+import okhttp3.Cache
 import ru.tesserakt.diskordin.util.Loggers
+import java.io.File
 
 internal class PredefinedHttpClient(private val token: String, private val tokenType: String) {
     private val logger = Loggers("HTTP client loader")
 
     fun get() = HttpClient(OkHttp) {
-        logger.debug("Started loading HTTP client...")
         install(JsonFeature) {
             serializer = GsonSerializer {
                 setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            }
+        }
+
+        engine {
+            config {
+                cache(Cache(File("F:\\tesserakt\\IdeaProjects\\discord-api\\src\\main\\resources"), 10 * 1024 * 1024))
             }
         }
 
@@ -40,6 +47,5 @@ internal class PredefinedHttpClient(private val token: String, private val token
                 if (status >= 600) throw ResponseException(it)
             }
         }
-        logger.debug("Done.")
     }
 }

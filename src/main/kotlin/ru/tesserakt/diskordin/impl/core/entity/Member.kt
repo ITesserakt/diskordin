@@ -1,14 +1,11 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
-import ru.tesserakt.diskordin.Diskordin
-import ru.tesserakt.diskordin.core.client.IDiscordClient
+
+
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
@@ -23,28 +20,27 @@ import java.time.format.DateTimeFormatter
 
 class Member constructor(
     raw: GuildMemberResponse,
-    guildId: Snowflake,
-    override val kodein: Kodein = Diskordin.kodein
+    guildId: Snowflake
 ) : IMember {
     override suspend fun addRole(role: IRole, reason: String?) =
-        GuildService.addRoleToMember(guild.state, id, role.id, reason)
+        GuildService.addRoleToMember(guild.id, id, role.id, reason)
 
     override suspend fun addRole(roleId: Snowflake, reason: String?) =
-        GuildService.addRoleToMember(guild.state, id, roleId, reason)
+        GuildService.addRoleToMember(guild.id, id, roleId, reason)
 
     override suspend fun removeRole(role: IRole, reason: String?) =
-        GuildService.removeRoleFromMember(guild.state, id, role.id, reason)
+        GuildService.removeRoleFromMember(guild.id, id, role.id, reason)
 
     override suspend fun removeRole(roleId: Snowflake, reason: String?) =
-        GuildService.removeRoleFromMember(guild.state, id, roleId, reason)
+        GuildService.removeRoleFromMember(guild.id, id, roleId, reason)
 
     @ExperimentalCoroutinesApi
     override suspend fun edit(builder: MemberEditBuilder.() -> Unit) =
-        GuildService.editMember(guild.state, id, builder).run {
-            guild.extract().await().members.first { it.id == id }
+        GuildService.editMember(guild.id, id, builder).run {
+            guild().members.first { it.id == id }
         }
 
-    override val client: IDiscordClient by instance()
+
 
     override val nickname: String? = raw.nick
 
@@ -53,8 +49,7 @@ class Member constructor(
         raw.roles
             .map(Snowflake.Companion::of)
             .map {
-                guild.extract().await()
-                    .findRole(it) ?: throw IllegalStateException("An error occurred")
+                guild().findRole(it) ?: throw IllegalStateException("An error occurred")
             }.forEach { emit(it) }
     }
 
@@ -69,9 +64,7 @@ class Member constructor(
     override val id: Snowflake = raw.user.id.asSnowflake()
 
     override val guild: Identified<IGuild> = Identified(guildId) {
-        client.coroutineScope.async {
-            client.findGuild(it) ?: throw IllegalArgumentException("Guild id isn`t right!")
-        }
+        client.findGuild(it) ?: throw IllegalArgumentException("Guild id isn`t right!")
     }
 
     override val mention: String = "<@!$id>"

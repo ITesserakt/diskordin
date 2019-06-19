@@ -1,12 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
-import org.kodein.di.Kodein
-import org.kodein.di.generic.instance
-import ru.tesserakt.diskordin.Diskordin
-import ru.tesserakt.diskordin.core.client.IDiscordClient
+
+
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
@@ -21,9 +18,8 @@ import ru.tesserakt.diskordin.impl.core.service.EmojiService
 import ru.tesserakt.diskordin.impl.core.service.GuildService
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
-import kotlin.reflect.KClass
 
-class Guild(raw: GuildResponse, override val kodein: Kodein = Diskordin.kodein) : IGuild {
+class Guild(raw: GuildResponse) : IGuild {
     override suspend fun findEmoji(emojiId: Snowflake): ICustomEmoji? = EmojiService.getEmoji(id, emojiId)
 
     override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji =
@@ -33,10 +29,15 @@ class Guild(raw: GuildResponse, override val kodein: Kodein = Diskordin.kodein) 
         GuildService.editOwnNickname(id, builder)
     }
 
-    override suspend fun <C : IGuildChannel, B : GuildChannelCreateBuilder<C>> addChannel(
-        builder: B.() -> Unit,
-        clazz: KClass<B>
-    ): C = GuildService.createChannel(id, builder, clazz)
+    override suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
+        addChannelJ(builder)
+
+    override suspend fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel =
+        addChannelJ(builder)
+
+    private suspend inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
+        noinline builder: B.() -> Unit
+    ): C = GuildService.createChannel(id, builder, B::class)
 
     override suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) =
         GuildService.editChannelPositions(id, builder as Array<PositionEditBuilder.() -> Unit>)
@@ -98,23 +99,19 @@ class Guild(raw: GuildResponse, override val kodein: Kodein = Diskordin.kodein) 
         .filter { it.id == id }
         .singleOrNull()
 
-    override val client: IDiscordClient by instance()
+
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
     @ExperimentalCoroutinesApi
     override val owner: Identified<IMember> = Identified(raw.owner_id.asSnowflake()) { id ->
-        client.coroutineScope.async {
-            members.filter { it.id == id }.single()
-        }
+        members.filter { it.id == id }.single()
     }
 
     @ExperimentalCoroutinesApi
     override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
         Identified(it) { id ->
-            client.coroutineScope.async {
-                channels.filter { channel -> channel.id == id }.single() as VoiceChannel
-            }
+            channels.filter { channel -> channel.id == id }.single() as VoiceChannel
         }
     }
 
@@ -125,7 +122,7 @@ class Guild(raw: GuildResponse, override val kodein: Kodein = Diskordin.kodein) 
     @ExperimentalCoroutinesApi
     override val roles: Flow<IRole> =
         raw.roles
-            .map { Role(it, id, kodein) }
+            .map { Role(it, id) }
             .asFlow()
 
     @ExperimentalCoroutinesApi

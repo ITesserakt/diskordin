@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.rest
 
 import io.ktor.http.HttpMethod
-import ru.tesserakt.diskordin.Diskordin
 
 internal data class Route(
     val httpMethod: HttpMethod,
@@ -24,5 +23,5 @@ internal data class Route(
             Route(HttpMethod.Delete, urlTemplate)
     }
 
-    fun newRequest() = Request(Diskordin.kodein, this)
+    fun newRequest() = Requester(this)
 }
