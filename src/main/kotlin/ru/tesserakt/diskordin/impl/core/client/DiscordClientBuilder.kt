@@ -8,12 +8,10 @@ import org.koin.core.logger.Level
 import org.koin.dsl.module
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
-import ru.tesserakt.diskordin.util.ThrowingPolicy
 
 class DiscordClientBuilder private constructor() {
     var token: String = "Invalid token"
     var tokenType: TokenType = TokenType.Bot
-    lateinit var globalThrowingPolicy: ThrowingPolicy
 
     companion object {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit): IDiscordClient {

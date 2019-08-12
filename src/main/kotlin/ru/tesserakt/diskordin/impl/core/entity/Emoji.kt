@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -31,7 +30,6 @@ class CustomEmoji constructor(
         client.findGuild(it) ?: throw NotCustomEmojiException()
     }
 
-    @ExperimentalCoroutinesApi
     override val roles: Flow<IRole> = flow {
         raw.roles?.map(Long::asSnowflake)
             ?.map {

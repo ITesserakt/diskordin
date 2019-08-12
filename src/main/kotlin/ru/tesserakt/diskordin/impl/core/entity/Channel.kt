@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -20,7 +19,7 @@ import ru.tesserakt.diskordin.util.Loggers
 sealed class Channel(raw: ChannelResponse) : IChannel {
     private val logger by Loggers
 
-    final override val type: IChannel.Type = IChannel.Type.of(raw.type)
+    final override val type: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.type }
 
     final override val id: Snowflake = raw.id.asSnowflake()
 
@@ -33,7 +32,6 @@ sealed class Channel(raw: ChannelResponse) : IChannel {
     override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite =
         ChannelService.newChannelInvite(id, builder)
 
-    @ExperimentalCoroutinesApi
     override val invites: Flow<IInvite>
         get() = flow {
             ChannelService.getChannelInvites<IInvite>(id).forEach { emit(it) }
@@ -51,7 +49,6 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 
     final override val position: Int = raw.position!!
 
-    @ExperimentalCoroutinesApi
     final override val permissionOverwrites: Flow<IPermissionOverwrite> = raw.permission_overwrites!!.map {
         PermissionOverwrite(it)
     }.asFlow()
@@ -64,7 +61,6 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 
     final override val name: String = raw.name!!
 
-    @ExperimentalCoroutinesApi
     final override val invites: Flow<IGuildInvite>
         get() = flow {
             ChannelService.getChannelInvites<IGuildInvite>(id).forEach { emit(it) }
@@ -84,7 +80,6 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 }
 
 class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
-    @ExperimentalCoroutinesApi
     override suspend fun getPinnedMessages(): List<IMessage> = messages.filter { it.isPinned }.toList()
 
     override suspend fun typing() = ChannelService.triggerTyping(id)
@@ -99,7 +94,6 @@ class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         ChannelService.bulkDeleteMessages(id, builder)
 
-    @ExperimentalCoroutinesApi
     override val messages: Flow<IMessage>
         get() = flow {
             ChannelService.getMessages(id) {
@@ -159,12 +153,10 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
         raw.owner_id!!.asSnowflake()
     ) { client.findUser(it)!! }
 
-    @ExperimentalCoroutinesApi
     override val recipients: Flow<IUser> = raw.recipients!!
         .map { User(it) }
         .asFlow()
 
-    @ExperimentalCoroutinesApi
     override val messages: Flow<IMessage>
         get() = flow {
             ChannelService.getMessages(id) {

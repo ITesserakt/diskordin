@@ -1,11 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.entity.`object`
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 
 
-import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.json.response.*
 import ru.tesserakt.diskordin.core.entity.`object`.IEmbed
 import ru.tesserakt.diskordin.core.entity.`object`.IImage
@@ -55,7 +53,6 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val iconUrl: String? = raw.icon_url
     }
 
-    @ExperimentalCoroutinesApi
     override val fields: Flow<IEmbed.IField> = (raw.fields ?: emptyArray()).map { Field(it) }.asFlow()
 
     class Field(raw: FieldResponse) : IEmbed.IField {
@@ -63,6 +60,4 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val value: String = raw.value
         override val inline: Boolean? = raw.inline
     }
-
-
 }

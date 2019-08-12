@@ -20,10 +20,10 @@ class Connection(raw: ConnectionResponse) : IConnection {
 
     override val isShowingActivity: Boolean = raw.show_activity
 
-    override val visibility: IConnection.Visibility = IConnection.Visibility.of(raw.visibility)
+    override val visibility =
+        IConnection.Visibility.values().first { it.ordinal == raw.visibility }
 
     override val id: Snowflake = raw.id.asSnowflake()
-
 
     override val name: String = raw.name
 }

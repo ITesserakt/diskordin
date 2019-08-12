@@ -7,7 +7,7 @@ abstract class BuilderBase<R : JsonRequest> internal constructor() {
     abstract fun create(): R
 }
 
-inline fun <R : JsonRequest, reified B : BuilderBase<R>> (B.() -> Unit).build() =
+inline fun <R : JsonRequest, reified B : BuilderBase<out R>> (B.() -> Unit).build() =
     B::class.createInstance().apply(this).create()
 
 abstract class AuditLogging<R : JsonRequest> : BuilderBase<R>() {

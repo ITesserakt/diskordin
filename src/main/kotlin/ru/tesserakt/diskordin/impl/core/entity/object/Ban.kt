@@ -12,6 +12,4 @@ class Ban(raw: BanResponse) : IBan {
     override val reason: String? = raw.reason
 
     override val user: Identified<IUser> = Identified(raw.user.id.asSnowflake()) { User(raw.user) }
-
-
 }

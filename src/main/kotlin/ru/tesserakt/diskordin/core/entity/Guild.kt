@@ -2,7 +2,6 @@
 
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
@@ -40,19 +39,12 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
     suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit)
 
-    @ExperimentalCoroutinesApi
     val members: Flow<IMember>
-    @ExperimentalCoroutinesApi
     val invites: Flow<IGuildInvite>
-    @ExperimentalCoroutinesApi
     val emojis: Flow<ICustomEmoji>
-    @ExperimentalCoroutinesApi
     val bans: Flow<IBan>
-    @ExperimentalCoroutinesApi
     val integrations: Flow<IIntegration>
-    @ExperimentalCoroutinesApi
     val roles: Flow<IRole>
-    @ExperimentalCoroutinesApi
     val channels: Flow<IGuildChannel>
 
     enum class VerificationLevel {
@@ -61,16 +53,5 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
         Medium,
         High,
         VeryHigh;
-
-        companion object {
-            fun of(value: Int) = when (value) {
-                0 -> None
-                1 -> Low
-                2 -> Medium
-                3 -> High
-                4 -> VeryHigh
-                else -> throw NoSuchElementException()
-            }
-        }
     }
 }

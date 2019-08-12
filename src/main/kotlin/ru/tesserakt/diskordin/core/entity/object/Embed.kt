@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.entity.`object`
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import java.awt.Color
@@ -19,7 +18,6 @@ interface IEmbed : IDiscordObject {
     val video: IVideo?
     val provider: IProvider?
     val author: IAuthor?
-    @ExperimentalCoroutinesApi
     val fields: Flow<IField>
 
     interface IField {

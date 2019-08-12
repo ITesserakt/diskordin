@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.client
 import arrow.data.Validated
 import arrow.data.invalid
 import arrow.data.valid
+import kotlinx.io.charsets.Charset
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -20,7 +21,7 @@ internal class TokenVerification(private val token: String, private val tokenTyp
         val parts = token.split('.')
         if (parts.size != 3) return VerificationError.InvalidConstruction()
 
-        return turnToSnowflake(parts[0]).fold({ it.invalid() }, { it.valid() })
+        return turnToSnowflake(parts[0])
     }
 
     private fun turnToSnowflake(tokenPart: String): VerificationResult<Snowflake> {
@@ -34,8 +35,8 @@ internal class TokenVerification(private val token: String, private val tokenTyp
 
         return padBase64String(tokenPart).map {
             val bytes = Base64.getDecoder().decode(it)
-            bytes.toString(kotlinx.io.charsets.Charset.forName("Utf-8"))
-        }.map { it.asSnowflake() }
+            bytes.toString(Charset.forName("Utf-8"))
+        }.map(String::asSnowflake)
     }
 
     internal sealed class VerificationError {

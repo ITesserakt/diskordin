@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
@@ -17,11 +16,8 @@ interface IUser : IMentioned, INamed {
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
-    @ExperimentalCoroutinesApi
     val guilds: Flow<IGuild>
-    @ExperimentalCoroutinesApi
     val privateChannels: Flow<IPrivateChannel>
-    @ExperimentalCoroutinesApi
     val connections: Flow<IConnection>
 
     suspend fun leaveGuild(guild: IGuild)

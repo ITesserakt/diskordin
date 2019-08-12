@@ -4,7 +4,6 @@ import arrow.data.handleLeftWith
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -56,9 +55,7 @@ data class DiscordClient(
     override var isConnected: Boolean = false
         private set
 
-    @ExperimentalCoroutinesApi
     override val users: Flow<IUser> = emptyArray<User>().asFlow()
-    @ExperimentalCoroutinesApi
     override val guilds: Flow<IGuild> = emptyArray<Guild>().asFlow()
 
     override suspend fun login() {

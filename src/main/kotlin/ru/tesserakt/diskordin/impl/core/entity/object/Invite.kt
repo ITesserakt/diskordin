@@ -14,8 +14,7 @@ open class Invite(raw: InviteResponse) : IInvite {
     override val code: String = raw.code
     override val channel: Identified<IChannel> =
         Identified(raw.channel.id.asSnowflake()) { IChannel.typed<IChannel>(raw.channel) }
-    override val channelType: IChannel.Type = IChannel.Type.of(raw.channel.type)
-
+    override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
 }
 
 class GuildInvite(raw: InviteResponse) : Invite(raw), IGuildInvite {

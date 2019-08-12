@@ -1,11 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-
-
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
@@ -36,7 +34,6 @@ class Member constructor(
     override suspend fun removeRole(roleId: Snowflake, reason: String?) =
         GuildService.removeRoleFromMember(guild.id, id, roleId, reason)
 
-    @ExperimentalCoroutinesApi
     override suspend fun edit(builder: MemberEditBuilder.() -> Unit) =
         GuildService.editMember(guild.id, id, builder).run {
             guild().members.first { it.id == id }
@@ -44,7 +41,6 @@ class Member constructor(
 
     override val nickname: String? = raw.nick
 
-    @ExperimentalCoroutinesApi
     override val roles: Flow<IRole> = flow {
         raw.roles
             .map(Snowflake.Companion::of)

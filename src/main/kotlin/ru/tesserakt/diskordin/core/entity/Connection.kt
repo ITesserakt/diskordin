@@ -11,12 +11,8 @@ interface IConnection : IEntity, INamed {
     val isShowingActivity: Boolean
     val visibility: Visibility
 
-    enum class Visibility(private val value: Int) {
-        None(0),
-        Everyone(1);
-
-        companion object {
-            fun of(value: Int) = values().first { it.value == value }
-        }
+    enum class Visibility {
+        None,
+        Everyone;
     }
 }

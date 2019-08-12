@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -43,7 +42,6 @@ internal class Message(raw: MessageResponse) : IMessage {
 
     override val isTTS: Boolean = raw.tts
 
-    @ExperimentalCoroutinesApi
     override val attachments: Flow<IAttachment>? = raw.attachments.map { Attachment(it) }.asFlow()
 
     override val isPinned: Boolean = raw.pinned

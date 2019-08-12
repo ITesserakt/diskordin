@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.core.client
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import org.koin.core.KoinComponent
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -31,9 +30,7 @@ interface IDiscordClient : KoinComponent {
     suspend fun deleteInvite(code: String, reason: String?)
     suspend fun getRegions(): List<IRegion>
 
-    @ExperimentalCoroutinesApi
     val users: Flow<IUser>
-    @ExperimentalCoroutinesApi
     val guilds: Flow<IGuild>
 }
 

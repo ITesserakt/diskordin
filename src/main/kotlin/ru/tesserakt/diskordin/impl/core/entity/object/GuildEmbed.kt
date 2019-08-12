@@ -15,6 +15,4 @@ class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
             (client.findChannel(it) as IGuildChannel?) ?: throw NoSuchElementException("")
         }
     }
-
-
 }

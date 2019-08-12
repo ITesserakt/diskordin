@@ -5,7 +5,6 @@ package ru.tesserakt.diskordin.impl.core.service
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.computeCode
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IEmoji
 import ru.tesserakt.diskordin.core.entity.IGuildChannel
@@ -15,12 +14,11 @@ import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
-import ru.tesserakt.diskordin.core.entity.query.build
+import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Message
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
 import ru.tesserakt.diskordin.util.appendNullable
-import ru.tesserakt.diskordin.util.plus
 
 internal object ChannelService {
     //private val channelCache = genericCache<IChannel>()
@@ -48,7 +46,7 @@ internal object ChannelService {
         id: Snowflake,
         query: MessagesQuery.() -> Unit
     ) = ChannelResource.Messages
-        .getMessages(id.asLong(), query.build())
+        .getMessages(id.asLong(), query.query())
         .map { Message(it) }
 
     suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): IMessage = ChannelResource.Messages
@@ -113,7 +111,7 @@ internal object ChannelService {
         emoji: IEmoji,
         builder: ReactedUsersQuery.() -> Unit
     ) = ChannelResource.Reactions
-        .getReactions(channelId.asLong(), messageId.asLong(), emoji.name, builder.build())
+        .getReactions(channelId.asLong(), messageId.asLong(), emoji.name, builder.query())
         .map { User(it) }
 
     suspend fun deleteAllReactions(channelId: Snowflake, messageId: Snowflake) =
@@ -134,7 +132,7 @@ internal object ChannelService {
     suspend fun removeChannelPermissions(channelId: Snowflake, overwrite: IPermissionOverwrite, reason: String?) =
         ChannelResource.Permissions.deleteChannelPermissions(
             channelId.asLong(),
-            (overwrite.allowed + overwrite.denied).computeCode(), //FIXME
+            (overwrite.allowed or overwrite.denied).code, //FIXME
             reason
         )
 
@@ -144,7 +142,7 @@ internal object ChannelService {
         builder: PermissionEditBuilder.() -> Unit
     ) = ChannelResource.Permissions.editChannelPermissions(
         channelId.asLong(),
-        (overwrite.allowed + overwrite.denied).computeCode(), // FIXME
+        (overwrite.allowed or overwrite.denied).code, // FIXME
         builder.build(),
         builder.extractReason()
     )

@@ -11,7 +11,7 @@ import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
-import ru.tesserakt.diskordin.core.entity.query.build
+import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 import ru.tesserakt.diskordin.impl.core.entity.Integration
 import ru.tesserakt.diskordin.impl.core.entity.Member
@@ -74,7 +74,7 @@ internal object GuildService {
 
     suspend fun getMembers(guildId: Snowflake, query: MemberQuery.() -> Unit): List<IMember> =
         GuildResource.Members
-            .getMembers(guildId.asLong(), query.build())
+            .getMembers(guildId.asLong(), query.query())
             .map { Member(it, guildId) }
 
     suspend fun addMember(guildId: Snowflake, userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember =
@@ -120,13 +120,13 @@ internal object GuildService {
     }.map { Ban(it) }.getOrNull()
 
     suspend fun ban(guildId: Snowflake, userId: Snowflake, query: BanQuery.() -> Unit) =
-        GuildResource.Bans.createBan(guildId.asLong(), userId.asLong(), query.build())
+        GuildResource.Bans.createBan(guildId.asLong(), userId.asLong(), query.query())
 
     suspend fun unban(guildId: Snowflake, userId: Snowflake, reason: String?) =
         GuildResource.Bans.removeBan(guildId.asLong(), userId.asLong(), reason)
 
     suspend fun getPruneCount(guildId: Snowflake, builder: PruneQuery.() -> Unit) =
-        GuildResource.Prunes.getPruneCount(guildId.asLong(), builder.build()).pruned
+        GuildResource.Prunes.getPruneCount(guildId.asLong(), builder.query()).pruned
 
     suspend fun getIntegrations(guildId: Snowflake): List<IIntegration> =
         GuildResource.Integrations.getIntegrations(guildId.asLong())

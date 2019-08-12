@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
@@ -11,7 +10,6 @@ interface IMember : IUser, IGuildObject, IEditable<IMember, MemberEditBuilder> {
     override val name: String
         get() = nickname ?: username
 
-    @ExperimentalCoroutinesApi
     val roles: Flow<IRole>
 
     val joinTime: Instant

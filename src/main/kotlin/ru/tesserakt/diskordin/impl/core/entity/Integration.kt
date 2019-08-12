@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -27,7 +26,6 @@ class Integration(
 
     override suspend fun delete(reason: String?) = GuildService.deleteIntegration(guildId, id)
 
-    @ExperimentalCoroutinesApi
     override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration =
         GuildService.editIntegration(guildId, id, builder).run {
             guild().integrations.first { it.id == id }

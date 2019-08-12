@@ -1,45 +1,44 @@
 package ru.tesserakt.diskordin.util
 
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.amshove.kluent.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.RepeatedTest
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.entity.IMentioned
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertSame
+import kotlin.random.Random
 
 internal class IdentifiedTest {
-    lateinit var sample: Identified<IMentioned>
-    private val snowflake = 1049034030030.asSnowflake()
+    private lateinit var sample: Identified<IMentioned>
+    private lateinit var snowflake: Snowflake
 
     @BeforeEach
     internal fun setUp() {
-        sample = Identified(snowflake) { id ->
-            mockk<IMentioned> {
-                every { this@mockk.id } returns id
-            }
-        }
+        snowflake = Random.nextLong(4194305, Long.MAX_VALUE).asSnowflake()
+        println("Next id: $snowflake, ${snowflake.timestamp}")
+        val mock = mock<IMentioned>()
+        When calling mock.id `it returns` snowflake
+
+        sample = Identified(snowflake) { mock }
     }
 
-    @Test
-    fun `invoke should return same id as in start`() = runBlocking {
+    @RepeatedTest(10)
+    fun `invoke should return same id as in start`() = runBlocking<Unit> {
         val data = sample()
-        assertEquals(data.id, snowflake)
+        data.id shouldEqual snowflake
     }
 
-    @Test
-    fun `destructor should contain id and data`() = runBlocking {
+    @RepeatedTest(10)
+    fun `destructor should contain id and data`() = runBlocking<Unit> {
         val (id, data) = sample
-        assertEquals(id, data.id)
+        id shouldEqual data.id
     }
 
-    @Test
+    @RepeatedTest(10)
     fun `update returns new object with new id`() {
         val updated = sample.update(5000000000.asSnowflake()).update(snowflake)
-        assertSame(sample.id, updated.id)
-        assertNotEquals(sample, updated)
+        sample.id shouldEqual updated.id
+        sample `should not equal` updated
     }
 }

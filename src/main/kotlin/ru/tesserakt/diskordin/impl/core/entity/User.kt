@@ -1,7 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -22,7 +21,6 @@ open class User(raw: UserResponse) : IUser {
 
     final override val id: Snowflake = raw.id.asSnowflake()
 
-    @ExperimentalCoroutinesApi
     final override suspend fun asMember(guildId: Snowflake): IMember =
         client.findGuild(guildId)!!.members.first { it.id == id }
 
@@ -30,17 +28,16 @@ open class User(raw: UserResponse) : IUser {
 }
 
 class Self(raw: UserResponse) : User(raw), ISelf {
-    @ExperimentalCoroutinesApi
     override val guilds: Flow<IGuild>
         get() = flow {
             UserService.getCurrentUserGuilds { this.limit = 100 }.forEach { emit(it) }
         }
-    @ExperimentalCoroutinesApi
+
     override val privateChannels: Flow<IPrivateChannel>
         get() = flow {
             UserService.getCurrentUserPrivateChannels().forEach { emit(it) }
         }
-    @ExperimentalCoroutinesApi
+
     override val connections: Flow<IConnection>
         get() = flow {
             UserService.getCurrentUserConnections().forEach { emit(it) }

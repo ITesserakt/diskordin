@@ -1,9 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 import kotlinx.coroutines.flow.*
-
-
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
@@ -68,22 +66,21 @@ class Guild(raw: GuildResponse) : IGuild {
     override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) =
         GuildService.createIntegration(id, builder)
 
-    @ExperimentalCoroutinesApi
     override val invites: Flow<IGuildInvite>
         get() = flow {
             GuildService.getInvites(id).forEach { emit(it) }
         }
-    @ExperimentalCoroutinesApi
+
     override val emojis: Flow<ICustomEmoji>
         get() = flow {
             EmojiService.getEmojis(id).forEach { emit(it) }
         }
-    @ExperimentalCoroutinesApi
+
     override val bans: Flow<IBan>
         get() = flow {
             GuildService.getBans(id).forEach { emit(it) }
         }
-    @ExperimentalCoroutinesApi
+
     override val integrations: Flow<IIntegration>
         get() = flow {
             GuildService.getIntegrations(id).forEach { emit(it) }
@@ -94,7 +91,6 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val id: Snowflake = raw.id.asSnowflake()
 
-    @ExperimentalCoroutinesApi
     override suspend fun findRole(id: Snowflake): IRole? = roles
         .filter { it.id == id }
         .singleOrNull()
@@ -103,12 +99,10 @@ class Guild(raw: GuildResponse) : IGuild {
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
-    @ExperimentalCoroutinesApi
     override val owner: Identified<IMember> = Identified(raw.owner_id.asSnowflake()) { id ->
         members.filter { it.id == id }.single()
     }
 
-    @ExperimentalCoroutinesApi
     override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
         Identified(it) { id ->
             channels.filter { channel -> channel.id == id }.single() as VoiceChannel
@@ -117,20 +111,18 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val afkChannelTimeout: Duration = Duration.ofSeconds(raw.afk_timeout.toLong())
 
-    override val verificationLevel = IGuild.VerificationLevel.of(raw.verification_level)
+    override val verificationLevel =
+        IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }
 
-    @ExperimentalCoroutinesApi
     override val roles: Flow<IRole> =
         raw.roles
             .map { Role(it, id) }
             .asFlow()
 
-    @ExperimentalCoroutinesApi
     override val members: Flow<IMember> = flow {
         GuildService.getMembers(id) { limit = 1000 }.forEach { emit(it) }
     }
 
-    @ExperimentalCoroutinesApi
     override val channels: Flow<IGuildChannel> = flow {
         GuildService.getChannels(id).forEach { emit(it) }
     }

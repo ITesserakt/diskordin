@@ -2,9 +2,8 @@ package ru.tesserakt.diskordin.util
 
 import io.ktor.client.request.forms.formData
 import io.ktor.http.HeadersBuilder
+import org.amshove.kluent.shouldBe
 import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 internal class RequestUtilTest {
     @Test
@@ -14,8 +13,8 @@ internal class RequestUtilTest {
         headers.append("Test", null)
         headers.append("Test2", "message") //Act
 
-        assertTrue(headers.contains("Test2"))
-        assertFalse(headers.contains("Test")) //Assert
+        "Test2" shouldBeIn headers
+        "Test" shouldNotBeIn headers //Assert
     }
 
     @Test
@@ -25,6 +24,10 @@ internal class RequestUtilTest {
             appendNullable("T2", null)
         } //Arrange & Act
 
-        assertTrue(data.isNotEmpty() && data.size == 1) //Assert
+        (data.isNotEmpty() && data.size == 1) shouldBe true //Assert
     }
 }
+
+private infix fun String.shouldNotBeIn(headers: HeadersBuilder) = (this !in headers) shouldBe true
+
+private infix fun String.shouldBeIn(headers: HeadersBuilder) = (this in headers) shouldBe true

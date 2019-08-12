@@ -8,5 +8,5 @@ interface IQuery {
     fun create(): Query
 }
 
-inline fun <reified Q : IQuery> (Q.() -> Unit).build() =
+inline fun <reified Q : IQuery> (Q.() -> Unit).query() =
     Q::class.createInstance().apply(this).create()

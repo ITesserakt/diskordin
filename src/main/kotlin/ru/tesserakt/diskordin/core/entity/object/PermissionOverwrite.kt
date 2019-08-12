@@ -4,9 +4,7 @@ import arrow.core.Either
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IDiscordObject
-import java.util.*
-import kotlin.NoSuchElementException
-
+import ru.tesserakt.diskordin.util.enums.ValuedEnum
 
 internal typealias RoleId = Snowflake
 
@@ -16,8 +14,8 @@ interface IPermissionOverwrite : IDiscordObject {
 
     val targetId: Either<RoleId, MemberId>
     val type: Type
-    val allowed: EnumSet<Permission>
-    val denied: EnumSet<Permission>
+    val allowed: ValuedEnum<Permission>
+    val denied: ValuedEnum<Permission>
 
     enum class Type(internal val value: String) {
         Role("role"),

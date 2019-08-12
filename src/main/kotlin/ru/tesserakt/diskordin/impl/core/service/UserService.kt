@@ -9,7 +9,7 @@ import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
-import ru.tesserakt.diskordin.core.entity.query.build
+import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Connection
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
@@ -28,7 +28,7 @@ internal object UserService {
         Self(UserResource.General.editCurrentUser(builder.build()))
 
     suspend fun getCurrentUserGuilds(query: UserGuildsQuery.() -> Unit) = UserResource.Guilds
-        .getCurrentUserGuilds(query.build<UserGuildsQuery>())
+        .getCurrentUserGuilds(query.query())
         .mapNotNull { GuildService.getGuild(it.id.asSnowflake()) }
 
     suspend fun leaveGuild(guildId: Snowflake) =

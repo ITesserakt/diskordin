@@ -1,7 +1,7 @@
 package ru.tesserakt.diskordin.util
 
+import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 internal class LoggersTest {
     private val log1 by Loggers
@@ -13,11 +13,11 @@ internal class LoggersTest {
 
     @Test
     fun `multiple call of Loggers should return the same value`() {
-        assertEquals(log1, log2)
+        log1 shouldEqual log2
     }
 
     @Test
     fun `call from companion class should return declaring class`() {
-        assertEquals(log2, log3)
+        log2 shouldEqual log3
     }
 }
