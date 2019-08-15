@@ -8,8 +8,8 @@ import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
-import ru.tesserakt.diskordin.impl.core.rest.resource.GuildResource
 import ru.tesserakt.diskordin.impl.core.service.GuildService
+import ru.tesserakt.diskordin.rest.resource.GuildResource
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
@@ -32,7 +32,7 @@ class Role constructor(
 
     override val id: Snowflake = raw.id.asSnowflake()
 
-
+    override val isEveryone: Boolean = id == guildId
 
     override val guild: Identified<IGuild> = Identified(guildId) {
         client.findGuild(it) ?: throw NoSuchElementException("Guild id is not right")

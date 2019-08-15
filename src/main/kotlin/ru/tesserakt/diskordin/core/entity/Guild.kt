@@ -20,8 +20,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
 
-    suspend fun findRole(id: Snowflake): IRole?
-    suspend fun findEmoji(emojiId: Snowflake): ICustomEmoji?
+    suspend fun getRole(id: Snowflake): IRole
+    suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
     suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji
     suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit)
     suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
@@ -38,6 +38,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     suspend fun pardon(userId: Snowflake, reason: String?)
     suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
     suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit)
+    suspend fun getEveryoneRole(): IRole
+    suspend fun <C : IGuildChannel> getChannel(id: Snowflake): C
 
     val members: Flow<IMember>
     val invites: Flow<IGuildInvite>

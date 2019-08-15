@@ -2,8 +2,6 @@
 
 package ru.tesserakt.diskordin.impl.core.service
 
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IEmoji
@@ -17,8 +15,8 @@ import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Message
 import ru.tesserakt.diskordin.impl.core.entity.User
-import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
-import ru.tesserakt.diskordin.util.appendNullable
+import ru.tesserakt.diskordin.rest.resource.ChannelResource
+import ru.tesserakt.diskordin.util.enums.not
 
 internal object ChannelService {
     //private val channelCache = genericCache<IChannel>()
@@ -56,18 +54,7 @@ internal object ChannelService {
     suspend fun createMessage(
         id: Snowflake,
         builder: MessageCreateBuilder.() -> Unit
-    ): IMessage = ChannelResource.Messages.createMessage(
-        id.asLong(), MultiPartFormDataContent(
-            formData {
-                val request = builder.build()
-                append("content", request.content)
-                appendNullable("nonce", request.nonce)
-                appendNullable("tts", request.tts?.toString())
-                appendNullable("embed", request.embed)
-                request.file?.let { appendInput("file") { it } }
-            }
-        )
-    ).let { Message(it) }
+    ): IMessage = Message(ChannelResource.Messages.createMessage(id.asLong(), builder.build()))
 
     suspend fun editMessage(
         channelId: Snowflake,
@@ -132,7 +119,7 @@ internal object ChannelService {
     suspend fun removeChannelPermissions(channelId: Snowflake, overwrite: IPermissionOverwrite, reason: String?) =
         ChannelResource.Permissions.deleteChannelPermissions(
             channelId.asLong(),
-            (overwrite.allowed or overwrite.denied).code, //FIXME
+            (overwrite.allowed and !overwrite.denied).code,
             reason
         )
 
@@ -142,7 +129,7 @@ internal object ChannelService {
         builder: PermissionEditBuilder.() -> Unit
     ) = ChannelResource.Permissions.editChannelPermissions(
         channelId.asLong(),
-        (overwrite.allowed or overwrite.denied).code, // FIXME
+        (overwrite.allowed and !overwrite.denied).code,
         builder.build(),
         builder.extractReason()
     )

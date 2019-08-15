@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.resource
+package ru.tesserakt.diskordin.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.GroupDMCreateRequest
@@ -10,7 +10,7 @@ import ru.tesserakt.diskordin.core.data.json.response.ConnectionResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.core.entity.query.Query
-import ru.tesserakt.diskordin.impl.core.rest.Routes
+import ru.tesserakt.diskordin.rest.Routes
 
 internal object UserResource {
     object General {

@@ -38,7 +38,7 @@ class Integration(
     override val syncing: Boolean = raw.syncing
 
     override val role: Identified<IRole> = Identified(raw.role_id.asSnowflake()) {
-        client.findGuild(guildId)?.findRole(it) ?: throw NoSuchElementException("Guild id isn`t right")
+        client.findGuild(guildId)?.getRole(it) ?: throw NoSuchElementException("Guild id isn`t right")
     }
 
     override val expireBehavior: Int = raw.expire_behavior

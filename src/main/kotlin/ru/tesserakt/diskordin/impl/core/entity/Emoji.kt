@@ -1,16 +1,15 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-
-
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
-import ru.tesserakt.diskordin.impl.core.rest.resource.EmojiResource
 import ru.tesserakt.diskordin.impl.core.service.EmojiService
+import ru.tesserakt.diskordin.rest.resource.EmojiResource
 import ru.tesserakt.diskordin.util.Identified
 
 open class Emoji(raw: EmojiResponse) : IEmoji {
@@ -33,7 +32,7 @@ class CustomEmoji constructor(
     override val roles: Flow<IRole> = flow {
         raw.roles?.map(Long::asSnowflake)
             ?.map {
-                client.findGuild(guildId)?.findRole(it) ?: throw NotCustomEmojiException()
+                client.findGuild(guildId)?.getRole(it) ?: throw NotCustomEmojiException()
             }
             ?.forEach { emit(it) } ?: throw NotCustomEmojiException()
     }

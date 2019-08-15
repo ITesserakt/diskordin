@@ -6,7 +6,7 @@ import ru.tesserakt.diskordin.core.entity.IEmoji
 import ru.tesserakt.diskordin.core.entity.builder.EmojiCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
-import ru.tesserakt.diskordin.impl.core.rest.resource.EmojiResource
+import ru.tesserakt.diskordin.rest.resource.EmojiResource
 
 internal object EmojiService {
     //private val emojiCache = genericCache<ICustomEmoji>()
@@ -15,9 +15,9 @@ internal object EmojiService {
         EmojiResource.General.getEmojis(guildId.asLong())
             .map { IEmoji.typed<ICustomEmoji>(it, guildId) }
 
-    suspend fun getEmoji(guildId: Snowflake, emojiId: Snowflake) = runCatching {
+    suspend fun getEmoji(guildId: Snowflake, emojiId: Snowflake) =
         EmojiResource.General.getEmoji(guildId.asLong(), emojiId.asLong())
-    }.map { IEmoji.typed<ICustomEmoji>(it, guildId) }.getOrNull()
+            .let { IEmoji.typed<ICustomEmoji>(it, guildId) }
 
     suspend fun createEmoji(guildId: Snowflake, builder: EmojiCreateBuilder.() -> Unit) =
         EmojiResource.General.createEmoji(guildId.asLong(), builder.build())

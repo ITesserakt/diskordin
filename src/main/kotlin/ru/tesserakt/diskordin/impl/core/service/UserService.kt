@@ -13,7 +13,7 @@ import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Connection
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
-import ru.tesserakt.diskordin.impl.core.rest.resource.UserResource
+import ru.tesserakt.diskordin.rest.resource.UserResource
 
 internal object UserService {
     //private val userCache = genericCache<IUser>()

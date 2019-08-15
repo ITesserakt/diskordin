@@ -10,4 +10,5 @@ interface IRole : IGuildObject, IMentioned, INamed, IDeletable, IEditable<IRole,
     val color: Color
     val isHoisted: Boolean
     val isMentionable: Boolean
+    val isEveryone: Boolean
 }

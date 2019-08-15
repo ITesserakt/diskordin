@@ -18,7 +18,7 @@ import ru.tesserakt.diskordin.impl.core.entity.Member
 import ru.tesserakt.diskordin.impl.core.entity.Role
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Ban
 import ru.tesserakt.diskordin.impl.core.entity.`object`.GuildEmbed
-import ru.tesserakt.diskordin.impl.core.rest.resource.GuildResource
+import ru.tesserakt.diskordin.rest.resource.GuildResource
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 
@@ -51,6 +51,7 @@ internal object GuildService {
 
     suspend fun getChannels(guildId: Snowflake) =
         GuildResource.Channels.getGuildChannels(guildId.asLong())
+            .filter { it.type !in 3..6 }
             .map { IChannel.typed<IGuildChannel>(it) }
 
     suspend fun <C : IGuildChannel, B : GuildChannelCreateBuilder<out C>> createChannel(

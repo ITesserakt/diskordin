@@ -1,11 +1,11 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.resource
+package ru.tesserakt.diskordin.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.*
 import ru.tesserakt.diskordin.core.data.json.response.*
 import ru.tesserakt.diskordin.core.entity.query.Query
-import ru.tesserakt.diskordin.impl.core.rest.Routes
+import ru.tesserakt.diskordin.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
 internal object GuildResource {

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest
+package ru.tesserakt.diskordin.rest
 
 internal object Routes {
 

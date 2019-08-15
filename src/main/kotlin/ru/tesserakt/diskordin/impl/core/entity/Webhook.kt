@@ -8,7 +8,7 @@ import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.IWebhook
-import ru.tesserakt.diskordin.impl.core.rest.resource.WebhookResource
+import ru.tesserakt.diskordin.rest.resource.WebhookResource
 import ru.tesserakt.diskordin.util.Identified
 
 class Webhook(raw: WebhookResponse) : IWebhook {

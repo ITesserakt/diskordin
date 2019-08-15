@@ -76,3 +76,7 @@ inline fun <reified E> ValuedEnum<E>.asSet(): EnumSet<E>
         code and it.value != it.value
     }
 }
+
+fun <E> EnumSet<E>.enhance()
+        where E : Enum<E>, E : IValued<E> =
+    ValuedEnum<E>(map { it.value }.reduce(Long::plus))

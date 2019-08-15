@@ -6,7 +6,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.features.*
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.websocket.WebSockets
 import io.ktor.client.request.header
+import io.ktor.util.KtorExperimentalAPI
 import okhttp3.Cache
 import ru.tesserakt.diskordin.util.Loggers
 import java.io.File
@@ -14,12 +16,16 @@ import java.io.File
 internal class PredefinedHttpClient(private val token: String, private val tokenType: String) {
     private val logger = Loggers("HTTP client loader")
 
+    @KtorExperimentalAPI
     fun get() = HttpClient(OkHttp) {
         install(JsonFeature) {
             serializer = GsonSerializer {
                 setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                disableHtmlEscaping()
             }
         }
+
+        install(WebSockets)
 
         engine {
             config {

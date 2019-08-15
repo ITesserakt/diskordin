@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import io.ktor.client.features.feature
+import io.ktor.client.features.json.JsonFeature
 import org.koin.Logger.slf4jLogger
 import org.koin.core.Koin
 import org.koin.core.context.loadKoinModules
@@ -33,6 +35,7 @@ class DiscordClientBuilder private constructor() {
                 module {
                     single { PredefinedHttpClient(token, tokenType.name).get() }
                     single<IDiscordClient> { DiscordClient(token, tokenType, get()) }
+                    single { get<PredefinedHttpClient>().get().feature(JsonFeature)!!.serializer }
                 }
             )
             return koin

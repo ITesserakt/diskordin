@@ -36,6 +36,7 @@ dependencies {
     compile "io.ktor:ktor-client-okhttp:$ktor_version"
     compile "io.ktor:ktor-client-json:$ktor_version"
     compile "io.ktor:ktor-client-gson:$ktor_version"
+    implementation "io.ktor:ktor-client-websockets:$ktor_version"
 
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.1'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'

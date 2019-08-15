@@ -46,7 +46,7 @@ interface IChannel : IMentioned, IDeletable {
 interface IGuildChannel : IChannel, IGuildObject, INamed {
     val position: Int
     val permissionOverwrites: Flow<IPermissionOverwrite>
-    val parentCategory: Snowflake
+    val parentCategory: Snowflake?
     override val invites: Flow<IGuildInvite>
 
     override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite
@@ -82,6 +82,7 @@ interface IMessageChannel : IChannel {
     suspend fun typing()
     suspend fun createMessage(content: String): IMessage
     suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage
+    suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage
     suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit)
 }
 

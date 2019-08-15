@@ -1,14 +1,13 @@
 @file:Suppress("unused")
 
-package ru.tesserakt.diskordin.impl.core.rest.resource
+package ru.tesserakt.diskordin.rest.resource
 
-import io.ktor.client.request.forms.MultiPartFormDataContent
 import ru.tesserakt.diskordin.core.data.json.request.*
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
-import ru.tesserakt.diskordin.impl.core.rest.Routes
+import ru.tesserakt.diskordin.rest.Routes
 import ru.tesserakt.diskordin.util.append
 
 internal object ChannelResource {
@@ -53,7 +52,7 @@ internal object ChannelResource {
                 .resolve<MessageResponse>()
 
 
-        suspend fun createMessage(channelId: Long, request: MultiPartFormDataContent) =
+        suspend fun createMessage(channelId: Long, request: MessageCreateRequest) =
             Routes.createMessage(channelId)
                 .newRequest()
                 .resolve<MessageResponse>(request)

@@ -1,7 +1,10 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
@@ -11,14 +14,17 @@ import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
-import ru.tesserakt.diskordin.impl.core.rest.resource.GuildResource
 import ru.tesserakt.diskordin.impl.core.service.EmojiService
 import ru.tesserakt.diskordin.impl.core.service.GuildService
+import ru.tesserakt.diskordin.rest.resource.GuildResource
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Duration
 
 class Guild(raw: GuildResponse) : IGuild {
-    override suspend fun findEmoji(emojiId: Snowflake): ICustomEmoji? = EmojiService.getEmoji(id, emojiId)
+    override suspend fun getRole(id: Snowflake): IRole =
+        roles.first { it.id == id }
+
+    override suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji = EmojiService.getEmoji(id, emojiId)
 
     override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji =
         EmojiService.createEmoji(id, builder)
@@ -66,6 +72,11 @@ class Guild(raw: GuildResponse) : IGuild {
     override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) =
         GuildService.createIntegration(id, builder)
 
+    override suspend fun getEveryoneRole(): IRole = getRole(id) //everyone role id == guild id
+
+    override suspend fun <C : IGuildChannel> getChannel(id: Snowflake): C =
+        channels.first { it.id == id } as C
+
     override val invites: Flow<IGuildInvite>
         get() = flow {
             GuildService.getInvites(id).forEach { emit(it) }
@@ -91,21 +102,16 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val id: Snowflake = raw.id.asSnowflake()
 
-    override suspend fun findRole(id: Snowflake): IRole? = roles
-        .filter { it.id == id }
-        .singleOrNull()
-
-
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
     override val owner: Identified<IMember> = Identified(raw.owner_id.asSnowflake()) { id ->
-        members.filter { it.id == id }.single()
+        members.first { it.id == id }
     }
 
     override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.asSnowflake()?.let {
         Identified(it) { id ->
-            channels.filter { channel -> channel.id == id }.single() as VoiceChannel
+            channels.first { channel -> channel.id == id } as VoiceChannel
         }
     }
 

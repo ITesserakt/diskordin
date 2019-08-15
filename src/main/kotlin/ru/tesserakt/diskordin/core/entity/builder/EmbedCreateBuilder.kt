@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package ru.tesserakt.diskordin.core.entity.builder
 
 import ru.tesserakt.diskordin.core.data.json.request.EmbedCreateRequest
@@ -6,7 +8,17 @@ import java.time.Instant
 
 class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
     var title: String? = null
+        set(value) {
+            if (value != null)
+                require(value.length < 256)
+            field = value
+        }
     var description: String? = null
+        set(value) {
+            if (value != null)
+                require(value.length < 2048)
+            field = value
+        }
     var url: String? = null
     var timestamp: Instant? = null
     var color: Color? = null
@@ -15,6 +27,11 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
     var thumbnail: (ThumbnailBuilder.() -> Unit)? = null
     var author: (AuthorBuilder.() -> Unit)? = null
     var fields: Array<(FieldBuilder.() -> Unit)>? = null
+        set(value) {
+            if (value != null)
+                require(value.size < 25)
+            field = value
+        }
 
     class FieldBuilder : BuilderBase<EmbedCreateRequest.FieldRequest>() {
         lateinit var name: String
@@ -22,14 +39,19 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
         var inline: Boolean? = null
 
         override fun create(): EmbedCreateRequest.FieldRequest = EmbedCreateRequest.FieldRequest(
-            name,
-            value.toString(),
+            name.also { require(it.length < 256) },
+            value.toString().also { require(it.length < 1024) },
             inline
         )
     }
 
     class AuthorBuilder : BuilderBase<EmbedCreateRequest.AuthorRequest>() {
         var name: String? = null
+            set(value) {
+                if (value != null)
+                    require(value.length < 1024)
+                field = value
+            }
         var url: String? = null
         var iconUrl: String? = null
 
@@ -61,7 +83,7 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
         var url: String? = null
 
         override fun create(): EmbedCreateRequest.FooterRequest = EmbedCreateRequest.FooterRequest(
-            text,
+            text.also { require(it.length < 2048) },
             url
         )
     }
@@ -71,7 +93,7 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
         description,
         url,
         timestamp?.toString(),
-        color?.rgb,
+        color?.rgb?.and(0xFFFFFF),
         footer?.let {
             FooterBuilder().apply(it).create()
         },

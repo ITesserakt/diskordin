@@ -11,8 +11,8 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.impl.core.entity.`object`.PermissionOverwrite
-import ru.tesserakt.diskordin.impl.core.rest.resource.ChannelResource
 import ru.tesserakt.diskordin.impl.core.service.ChannelService
+import ru.tesserakt.diskordin.rest.resource.ChannelResource
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 
@@ -42,7 +42,6 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
     init {
         requireNotNull(raw.guild_id)
         requireNotNull(raw.permission_overwrites)
-        requireNotNull(raw.parent_id)
         requireNotNull(raw.position)
         requireNotNull(raw.name)
     }
@@ -53,7 +52,7 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
         PermissionOverwrite(it)
     }.asFlow()
 
-    final override val parentCategory: Snowflake = raw.parent_id!!.asSnowflake()
+    final override val parentCategory: Snowflake? = raw.parent_id?.asSnowflake()
 
     final override val guild: Identified<IGuild> = Identified(
         raw.guild_id!!.asSnowflake()
@@ -90,6 +89,9 @@ class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
         ChannelService.createMessage(id, builder)
+
+    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
+        createMessage { embed = builder }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         ChannelService.bulkDeleteMessages(id, builder)
@@ -140,6 +142,9 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
         ChannelService.createMessage(id, builder)
+
+    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
+        createMessage { embed = builder }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         ChannelService.bulkDeleteMessages(id, builder)

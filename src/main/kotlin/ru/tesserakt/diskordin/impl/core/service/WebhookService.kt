@@ -9,7 +9,7 @@ import ru.tesserakt.diskordin.core.entity.builder.WebhookEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.builder.extractReason
 import ru.tesserakt.diskordin.impl.core.entity.Webhook
-import ru.tesserakt.diskordin.impl.core.rest.resource.WebhookResource
+import ru.tesserakt.diskordin.rest.resource.WebhookResource
 
 internal object WebhookService {
     suspend fun createChannelWebhook(channelId: Snowflake, builder: WebhookCreateBuilder.() -> Unit): IWebhook =

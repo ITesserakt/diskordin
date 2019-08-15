@@ -45,7 +45,7 @@ class Member constructor(
         raw.roles
             .map(Snowflake.Companion::of)
             .map {
-                guild().findRole(it) ?: throw IllegalStateException("An error occurred")
+                guild().getRole(it)
             }.forEach { emit(it) }
     }
 
