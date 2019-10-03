@@ -18,8 +18,11 @@ import ru.tesserakt.diskordin.impl.core.service.EmojiService
 import ru.tesserakt.diskordin.impl.core.service.GuildService
 import ru.tesserakt.diskordin.rest.resource.GuildResource
 import ru.tesserakt.diskordin.util.Identified
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
+@Suppress("UNCHECKED_CAST")
 class Guild(raw: GuildResponse) : IGuild {
     override suspend fun getRole(id: Snowflake): IRole =
         roles.first { it.id == id }
@@ -115,7 +118,8 @@ class Guild(raw: GuildResponse) : IGuild {
         }
     }
 
-    override val afkChannelTimeout: Duration = Duration.ofSeconds(raw.afk_timeout.toLong())
+    @ExperimentalTime
+    override val afkChannelTimeout: Duration = raw.afk_timeout.seconds
 
     override val verificationLevel =
         IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }

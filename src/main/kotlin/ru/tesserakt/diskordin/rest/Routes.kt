@@ -288,4 +288,10 @@ internal object Routes {
 
     fun executeGithubComparableWebhook(webhookId: Long, webhookToken: String) =
         Route.post("/webhooks/$webhookId/$webhookToken/github")
+
+    fun getGateway() =
+        Route.get("/gateway")
+
+    fun getGatewayBot() =
+        Route.get("/gateway/bot")
 }

@@ -1,7 +1,8 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import io.ktor.client.features.feature
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.HttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import org.koin.Logger.slf4jLogger
 import org.koin.core.Koin
 import org.koin.core.context.loadKoinModules
@@ -10,10 +11,13 @@ import org.koin.core.logger.Level
 import org.koin.dsl.module
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
+import kotlin.coroutines.CoroutineContext
 
 class DiscordClientBuilder private constructor() {
-    var token: String = "Invalid token"
+    lateinit var token: String
     var tokenType: TokenType = TokenType.Bot
+    internal lateinit var httpClient: HttpClient
+    var gatewayContext: CoroutineContext = Dispatchers.Default + Job()
 
     companion object {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit): IDiscordClient {
@@ -33,11 +37,16 @@ class DiscordClientBuilder private constructor() {
 
             loadKoinModules(
                 module {
-                    single { PredefinedHttpClient(token, tokenType.name).get() }
+                    single {
+                        if (builder::httpClient.isInitialized)
+                            builder.httpClient
+                        else
+                            PredefinedHttpClient(token, tokenType.name).get()
+                    }
                     single<IDiscordClient> { DiscordClient(token, tokenType, get()) }
-                    single { get<PredefinedHttpClient>().get().feature(JsonFeature)!!.serializer }
                 }
             )
+            koin.setProperty("gatewayContext", builder.gatewayContext)
             return koin
         }
     }

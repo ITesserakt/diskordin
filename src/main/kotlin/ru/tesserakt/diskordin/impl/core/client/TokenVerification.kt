@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.client
 import arrow.data.Validated
 import arrow.data.invalid
 import arrow.data.valid
-import kotlinx.io.charsets.Charset
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -35,7 +34,7 @@ internal class TokenVerification(private val token: String, private val tokenTyp
 
         return padBase64String(tokenPart).map {
             val bytes = Base64.getDecoder().decode(it)
-            bytes.toString(Charset.forName("Utf-8"))
+            bytes.toString(Charsets.UTF_8)
         }.map(String::asSnowflake)
     }
 
@@ -45,6 +44,6 @@ internal class TokenVerification(private val token: String, private val tokenTyp
         object InvalidConstruction : VerificationError()
         object CorruptedId : VerificationError()
 
-        operator fun invoke() = this.invalid()
+        operator fun <A> invoke() = this.invalid<VerificationError, A>()
     }
 }

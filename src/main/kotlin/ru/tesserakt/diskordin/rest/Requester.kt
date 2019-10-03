@@ -40,7 +40,7 @@ internal class Requester(val route: Route) : KoinComponent {
         headersInit?.let { headers(it) }
         paramsInit?.forEach { p1, p2 -> parameter(p1, p2.toString()) }
 
-        if (body != null) {
+        body?.let {
             if (body is JsonRequest)
                 contentType(ContentType.Application.Json)
             this.body = body

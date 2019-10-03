@@ -10,13 +10,15 @@ import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.util.Identified
-import java.time.Duration
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
     val iconHash: String?
     val splashHash: String?
     val owner: Identified<IMember>
     val afkChannel: Identified<IVoiceChannel>?
+    @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
 
@@ -55,5 +57,16 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
         Medium,
         High,
         VeryHigh;
+    }
+
+    enum class DefaultMessageNotificationLevel {
+        AllMessages,
+        OnlyMentions;
+    }
+
+    enum class ExplicitContentFilter {
+        Disabled,
+        MembersWithoutRoles,
+        AllMembers;
     }
 }

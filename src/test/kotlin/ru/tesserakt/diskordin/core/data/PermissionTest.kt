@@ -5,10 +5,7 @@ import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should equal`
 import org.junit.jupiter.api.Test
 import ru.tesserakt.diskordin.core.data.Permission.*
-import ru.tesserakt.diskordin.util.enums.ValuedEnum
-import ru.tesserakt.diskordin.util.enums.and
-import ru.tesserakt.diskordin.util.enums.asSet
-import ru.tesserakt.diskordin.util.enums.not
+import ru.tesserakt.diskordin.util.enums.*
 import java.util.*
 
 internal class PermissionTest {
@@ -16,9 +13,9 @@ internal class PermissionTest {
     fun `union and intersect of sets`() {
         val sum = AddReactions and !DeafenMembers or EmbedLinks
         //AddReactions intersects with all except DeafenMember and union with EmbedLinks
-        (AddReactions in sum) `should be` true
-        (DeafenMembers !in sum) `should be` true
-        (EmbedLinks in sum) `should be` true
+        sum shouldContain AddReactions
+        sum shouldNotContain DeafenMembers
+        sum shouldContain EmbedLinks
         sum.code `should be equal to` 16448
     }
 
@@ -35,3 +32,11 @@ internal class PermissionTest {
         EnumSet.allOf(Permission::class.java) `should equal` set
     }
 }
+
+private infix fun <E> ValuedEnum<E>.shouldContain(data: IValued<E>)
+        where E : Enum<E>, E : IValued<E> =
+    (data in this) `should be` true
+
+private infix fun <E> ValuedEnum<E>.shouldNotContain(data: IValued<E>)
+        where E : Enum<E>, E : IValued<E> =
+    (data in this) `should be` false

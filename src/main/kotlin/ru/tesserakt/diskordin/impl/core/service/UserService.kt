@@ -11,6 +11,7 @@ import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.Connection
+import ru.tesserakt.diskordin.impl.core.entity.GroupPrivateChannel
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.rest.resource.UserResource
@@ -38,9 +39,9 @@ internal object UserService {
         UserResource.Channels.getUserPrivateChannels()
             .map { IChannel.typed<IPrivateChannel>(it) }
 
-    suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit) = //TODO: make group dm
+    suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit) =
         UserResource.Channels.joinPrivateChannel(builder.build())
-            .let { IChannel.typed<IChannel>(it) }
+            .let { IChannel.typed<GroupPrivateChannel>(it) }
 
     suspend fun getCurrentUserConnections(): List<IConnection> =
         UserResource.Connections.getCurrentUserConnections()

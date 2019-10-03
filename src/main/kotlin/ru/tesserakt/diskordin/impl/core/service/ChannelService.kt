@@ -134,13 +134,13 @@ internal object ChannelService {
         builder.extractReason()
     )
 
-    suspend fun addGroupRecipients( //TODO: add GroupChannel
+    suspend fun addGroupRecipients(
         channelId: Snowflake,
         userId: Snowflake,
         builder: GroupRecipientAddBuilder.() -> Unit
     ) = ChannelResource.Recipients
         .addGroupRecipient(channelId.asLong(), userId.asLong(), builder.build())
 
-    suspend fun kickGroupRecipient(channelId: Snowflake, userId: Snowflake) = //TODO: add GroupChannel
+    suspend fun kickGroupRecipient(channelId: Snowflake, userId: Snowflake) =
         ChannelResource.Recipients.deleteGroupRecipient(channelId.asLong(), userId.asLong())
 }

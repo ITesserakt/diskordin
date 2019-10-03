@@ -2,8 +2,7 @@ package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.data.handleLeftWith
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -16,13 +15,17 @@ import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
+import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.impl.core.service.*
+import ru.tesserakt.diskordin.rest.resource.GatewayResource
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 data class DiscordClient(
     override val token: String,
@@ -34,7 +37,7 @@ data class DiscordClient(
     init {
         TokenVerification(token, tokenType).verify().map { id ->
             self = Identified(id) {
-                findUser(it)!! as Self
+                findUser(it) as Self
             }
         }.handleLeftWith {
             val message = when (it) {
@@ -48,22 +51,38 @@ data class DiscordClient(
         }
     }
 
-    override val coroutineScope = CoroutineScope(Dispatchers.IO)
-
     override lateinit var self: Identified<ISelf>
+        private set
 
     override var isConnected: Boolean = false
+        private set
+
+    override lateinit var gateway: Gateway
         private set
 
     override val users: Flow<IUser> = emptyArray<User>().asFlow()
     override val guilds: Flow<IGuild> = emptyArray<Guild>().asFlow()
 
+    @FlowPreview
+    @ExperimentalTime
     override suspend fun login() {
+        val gatewayURL = GatewayResource.General.getGatewayURL().url
+        val metadata = GatewayResource.General.getGatewayBot().sessionMeta
+        this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter.milliseconds)
         isConnected = true
+        this.gateway.start()
+    }
+
+    @ExperimentalTime
+    override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
+        login()
+        block()
+        logout()
     }
 
     override fun logout() {
-
+        logger.info("Shutting down http client & gateway")
+        gateway.stop()
         httpClient.close()
     }
 
@@ -78,7 +97,7 @@ data class DiscordClient(
 
     override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild = GuildService.createGuild(request)
 
-    override suspend fun getInvite(code: String): IInvite? = kotlin.runCatching {
+    override suspend fun getInvite(code: String): IInvite? = runCatching {
         InviteService.getInvite(code)
     }.getOrNull()
 

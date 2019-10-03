@@ -2,22 +2,28 @@ package ru.tesserakt.diskordin.impl.core.client
 
 import com.google.gson.FieldNamingPolicy
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.*
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.websocket.WebSockets
 import io.ktor.client.request.header
 import io.ktor.util.KtorExperimentalAPI
-import okhttp3.Cache
 import ru.tesserakt.diskordin.util.Loggers
-import java.io.File
 
 internal class PredefinedHttpClient(private val token: String, private val tokenType: String) {
-    private val logger = Loggers("HTTP client loader")
+    private val logger = Loggers("[HTTP client]")
 
     @KtorExperimentalAPI
-    fun get() = HttpClient(OkHttp) {
+    fun get() = get(CIO) {}
+
+    @KtorExperimentalAPI
+    inline fun <reified T : HttpClientEngineConfig> get(
+        httpEngine: HttpClientEngineFactory<T>,
+        crossinline engineConfig: T.() -> Unit
+    ) = HttpClient(httpEngine) {
         install(JsonFeature) {
             serializer = GsonSerializer {
                 setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -27,11 +33,7 @@ internal class PredefinedHttpClient(private val token: String, private val token
 
         install(WebSockets)
 
-        engine {
-            config {
-                cache(Cache(File("F:\\tesserakt\\IdeaProjects\\discord-api\\src\\main\\resources"), 10 * 1024 * 1024))
-            }
-        }
+        engine { engineConfig() }
 
         defaultRequest {
             header("Authorization", "$tokenType $token")

@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.client
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import org.koin.core.KoinComponent
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -11,6 +10,7 @@ import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
+import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.util.Identified
 
 interface IDiscordClient : KoinComponent {
@@ -18,9 +18,10 @@ interface IDiscordClient : KoinComponent {
     val tokenType: TokenType
     val self: Identified<ISelf>
     val isConnected: Boolean
-    val coroutineScope: CoroutineScope
+    val gateway: Gateway
 
     suspend fun login()
+    suspend fun use(block: suspend IDiscordClient.() -> Unit)
     fun logout()
     suspend fun findUser(id: Snowflake): IUser?
     suspend fun findGuild(id: Snowflake): IGuild?

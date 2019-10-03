@@ -11,9 +11,8 @@ import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
-import ru.tesserakt.diskordin.impl.core.entity.PrivateChannel
-import ru.tesserakt.diskordin.impl.core.entity.TextChannel
-import ru.tesserakt.diskordin.impl.core.entity.VoiceChannel
+import ru.tesserakt.diskordin.impl.core.entity.*
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
 import ru.tesserakt.diskordin.util.Identified
 
 interface IChannel : IMentioned, IDeletable {
@@ -26,8 +25,7 @@ interface IChannel : IMentioned, IDeletable {
         GuildVoice,
         PrivateGroup,
         GuildCategory,
-        GuildNews,
-        GuildStore;
+        GuildNews;
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -36,7 +34,10 @@ interface IChannel : IMentioned, IDeletable {
             GuildText.ordinal -> TextChannel(response)
             Private.ordinal -> PrivateChannel(response)
             GuildVoice.ordinal -> VoiceChannel(response)
-            else -> TODO()
+            GuildCategory.ordinal -> Category(response)
+            PrivateGroup.ordinal -> GroupPrivateChannel(response)
+            GuildNews.ordinal -> AnnouncementChannel(response)
+            else -> throw IllegalAccessException("Type of channel isn`t right (!in [0; 6) range)")
         } as T
     }
 
@@ -71,9 +72,21 @@ interface ITextChannel : IGuildChannel, IMessageChannel,
     suspend fun getPinnedMessages(): List<IMessage>
 }
 
+interface IGuildCategory : IGuildChannel {
+    val parentId: Snowflake?
+}
+
+interface IAnnouncementChannel : IGuildChannel, IMessageChannel
+
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
     val owner: Identified<IUser>
+    val recipient: Identified<IUser>
+}
+
+interface IGroupPrivateChannel : IMessageChannel, IAudioChannel {
+    val owner: Identified<IUser>
     val recipients: Flow<IUser>
+    val icon: Image?
 }
 
 interface IMessageChannel : IChannel {
