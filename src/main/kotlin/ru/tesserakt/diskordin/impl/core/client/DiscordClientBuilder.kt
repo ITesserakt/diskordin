@@ -7,6 +7,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
+import ru.tesserakt.diskordin.gateway.GatewayLifecycle
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -32,7 +33,8 @@ class DiscordClientBuilder private constructor() {
                 loadKoinModules(module {
                     single { client } bind IDiscordClient::class
                     single { setupHttpClient() }
-                    single { (path: String) -> setupScarlet(path, get()) }
+                    single { setupLifecycle() } bind GatewayLifecycle::class
+                    single { (path: String) -> setupScarlet(path, get(), get()) }
                 })
             }
         }

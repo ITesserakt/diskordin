@@ -2,13 +2,10 @@ package ru.tesserakt.diskordin.gateway
 
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.websocket.WebSocketEvent.*
-import io.reactivex.Flowable
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.rx2.asFlowable
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.koin.core.parameter.parametersOf
@@ -38,12 +35,21 @@ class Gateway @ExperimentalTime constructor(
     private val scarlet by inject<Scarlet> { parametersOf(fullUrl) }
     private var api = scarlet.create<GatewayAPI>()
     private val gatewayContext: CoroutineContext = getKoin().getProperty("gatewayContext")!!
-    private val scope = CoroutineScope(gatewayContext)
+    private var scope = CoroutineScope(gatewayContext)
     private val token = getKoin().getProperty<String>("token")!!
     private val logger by Loggers("[Gateway]")
+    private val lifecycle by inject<GatewayLifecycle>()
 
     internal fun stop() {
+        lifecycle.stop()
         scope.cancel("Shutdown")
+    }
+
+    @ExperimentalCoroutinesApi
+    private fun restart() {
+        lifecycle.restart()
+        scope = CoroutineScope(gatewayContext)
+        run()
     }
 
     private fun <T : IGatewayCommand> Payload<T>.sendWith(f: (Payload<T>) -> Boolean) {
@@ -54,6 +60,7 @@ class Gateway @ExperimentalTime constructor(
     @ExperimentalCoroutinesApi
     internal fun run() = scope.launch {
         check(remaining > 0) { "Limit succeeded. Try after $resetAfter" }
+        lifecycle.start()
 
         api.allPayloads()
             .onEach {
@@ -63,7 +70,7 @@ class Gateway @ExperimentalTime constructor(
                     logger.debug("Got ${it.opcode()}")
             }.filter { it.opcode() == Opcode.DISPATCH }
             .onEach { }
-            .launchIn(scope)
+            .launchIn(this)
 
         api.observeHello().onEach {
             heartbeat(it)
@@ -72,24 +79,26 @@ class Gateway @ExperimentalTime constructor(
                 Identify.ConnectionProperties(OSInfo.getOSType().name.toLowerCase(), "Diskordin", "Diskordin"),
                 shard = arrayOf(0, 1)
             ).wrapWith(Opcode.IDENTIFY, lastSequence).sendWith(api::identify)
-        }.launchIn(scope)
+        }.launchIn(this)
 
         api.observeWebSocketEvents().collect {
             when (it) {
+                is OnConnectionOpened -> logger.debug("WebSocket started")
                 is OnConnectionFailed -> logger.error("WebSocket error", it)
-                is OnConnectionClosed -> logger.warn("WebSocket closed (${it.shutdownReason})")
-                is OnConnectionClosing -> logger.debug("WebSocker closing (${it.shutdownReason})")
+                is OnConnectionClosed -> scope.cancel(it.shutdownReason.reason)
+                is OnConnectionClosing -> logger.debug("WebSocket closing (${it.shutdownReason})")
             }
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun heartbeat(hello: Hello) = scope.launch(Dispatchers.Unconfined) {
-        api.observeHeartbeatACK().asPublisher().let { Flowable.fromPublisher(it) }
-            .timeout(hello.heartbeatInterval + 20000, TimeUnit.MILLISECONDS)
-            .doOnError {
+        api.observeHeartbeatACK().asFlowable()
+            .timeout(hello.heartbeatInterval + -40000, TimeUnit.MILLISECONDS).asFlow()
+            .catch {
                 logger.error("Zombie process detected. Restarting...")
-            }.onErrorResumeNext(api.observeHeartbeatACK().asPublisher().let { Flowable.fromPublisher(it) })
-            .subscribe()
+                restart()
+            }.launchIn(this)
 
         while (scope.isActive) {
             Heartbeat(lastSequence).wrapWith(Opcode.HEARTBEAT, lastSequence).sendWith(api::heartbeat)

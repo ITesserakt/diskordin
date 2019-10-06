@@ -1,7 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.client
 
 import com.github.kittinunf.fuel.core.FuelManager
+import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
+import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.messageadapter.gson.GsonMessageAdapter
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
@@ -14,8 +16,8 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import ru.tesserakt.diskordin.core.client.IDiscordClient
+import ru.tesserakt.diskordin.gateway.GatewayLifecycle
 import ru.tesserakt.diskordin.util.FlowStreamAdapter
-import ru.tesserakt.diskordin.util.FlowableStreamAdapter
 import ru.tesserakt.diskordin.util.gson
 import java.io.File
 
@@ -41,7 +43,9 @@ internal fun setupHttpClient(): OkHttpClient = OkHttpClient().newBuilder()
     .cache(Cache(File.createTempFile("okHttpCache", null), 10 * 1024 * 1024))
     .build()
 
-internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
+internal fun setupLifecycle(): Lifecycle = GatewayLifecycle(LifecycleRegistry(500))
+
+internal fun setupScarlet(path: String, httpClient: OkHttpClient, lifecycle: Lifecycle): Scarlet {
     val protocol = OkHttpWebSocket(
         httpClient,
         OkHttpWebSocket.SimpleRequestFactory(
@@ -51,8 +55,9 @@ internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
     )
     val configuration = Scarlet.Configuration(
         backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 10000),
-        streamAdapterFactories = listOf(FlowStreamAdapter.Factory(), FlowableStreamAdapter.Factory()),
-        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson))
+        streamAdapterFactories = listOf(FlowStreamAdapter.Factory()),
+        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson)),
+        lifecycle = lifecycle
     )
 
     return Scarlet(protocol, configuration)
