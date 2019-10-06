@@ -4,7 +4,6 @@ package ru.tesserakt.diskordin.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.EmojiCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.EmojiEditRequest
-import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.rest.Routes
 
 internal object EmojiResource {
@@ -13,19 +12,19 @@ internal object EmojiResource {
         suspend fun getEmojis(guildId: Long) =
             Routes.getGuildEmojis(guildId)
                 .newRequest()
-                .resolve<Array<EmojiResponse>>()
+                .resolve()
 
 
         suspend fun getEmoji(guildId: Long, emojiId: Long) =
             Routes.getGuildEmoji(guildId, emojiId)
                 .newRequest()
-                .resolve<EmojiResponse>()
+                .resolve()
 
 
         suspend fun createEmoji(guildId: Long, request: EmojiCreateRequest) =
             Routes.createGuildEmoji(guildId)
                 .newRequest()
-                .resolve<EmojiResponse>(request)
+                .resolve(request)
 
 
         suspend fun modifyEmoji(
@@ -34,12 +33,12 @@ internal object EmojiResource {
             request: EmojiEditRequest
         ) = Routes.modifyGuildEmoji(guildId, emojiId)
             .newRequest()
-            .resolve<EmojiResponse>(request)
+            .resolve(request)
 
 
         suspend fun deleteEmoji(guildId: Long, emojiId: Long) =
             Routes.deleteGuildEmoji(guildId, emojiId)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve()
     }
 }

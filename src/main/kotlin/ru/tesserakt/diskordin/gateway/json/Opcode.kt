@@ -21,3 +21,5 @@ enum class Opcode(val type: KClass<out IPayload>) {
     HELLO(Hello::class),
     HEARTBEAT_ACK(HeartbeatACK::class);
 }
+
+fun Int.asOpcode() = Opcode.values().first { it.ordinal == this }

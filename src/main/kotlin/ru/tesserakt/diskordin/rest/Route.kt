@@ -1,26 +1,28 @@
 package ru.tesserakt.diskordin.rest
 
-import io.ktor.http.HttpMethod
+import com.github.kittinunf.fuel.core.Method
+import kotlin.reflect.KClass
 
-internal data class Route(
-    val httpMethod: HttpMethod,
-    val urlTemplate: String
+internal data class Route<T : Any>(
+    val httpMethod: Method,
+    val urlTemplate: String,
+    val clazz: KClass<T>
 ) {
     companion object {
-        fun get(urlTemplate: String) =
-            Route(HttpMethod.Get, urlTemplate)
+        inline fun <reified T : Any> get(urlTemplate: String) =
+            Route(Method.GET, urlTemplate, T::class)
 
-        fun put(urlTemplate: String) =
-            Route(HttpMethod.Put, urlTemplate)
+        inline fun <reified T : Any> put(urlTemplate: String) =
+            Route(Method.PUT, urlTemplate, T::class)
 
-        fun post(urlTemplate: String) =
-            Route(HttpMethod.Post, urlTemplate)
+        inline fun <reified T : Any> post(urlTemplate: String) =
+            Route(Method.POST, urlTemplate, T::class)
 
-        fun patch(urlTemplate: String) =
-            Route(HttpMethod.Patch, urlTemplate)
+        inline fun <reified T : Any> patch(urlTemplate: String) =
+            Route(Method.PATCH, urlTemplate, T::class)
 
-        fun delete(urlTemplate: String) =
-            Route(HttpMethod.Delete, urlTemplate)
+        inline fun <reified T : Any> delete(urlTemplate: String) =
+            Route(Method.DELETE, urlTemplate, T::class)
     }
 
     fun newRequest() = Requester(this)

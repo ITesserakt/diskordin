@@ -1,22 +1,24 @@
 package ru.tesserakt.diskordin.gateway
 
-import io.ktor.client.HttpClient
-import io.ktor.client.features.websocket.wss
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readReason
-import io.ktor.http.cio.websocket.readText
+import com.tinder.scarlet.Scarlet
+import com.tinder.scarlet.websocket.WebSocketEvent.*
+import io.reactivex.Flowable
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.reactive.asPublisher
 import org.koin.core.KoinComponent
-import org.koin.core.get
-import ru.tesserakt.diskordin.gateway.json.IRawEvent
-import ru.tesserakt.diskordin.gateway.json.Opcode
-import ru.tesserakt.diskordin.gateway.json.Payload
-import ru.tesserakt.diskordin.gateway.json.events.HeartbeatACK
+import org.koin.core.inject
+import org.koin.core.parameter.parametersOf
+import ru.tesserakt.diskordin.gateway.json.*
+import ru.tesserakt.diskordin.gateway.json.commands.Identify
+import ru.tesserakt.diskordin.gateway.json.events.Hello
 import ru.tesserakt.diskordin.util.Loggers
-import ru.tesserakt.diskordin.util.fromJson
+import sun.awt.OSInfo
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
@@ -29,66 +31,69 @@ class Gateway @ExperimentalTime constructor(
     url: String,
     val limit: Int,
     private val remaining: Int,
-    val resetAfter: Duration
+    private val resetAfter: Duration
 ) : KoinComponent {
     private val compression = getKoin().getProperty("compression", "")
-    private val fullUrl = "$url/?v=$gatewayVersion&encoding=$encoding}&compression=$compression"
-    private val httpClient = get<HttpClient>()
-    private val context = getKoin().getProperty<CoroutineContext>("gatewayContext")
-        ?: throw IllegalStateException()
-    private val logger = Loggers("[Gateway]")
-    private val scope = CoroutineScope(context)
-    private val processor: GatewayProcessor = GatewayProcessor(scope)
-
-    @FlowPreview
-    @ExperimentalTime
-    internal suspend fun restart() {
-        if (!scope.isActive) {
-            logger.error("Gateway isn`t started.")
-            return
-        }
-        logger.warn("Attempt to restart")
-        scope.cancel("Restart")
-        start()
-    }
+    private val fullUrl = "$url/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
+    private val scarlet by inject<Scarlet> { parametersOf(fullUrl) }
+    private var api = scarlet.create<GatewayAPI>()
+    private val gatewayContext: CoroutineContext = getKoin().getProperty("gatewayContext")!!
+    private val scope = CoroutineScope(gatewayContext)
+    private val token = getKoin().getProperty<String>("token")!!
+    private val logger by Loggers("[Gateway]")
 
     internal fun stop() {
-        if (!scope.isActive) {
-            logger.error("Gateway isn`t started")
-            return
-        }
         scope.cancel("Shutdown")
     }
 
-    @FlowPreview
-    @ExperimentalTime
-    internal suspend fun start() =
-        scope.launch {
-            check(remaining >= 0) { "There is no available sessions" }
+    private fun <T : IGatewayCommand> Payload<T>.sendWith(f: (Payload<T>) -> Boolean) {
+        if (f(this)) logger.debug("Sent ${opcode()}")
+        else logger.warn("${opcode()} was not send")
+    }
 
-            httpClient.wss(fullUrl) {
-                for (frame in incoming) {
-                    if (frame is Frame.Close) {
-                        logger.warn(frame.readReason()?.message)
-                        restart()
-                    }
-                    if (frame !is Frame.Text) continue
-                    val payload = frame.readText().fromJson<Payload>()
+    @ExperimentalCoroutinesApi
+    internal fun run() = scope.launch {
+        check(remaining > 0) { "Limit succeeded. Try after $resetAfter" }
 
-                    lastSequence = payload.seq ?: lastSequence
+        api.allPayloads()
+            .onEach {
+                if (it.opcode == 0)
+                    logger.debug("Got ${it.name}")
+                else
+                    logger.debug("Got ${it.opcode()}")
+            }.filter { it.opcode() == Opcode.DISPATCH }
+            .onEach { }
+            .launchIn(scope)
 
-                    val typeByOpcode = Opcode.values()
-                        .filter { it.type.isSubclassOf(IRawEvent::class) }
-                        .firstOrNull { it.ordinal == payload.opcode }?.type as KClass<out IRawEvent>?
-                        ?: throw NoSuchElementException("Invalid payload opcode (${payload.opcode})")
+        api.observeHello().onEach {
+            heartbeat(it)
+            Identify(
+                token,
+                Identify.ConnectionProperties(OSInfo.getOSType().name.toLowerCase(), "Diskordin", "Diskordin"),
+                shard = arrayOf(0, 1)
+            ).wrapWith(Opcode.IDENTIFY, lastSequence).sendWith(api::identify)
+        }.launchIn(scope)
 
-                    val data =
-                        if (typeByOpcode == HeartbeatACK::class) HeartbeatACK()
-                        else payload.unwrap(typeByOpcode)
-
-                    logger.debug("Got $data")
-                    processor.answer(data, outgoing)
-                }
+        api.observeWebSocketEvents().collect {
+            when (it) {
+                is OnConnectionFailed -> logger.error("WebSocket error", it)
+                is OnConnectionClosed -> logger.warn("WebSocket closed (${it.shutdownReason})")
+                is OnConnectionClosing -> logger.debug("WebSocker closing (${it.shutdownReason})")
             }
         }
+    }
+
+    private fun heartbeat(hello: Hello) = scope.launch(Dispatchers.Unconfined) {
+        api.observeHeartbeatACK().asPublisher().let { Flowable.fromPublisher(it) }
+            .timeout(hello.heartbeatInterval + 20000, TimeUnit.MILLISECONDS)
+            .doOnError {
+                logger.error("Zombie process detected. Restarting...")
+            }.onErrorResumeNext(api.observeHeartbeatACK().asPublisher().let { Flowable.fromPublisher(it) })
+            .subscribe()
+
+        while (scope.isActive) {
+            Heartbeat(lastSequence).wrapWith(Opcode.HEARTBEAT, lastSequence).sendWith(api::heartbeat)
+            delay(hello.heartbeatInterval)
+        }
+    }
 }

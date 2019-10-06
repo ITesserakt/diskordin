@@ -5,10 +5,6 @@ package ru.tesserakt.diskordin.rest.resource
 import ru.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.GroupDMCreateRequest
 import ru.tesserakt.diskordin.core.data.json.request.UserEditRequest
-import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import ru.tesserakt.diskordin.core.data.json.response.ConnectionResponse
-import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
-import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.core.entity.query.Query
 import ru.tesserakt.diskordin.rest.Routes
 
@@ -17,17 +13,17 @@ internal object UserResource {
         suspend fun getCurrentUser() =
             Routes.getCurrentUser()
                 .newRequest()
-                .resolve<UserResponse>()
+                .resolve()
 
         suspend fun getUser(userId: Long) =
             Routes.getUser(userId)
                 .newRequest()
-                .resolve<UserResponse>()
+                .resolve()
 
         suspend fun editCurrentUser(request: UserEditRequest) =
             Routes.modifyCurrentUser()
                 .newRequest()
-                .resolve<UserResponse>(request)
+                .resolve(request)
     }
 
     object Guilds {
@@ -35,36 +31,36 @@ internal object UserResource {
             Routes.getCurrentUserGuilds()
                 .newRequest()
                 .queryParams(query)
-                .resolve<Array<UserGuildResponse>>()
+                .resolve()
 
         suspend fun leaveGuild(guildId: Long) =
             Routes.leaveGuild(guildId)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve()
     }
 
     object Channels {
         suspend fun getUserPrivateChannels() =
             Routes.getDMs()
                 .newRequest()
-                .resolve<Array<ChannelResponse>>()
+                .resolve()
 
         suspend fun joinPrivateChannel(request: DMCreateRequest) =
             Routes.createDM()
                 .newRequest()
-                .resolve<ChannelResponse>(request)
+                .resolve(request)
 
         @Deprecated("GameBridge SDK is deprecated for now", ReplaceWith("joinPrivateChannel"))
         suspend fun joinGroupDM(request: GroupDMCreateRequest) =
             Routes.createGroupDM()
                 .newRequest()
-                .resolve<ChannelResponse>(request)
+                .resolve(request)
     }
 
     object Connections {
         suspend fun getCurrentUserConnections() =
             Routes.getConnections()
                 .newRequest()
-                .resolve<Array<ConnectionResponse>>()
+                .resolve()
     }
 }

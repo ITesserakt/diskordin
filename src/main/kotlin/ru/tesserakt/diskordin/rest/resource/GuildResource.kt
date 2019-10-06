@@ -3,10 +3,8 @@
 package ru.tesserakt.diskordin.rest.resource
 
 import ru.tesserakt.diskordin.core.data.json.request.*
-import ru.tesserakt.diskordin.core.data.json.response.*
 import ru.tesserakt.diskordin.core.entity.query.Query
 import ru.tesserakt.diskordin.rest.Routes
-import ru.tesserakt.diskordin.util.append
 
 internal object GuildResource {
     object General {
@@ -14,39 +12,38 @@ internal object GuildResource {
         suspend fun createGuild(request: GuildCreateRequest) =
             Routes.createGuild()
                 .newRequest()
-                .resolve<GuildResponse>(request)
+                .resolve(request)
 
 
         suspend fun getGuild(guildId: Long) =
             Routes.getGuild(guildId)
                 .newRequest()
-                .resolve<GuildResponse>()
+                .resolve()
 
 
         suspend fun modifyGuild(guildId: Long, request: GuildEditRequest, reason: String?) =
             Routes.modifyGuild(guildId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<GuildResponse>(request)
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve(request)
 
 
         suspend fun deleteGuild(guildId: Long) =
             Routes.deleteGuild(guildId)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve()
 
 
         suspend fun modifyOwnNickname(guildId: Long, request: NicknameEditRequest) =
             Routes.modifyOwnNickname(guildId)
                 .newRequest()
-                .resolve<NicknameModifyResponse>(request)
+                .resolve(request)
 
 
         suspend fun getInvites(guildId: Long) =
             Routes.getInvites(guildId)
                 .newRequest()
-                .resolve<Array<InviteResponse>>()
+                .resolve()
     }
 
     object Channels {
@@ -54,21 +51,20 @@ internal object GuildResource {
         suspend fun getGuildChannels(guildId: Long) =
             Routes.getGuildChannels(guildId)
                 .newRequest()
-                .resolve<Array<ChannelResponse>>()
+                .resolve()
 
 
         suspend fun createGuildChannel(guildId: Long, request: ChannelCreateRequest, reason: String?) =
             Routes.createGuildChannel(guildId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<ChannelResponse>(request)
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve(request)
 
 
         suspend fun modifyGuildChannelPositions(guildId: Long, request: Array<PositionEditRequest>) =
             Routes.modifyGuildChannelPositions(guildId)
                 .newRequest()
-                .resolve<Unit>(request)
+                .resolve(request)
     }
 
     object Members {
@@ -76,36 +72,34 @@ internal object GuildResource {
         suspend fun getMember(guildId: Long, userId: Long) =
             Routes.getMember(guildId, userId)
                 .newRequest()
-                .resolve<GuildMemberResponse>()
+                .resolve()
 
 
         suspend fun getMembers(guildId: Long, query: Query) =
             Routes.getMembers(guildId)
                 .newRequest()
                 .queryParams(query)
-                .resolve<Array<GuildMemberResponse>>()
+                .resolve()
 
 
         suspend fun newMember(guildId: Long, userId: Long, request: MemberAddRequest) =
             Routes.addMember(guildId, userId)
                 .newRequest()
-                .resolve<GuildMemberResponse>(request)
+                .resolve(request)
 
 
         suspend fun modifyMember(guildId: Long, userId: Long, request: MemberEditRequest, reason: String?) =
             Routes.modifyMember(guildId, userId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>(request)
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve(request)
 
 
         suspend fun removeMember(guildId: Long, userId: Long, reason: String?) =
             Routes.removeMember(guildId, userId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
     }
 
     object Roles {
@@ -113,53 +107,48 @@ internal object GuildResource {
         suspend fun addMemberRole(guildId: Long, userId: Long, roleId: Long, reason: String?) =
             Routes.addMemberRole(guildId, userId, roleId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
 
 
         suspend fun deleteMemberRole(guildId: Long, userId: Long, roleId: Long, reason: String?) =
             Routes.removeMemberRole(guildId, userId, roleId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
 
 
         suspend fun getRoles(guildId: Long) =
             Routes.getRoles(guildId)
                 .newRequest()
-                .resolve<Array<RoleResponse>>()
+                .resolve()
 
 
         suspend fun createRole(guildId: Long, request: GuildRoleCreateRequest, reason: String?) =
             Routes.createRole(guildId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<RoleResponse>(request)
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve(request)
 
 
         suspend fun editRolePositions(guildId: Long, request: Array<PositionEditRequest>) =
             Routes.modifyRolePositions(guildId)
                 .newRequest()
-                .resolve<Array<RoleResponse>>(request)
+                .resolve(request)
 
 
         suspend fun editRole(guildId: Long, roleId: Long, request: GuildRoleEditRequest, reason: String?) =
             Routes.modifyRole(guildId, roleId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<RoleResponse>(request)
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve(request)
 
 
         suspend fun deleteRole(guildId: Long, roleId: Long, reason: String?) =
             Routes.deleteRole(guildId, roleId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
     }
 
     object Bans {
@@ -167,28 +156,27 @@ internal object GuildResource {
         suspend fun getBans(guildId: Long) =
             Routes.getBans(guildId)
                 .newRequest()
-                .resolve<Array<BanResponse>>()
+                .resolve()
 
 
         suspend fun getBan(guildId: Long, userId: Long) =
             Routes.getBan(guildId, userId)
                 .newRequest()
-                .resolve<BanResponse>()
+                .resolve()
 
 
         suspend fun createBan(guildId: Long, userId: Long, query: Query) =
             Routes.createBan(guildId, userId)
                 .newRequest()
                 .queryParams(query)
-                .resolve<Unit>()
+                .resolve()
 
 
         suspend fun removeBan(guildId: Long, userId: Long, reason: String?) =
             Routes.removeBan(guildId, userId)
                 .newRequest()
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<Unit>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
     }
 
     object Prunes {
@@ -197,16 +185,15 @@ internal object GuildResource {
             Routes.getPruneCount(guildId)
                 .newRequest()
                 .queryParams(query)
-                .resolve<PruneResponse>()
+                .resolve()
 
 
         suspend fun startPrune(guildId: Long, query: Query, reason: String?) =
             Routes.beginPrune(guildId)
                 .newRequest()
                 .queryParams(query)
-                .additionalHeaders {
-                    append("X-Audit-Log-Reason", reason)
-                }.resolve<PruneResponse>()
+                .additionalHeaders("X-Audit-Log-Reason" to reason)
+                .resolve()
     }
 
     object Integrations {
@@ -214,31 +201,31 @@ internal object GuildResource {
         suspend fun getIntegrations(guildId: Long) =
             Routes.getIntegrations(guildId)
                 .newRequest()
-                .resolve<Array<GuildIntegrationResponse>>()
+                .resolve()
 
 
         suspend fun createIntegration(guildId: Long, request: IntegrationCreateRequest) =
             Routes.createIntegration(guildId)
                 .newRequest()
-                .resolve<Unit>(request)
+                .resolve(request)
 
 
         suspend fun editIntegration(guildId: Long, integrationId: Long, request: IntegrationEditRequest) =
             Routes.modifyIntegration(guildId, integrationId)
                 .newRequest()
-                .resolve<Unit>(request)
+                .resolve(request)
 
 
         suspend fun deleteIntegration(guildId: Long, integrationId: Long) =
             Routes.deleteIntegration(guildId, integrationId)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve()
 
 
         suspend fun syncIntegration(guildId: Long, integrationId: Long) =
             Routes.syncIntegration(guildId, integrationId)
                 .newRequest()
-                .resolve<Unit>()
+                .resolve()
     }
 
     object Embeds {
@@ -246,12 +233,12 @@ internal object GuildResource {
         suspend fun getEmbed(guildId: Long) =
             Routes.getEmbed(guildId)
                 .newRequest()
-                .resolve<GuildEmbedResponse>()
+                .resolve()
 
 
         suspend fun editEmbed(guildId: Long, request: GuildEmbedEditRequest) =
             Routes.getEmbed(guildId)
                 .newRequest()
-                .resolve<GuildEmbedResponse>(request)
+                .resolve(request)
     }
 }

@@ -1,8 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.data.handleLeftWith
-import io.ktor.client.HttpClient
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -18,7 +17,6 @@ import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import ru.tesserakt.diskordin.impl.core.entity.Guild
-import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.impl.core.service.*
 import ru.tesserakt.diskordin.rest.resource.GatewayResource
@@ -28,16 +26,15 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
 data class DiscordClient(
-    override val token: String,
-    override val tokenType: TokenType,
-    private val httpClient: HttpClient
+    override val tokenType: TokenType
 ) : IDiscordClient {
     private val logger by Loggers
+    override val token: String = getKoin().getProperty("token")!!
 
     init {
         TokenVerification(token, tokenType).verify().map { id ->
             self = Identified(id) {
-                findUser(it) as Self
+                UserService.getCurrentUser()
             }
         }.handleLeftWith {
             val message = when (it) {
@@ -63,16 +60,17 @@ data class DiscordClient(
     override val users: Flow<IUser> = emptyArray<User>().asFlow()
     override val guilds: Flow<IGuild> = emptyArray<Guild>().asFlow()
 
-    @FlowPreview
+    @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun login() {
         val gatewayURL = GatewayResource.General.getGatewayURL().url
         val metadata = GatewayResource.General.getGatewayBot().sessionMeta
         this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter.milliseconds)
         isConnected = true
-        this.gateway.start()
+        this.gateway.run()
     }
 
+    @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
         login()
@@ -81,9 +79,8 @@ data class DiscordClient(
     }
 
     override fun logout() {
-        logger.info("Shutting down http client & gateway")
+        logger.info("Shutting down gateway")
         gateway.stop()
-        httpClient.close()
     }
 
     override suspend fun findUser(id: Snowflake) =

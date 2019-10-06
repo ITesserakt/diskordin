@@ -1,50 +1,66 @@
 package ru.tesserakt.diskordin.rest
 
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.headers
-import io.ktor.client.request.parameter
-import io.ktor.client.request.request
-import io.ktor.client.request.url
-import io.ktor.http.ContentType
-import io.ktor.http.HeadersBuilder
-import io.ktor.http.contentType
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.ResponseDeserializable
+import com.github.kittinunf.fuel.coroutines.awaitObjectResult
+import com.google.gson.Gson
+import kotlinx.coroutines.delay
 import org.koin.core.KoinComponent
-import org.koin.core.inject
 import org.slf4j.Logger
-import ru.tesserakt.diskordin.core.data.json.request.JsonRequest
 import ru.tesserakt.diskordin.util.Loggers
+import ru.tesserakt.diskordin.util.toJson
+import java.io.Reader
+import kotlin.reflect.KClass
 
-internal class Requester(val route: Route) : KoinComponent {
-    private val httpClient: HttpClient by inject()
+private const val MAX_RETRIES = 5
+private const val RETRY_AFTER = 1000L
+
+internal class Requester<T : Any>(private val route: Route<T>) : KoinComponent {
     private val logger: Logger by Loggers
-    private val apiURL = getKoin().getProperty("API_url", "")
+    private var retryCount = 1
 
-    private var headersInit: (HeadersBuilder.() -> Unit)? = null
-    private var paramsInit: Map<String, *>? = null
+    private lateinit var headersInit: Map<String, Any>
+    private var paramsInit: List<Pair<String, *>>? = null
 
-    fun additionalHeaders(init: HeadersBuilder.() -> Unit) = apply {
-        headersInit = init
+    @Suppress("UNCHECKED_CAST")
+    fun additionalHeaders(vararg pairs: Pair<String, *>) = apply {
+        headersInit = (pairs.filterNot { it.second == null } as List<Pair<String, Any>>).toMap()
     }
 
     fun queryParams(init: List<Pair<String, *>>) = apply {
-        paramsInit = init.toMap()
+        paramsInit = init
     }
 
-    internal suspend inline fun <reified T : Any> resolve(
+    @UseExperimental(ExperimentalStdlibApi::class)
+    internal suspend fun resolve(
         body: Any? = null
-    ): T = httpClient.request {
-        logger.debug("Call to ${route.urlTemplate}")
-        url("$apiURL${route.urlTemplate}")
+    ): T = Fuel
+        .request(route.httpMethod, route.urlTemplate, paramsInit)
+        .also {
+            if (::headersInit.isInitialized) it.header(headersInit)
+            if (body != null) it.body(body.toJson())
+        }.awaitObjectResult(gsonDeserializerOf(route.clazz))
+        .fold({
+            logger.debug("Successfully called to ${route.urlTemplate}")
+            it
+        }, {
+            logger.error(
+                "Crashed after call to ${it.response.url} with " +
+                        "${it.localizedMessage} code (${it.errorData.decodeToString()})"
+            )
 
-        headersInit?.let { headers(it) }
-        paramsInit?.forEach { p1, p2 -> parameter(p1, p2.toString()) }
+            if (retryCount <= MAX_RETRIES) {
+                delay(RETRY_AFTER)
+                logger.warn("Retry #${retryCount++}...")
+                return@fold resolve(body)
+            }
 
-        body?.let {
-            if (body is JsonRequest)
-                contentType(ContentType.Application.Json)
-            this.body = body
-        }
-        method = route.httpMethod
-    }
+            retryCount = 1
+            throw IllegalStateException("Response doesn`t received after $MAX_RETRIES retries")
+        })
+}
+
+internal fun <T : Any> gsonDeserializerOf(clazz: KClass<T>, gson: Gson = Gson()) = object : ResponseDeserializable<T> {
+    override fun deserialize(reader: Reader): T? = gson.fromJson<T>(reader, clazz.java)
 }

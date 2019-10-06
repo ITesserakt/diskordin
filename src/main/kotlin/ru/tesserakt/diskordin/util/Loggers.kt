@@ -12,5 +12,5 @@ object Loggers {
         return LoggerFactory.getLogger(thisClass.java)
     }
 
-    operator fun invoke(name: String): Logger = LoggerFactory.getLogger(name)
+    operator fun invoke(name: String): Lazy<Logger> = lazy { LoggerFactory.getLogger(name) }
 }

@@ -19,7 +19,7 @@ import ru.tesserakt.diskordin.rest.resource.UserResource
 internal object UserService {
     //private val userCache = genericCache<IUser>()
 
-    suspend fun getCurrentUser(): IUser = User(UserResource.General.getCurrentUser())
+    suspend fun getCurrentUser(): ISelf = Self(UserResource.General.getCurrentUser())
 
     suspend fun getUser(userId: Snowflake): IUser? = runCatching {
         UserResource.General.getUser(userId.asLong())

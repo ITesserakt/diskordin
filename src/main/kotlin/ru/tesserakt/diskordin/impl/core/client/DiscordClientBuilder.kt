@@ -1,53 +1,40 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import org.koin.Logger.slf4jLogger
-import org.koin.core.Koin
 import org.koin.core.context.loadKoinModules
-import org.koin.core.context.startKoin
-import org.koin.core.logger.Level
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 class DiscordClientBuilder private constructor() {
-    lateinit var token: String
+    var token: String = "Invalid"
     var tokenType: TokenType = TokenType.Bot
-    internal lateinit var httpClient: HttpClient
     var gatewayContext: CoroutineContext = Dispatchers.Default + Job()
 
     companion object {
+        private val isEnabled = AtomicBoolean(false)
+
         operator fun invoke(init: DiscordClientBuilder.() -> Unit): IDiscordClient {
             val builder = DiscordClientBuilder().apply(init)
+            check(isEnabled.compareAndSet(false, true)) { "Discord client already started" }
 
-            return setupKoin(builder).get()
-        }
-
-        private fun setupKoin(builder: DiscordClientBuilder): Koin {
-            val koin = startKoin {
-                slf4jLogger(Level.DEBUG)
-                fileProperties()
-            }.koin
-
-            val token = koin.getProperty("token", builder.token)
-            val tokenType = builder.tokenType
-
-            loadKoinModules(
-                module {
-                    single {
-                        if (builder::httpClient.isInitialized)
-                            builder.httpClient
-                        else
-                            PredefinedHttpClient(token, tokenType.name).get()
-                    }
-                    single<IDiscordClient> { DiscordClient(token, tokenType, get()) }
-                }
-            )
+            val koin = setupKoin()
+            if (koin.getProperty<String>("token") == null)
+                koin.setProperty("token", builder.token)
             koin.setProperty("gatewayContext", builder.gatewayContext)
-            return koin
+
+            return DiscordClient(builder.tokenType).also { client ->
+                setupFuel(client)
+                loadKoinModules(module {
+                    single { client } bind IDiscordClient::class
+                    single { setupHttpClient() }
+                    single { (path: String) -> setupScarlet(path, get()) }
+                })
+            }
         }
     }
 }

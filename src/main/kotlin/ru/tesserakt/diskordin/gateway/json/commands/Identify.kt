@@ -8,7 +8,7 @@ data class Identify(
     val properties: ConnectionProperties,
     val compress: Boolean = false,
     val largeThreshold: Int = 50,
-    val shard: Array<Pair<Int, Int>> = emptyArray(),
+    val shard: Array<Int> = emptyArray(),
     val guildSubscriptions: Boolean = true
 ) : IGatewayCommand {
     data class ConnectionProperties(
