@@ -5,10 +5,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import ru.tesserakt.diskordin.core.data.Snowflake
 
 val gson: Gson = GsonBuilder()
     .setPrettyPrinting()
     .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+    .registerTypeAdapter(Snowflake::class.java, SnowflakeTypeAdapter())
     .create()
 
 fun <T> T.toJson(): String = gson.toJson(this)

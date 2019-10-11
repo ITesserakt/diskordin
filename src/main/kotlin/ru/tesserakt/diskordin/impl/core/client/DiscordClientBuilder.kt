@@ -5,9 +5,12 @@ import kotlinx.coroutines.Job
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.create
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.gateway.GatewayLifecycle
+import ru.tesserakt.diskordin.rest.service.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -29,12 +32,26 @@ class DiscordClientBuilder private constructor() {
             koin.setProperty("gatewayContext", builder.gatewayContext)
 
             return DiscordClient(builder.tokenType).also { client ->
-                setupFuel(client)
                 loadKoinModules(module {
                     single { client } bind IDiscordClient::class
-                    single { setupHttpClient() }
+                    single { setupHttpClient(get()) }
+                    single {
+                        setupRetrofit(
+                            koin.getProperty<String>("API_url")
+                                ?: throw NullPointerException("There is no url to discord API. Please specify it in koin.properties file"),
+                            get()
+                        )
+                    }
                     single { setupLifecycle() } bind GatewayLifecycle::class
                     single { (path: String) -> setupScarlet(path, get(), get()) }
+                    single { get<Retrofit>().create<ChannelService>() }
+                    single { get<Retrofit>().create<EmojiService>() }
+                    single { get<Retrofit>().create<GatewayService>() }
+                    single { get<Retrofit>().create<GuildService>() }
+                    single { get<Retrofit>().create<InviteService>() }
+                    single { get<Retrofit>().create<UserService>() }
+                    single { get<Retrofit>().create<VoiceService>() }
+                    single { get<Retrofit>().create<WebhookService>() }
                 })
             }
         }

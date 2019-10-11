@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.Guild
+
 data class GuildResponse(
     val id: Long,
     val name: String,
@@ -32,6 +34,8 @@ data class GuildResponse(
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null
 ) : DiscordResponse() {
+    fun unwrap() = Guild(this)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

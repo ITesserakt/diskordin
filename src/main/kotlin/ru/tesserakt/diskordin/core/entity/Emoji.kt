@@ -10,7 +10,8 @@ import ru.tesserakt.diskordin.util.Identified
 
 interface IEmoji : INamed {
     companion object {
-        inline fun <reified E : IEmoji> typed(raw: EmojiResponse, guildId: Snowflake? = null) = when {
+        @Suppress("UNCHECKED_CAST")
+        fun <E : IEmoji> typed(raw: EmojiResponse, guildId: Snowflake? = null) = when {
             raw.id != null && guildId != null -> CustomEmoji(raw, guildId)
             else -> Emoji(raw)
         } as E

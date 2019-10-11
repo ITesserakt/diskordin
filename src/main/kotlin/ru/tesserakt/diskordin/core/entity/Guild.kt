@@ -25,7 +25,7 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     suspend fun getRole(id: Snowflake): IRole
     suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
     suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji
-    suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit)
+    suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit): String?
     suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
     suspend fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
     suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit)

@@ -8,27 +8,28 @@ import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
+import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
-import ru.tesserakt.diskordin.impl.core.service.ChannelService
+import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.util.Identified
 
-internal class Message(raw: MessageResponse) : IMessage {
-    override suspend fun addReaction(emoji: IEmoji) = ChannelService.addReaction(channel.id, id, emoji)
+class Message(raw: MessageResponse) : IMessage {
+    override suspend fun addReaction(emoji: IEmoji) = channelService.addReaction(channel.id, id, emoji.name)
 
-    override suspend fun deleteOwnReaction(emoji: IEmoji) = ChannelService.deleteOwnReaction(channel.id, id, emoji)
+    override suspend fun deleteOwnReaction(emoji: IEmoji) = channelService.removeOwnReaction(channel.id, id, emoji.name)
 
     override suspend fun deleteReaction(emoji: IEmoji, user: IUser) =
-        ChannelService.deleteReaction(channel.id, id, emoji, user.id)
+        channelService.removeReaction(channel.id, id, emoji.name, user.id)
 
     override suspend fun deleteReaction(emoji: IEmoji, userId: Snowflake) =
-        ChannelService.deleteReaction(channel.id, id, emoji, userId)
+        channelService.removeReaction(channel.id, id, emoji.name, userId)
 
     override suspend fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): List<IUser> =
-        ChannelService.getReactedUsers(channel.id, id, emoji, builder)
+        channelService.getReactions(channel.id, id, emoji.name, builder.query()).map { it.unwrap<IUser>() }
 
-    override suspend fun deleteAllReactions() = ChannelService.deleteAllReactions(channel.id, id)
+    override suspend fun deleteAllReactions() = channelService.removeAllReactions(channel.id, id)
 
-    override suspend fun delete(reason: String?) = ChannelService.deleteMessage(channel.id, id, reason)
+    override suspend fun delete(reason: String?) = channelService.deleteMessage(channel.id, id, reason)
 
     override val channel: Identified<IMessageChannel> = Identified(raw.channel_id.asSnowflake()) {
         client.findChannel(it) as IMessageChannel
@@ -49,9 +50,9 @@ internal class Message(raw: MessageResponse) : IMessage {
     override val id: Snowflake = raw.id.asSnowflake()
 
     override suspend fun edit(builder: MessageEditBuilder.() -> Unit) =
-        ChannelService.editMessage(channel.id, id, builder)
+        channelService.editMessage(channel.id, id, builder.build()).unwrap()
 
-    override suspend fun pin() = ChannelService.pinMessage(channel.id, id)
+    override suspend fun pin() = channelService.pinMessage(channel.id, id)
 
-    override suspend fun unpin() = ChannelService.unpinMessage(channel.id, id)
+    override suspend fun unpin() = channelService.unpinMessage(channel.id, id)
 }

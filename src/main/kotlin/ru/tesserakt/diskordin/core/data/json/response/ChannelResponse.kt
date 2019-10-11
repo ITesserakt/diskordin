@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.IChannel
+
 
 data class ChannelResponse(
     val id: Long,
@@ -21,6 +23,8 @@ data class ChannelResponse(
     val parent_id: Long? = null,
     val last_pin_timestamp: String? = null
 ) : DiscordResponse() {
+    fun <T : IChannel> unwrap() = IChannel.typed<T>(this)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

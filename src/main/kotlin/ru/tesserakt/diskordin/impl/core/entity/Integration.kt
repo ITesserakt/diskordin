@@ -6,12 +6,9 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.AccountResponse
 import ru.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
-import ru.tesserakt.diskordin.core.entity.IGuild
-import ru.tesserakt.diskordin.core.entity.IIntegration
-import ru.tesserakt.diskordin.core.entity.IRole
-import ru.tesserakt.diskordin.core.entity.IUser
+import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
-import ru.tesserakt.diskordin.impl.core.service.GuildService
+import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -22,12 +19,12 @@ class Integration(
 ) : IIntegration {
     override val guild: Identified<IGuild> = Identified(guildId) { client.findGuild(it)!! }
 
-    override suspend fun sync() = GuildService.syncIntegration(guildId, id)
+    override suspend fun sync() = guildService.syncIntegration(guildId, id)
 
-    override suspend fun delete(reason: String?) = GuildService.deleteIntegration(guildId, id)
+    override suspend fun delete(reason: String?) = guildService.deleteIntegration(guildId, id)
 
     override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration =
-        GuildService.editIntegration(guildId, id, builder).run {
+        guildService.editIntegration(guildId, id, builder.build()).run {
             guild().integrations.first { it.id == id }
         }
 
@@ -58,7 +55,6 @@ class Integration(
 
     class Account(raw: AccountResponse) : IIntegration.IAccount {
         override val id: Snowflake = raw.id.asSnowflake()
-
 
         override val name: String = raw.name
     }

@@ -3,11 +3,12 @@ package ru.tesserakt.diskordin.core.entity.query
 import ru.tesserakt.diskordin.core.data.Snowflake
 
 class ReactedUsersQuery : IQuery {
-    override fun create(): List<Pair<String, *>> = mapOf(
-        "before" to before?.asLong(),
-        "after" to after?.asLong(),
-        "limit" to limit
-    ).filterValues { it != null }.toList()
+    @Suppress("UNCHECKED_CAST")
+    override fun create() = mapOf(
+        "before" to before?.asString(),
+        "after" to after?.asString(),
+        "limit" to limit.toString()
+    ).filterValues { it != null } as Query
 
     var before: Snowflake? = null
     var after: Snowflake? = null

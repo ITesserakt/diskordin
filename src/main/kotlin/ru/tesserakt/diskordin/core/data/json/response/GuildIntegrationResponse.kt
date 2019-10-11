@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.impl.core.entity.Integration
 
 data class GuildIntegrationResponse(
     val id: Long,
@@ -13,4 +15,6 @@ data class GuildIntegrationResponse(
     val user: UserResponse,
     val account: AccountResponse,
     val synced_at: String
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap(guildId: Snowflake) = Integration(this, guildId)
+}

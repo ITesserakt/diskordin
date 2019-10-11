@@ -2,7 +2,7 @@ package ru.tesserakt.diskordin.core.entity.query
 
 import kotlin.reflect.full.createInstance
 
-typealias Query = List<Pair<String, *>>
+typealias Query = Map<String, String>
 
 interface IQuery {
     fun create(): Query

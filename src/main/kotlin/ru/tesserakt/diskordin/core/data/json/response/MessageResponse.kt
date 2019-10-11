@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.Message
+
 
 data class MessageResponse(
     val id: Long,
@@ -22,6 +24,8 @@ data class MessageResponse(
     val webhook_id: Long? = null,
     val type: Int
 ) : DiscordResponse() {
+    fun unwrap() = Message(this)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

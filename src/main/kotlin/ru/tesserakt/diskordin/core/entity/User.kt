@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.core.entity
 
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 
@@ -16,7 +17,7 @@ interface IUser : IMentioned, INamed {
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
-    val guilds: Flow<IGuild>
+    val guilds: Flow<UserGuildResponse>
     val privateChannels: Flow<IPrivateChannel>
     val connections: Flow<IConnection>
 

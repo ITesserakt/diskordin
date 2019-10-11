@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-
 import kotlinx.coroutines.flow.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -11,12 +10,11 @@ import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
+import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
-import ru.tesserakt.diskordin.impl.core.entity.`object`.PermissionOverwrite
-import ru.tesserakt.diskordin.impl.core.service.ChannelService
-import ru.tesserakt.diskordin.rest.resource.ChannelResource
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
+import ru.tesserakt.diskordin.util.enums.not
 
 sealed class Channel(raw: ChannelResponse) : IChannel {
     private val logger by Loggers
@@ -28,16 +26,15 @@ sealed class Channel(raw: ChannelResponse) : IChannel {
     final override val mention: String = "<#$id>"
 
     final override suspend fun delete(reason: String?) {
-        ChannelResource.General.deleteChannel(id.asLong(), reason)
+        channelService.deleteChannel(id, reason)
     }
 
     override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite =
-        ChannelService.newChannelInvite(id, builder)
+        channelService.createChannelInvite(id, builder.build(), null).unwrap()
 
-    override val invites: Flow<IInvite>
-        get() = flow {
-            ChannelService.getChannelInvites<IInvite>(id).forEach { emit(it) }
-        }
+    override val invites: Flow<IInvite> = flow {
+        channelService.getChannelInvites(id).map { it.unwrap<IInvite>() }.forEach { emit(it) }
+    }
 }
 
 sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
@@ -51,7 +48,7 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
     final override val position: Int = raw.position!!
 
     final override val permissionOverwrites: Flow<IPermissionOverwrite> = raw.permission_overwrites!!.map {
-        PermissionOverwrite(it)
+        it.unwrap()
     }.asFlow()
 
     final override val parentCategory: Snowflake? = raw.parent_id?.asSnowflake()
@@ -62,48 +59,46 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 
     final override val name: String = raw.name!!
 
-    final override val invites: Flow<IGuildInvite>
-        get() = flow {
-            ChannelService.getChannelInvites<IGuildInvite>(id).forEach { emit(it) }
-        }
+    final override val invites: Flow<IGuildInvite> = flow {
+        channelService.getChannelInvites(id).map { it.unwrap<IGuildInvite>() }.forEach { emit(it) }
+    }
 
     final override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite =
-        ChannelService.newChannelInvite(id, builder)
+        channelService.createChannelInvite(id, builder.build(), null).unwrap()
 
     final override suspend fun editPermissions(
         overwrite: IPermissionOverwrite,
         builder: PermissionEditBuilder.() -> Unit
     ) =
-        ChannelService.editChannelPermissions(id, overwrite, builder)
+        channelService.editChannelPermissions(id, (overwrite.allowed and !overwrite.denied).code, builder.build(), null)
 
     final override suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?) =
-        ChannelService.removeChannelPermissions(id, toRemove, reason)
+        channelService.deleteChannelPermissions(id, (toRemove.allowed and !toRemove.denied).code, reason)
 }
 
 class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
     override suspend fun getPinnedMessages(): List<IMessage> = messages.filter { it.isPinned }.toList()
 
-    override suspend fun typing() = ChannelService.triggerTyping(id)
+    override suspend fun typing() = channelService.triggerTyping(id)
 
     override suspend fun createMessage(content: String): IMessage = createMessage {
         this.content = content
     }
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        ChannelService.createMessage(id, builder)
+        channelService.createMessage(id, builder.build()).unwrap()
 
     override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
         createMessage { embed = builder }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
-        ChannelService.bulkDeleteMessages(id, builder)
+        channelService.bulkDeleteMessages(id, builder.build())
 
-    override val messages: Flow<IMessage>
-        get() = flow {
-            ChannelService.getMessages(id) {
-                this.limit = 1000
-            }.forEach { emit(it) }
-        }
+    override val messages: Flow<IMessage> = flow {
+        channelService.getMessages(id, MessagesQuery().apply {
+            limit = 100
+        }.create()).map { it.unwrap() }.forEach { emit(it) }
+    }
 
     init {
         requireNotNull(raw.nsfw)
@@ -118,7 +113,7 @@ class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
     override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
 
     override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) =
-        ChannelService.editChannel(id, builder)
+        channelService.editChannel(id, builder.build(), null).unwrap<ITextChannel>()
 }
 
 class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
@@ -132,7 +127,7 @@ class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
     override val userLimit: Int = raw.user_limit!!
 
     override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) =
-        ChannelService.editChannel(id, builder)
+        channelService.editChannel(id, builder.build(), null).unwrap<IVoiceChannel>()
 }
 
 class Category(raw: ChannelResponse) : GuildChannel(raw), IGuildCategory {
@@ -141,22 +136,24 @@ class Category(raw: ChannelResponse) : GuildChannel(raw), IGuildCategory {
 
 class AnnouncementChannel(raw: ChannelResponse) : GuildChannel(raw), IAnnouncementChannel {
     override val messages: Flow<IMessage> = flow {
-        ChannelService.getMessages(id) { limit = 1000 }.forEach { emit(it) }
+        channelService.getMessages(id, MessagesQuery().apply {
+            limit = 1000
+        }.create()).map { it.unwrap() }.forEach { emit(it) }
     }
 
-    override suspend fun typing() = ChannelService.triggerTyping(id)
+    override suspend fun typing() = channelService.triggerTyping(id)
 
     override suspend fun createMessage(content: String): IMessage = createMessage { this.content = content }
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        ChannelService.createMessage(id, builder)
+        channelService.createMessage(id, builder.build()).unwrap()
 
     override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
         embed = builder
     }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
-        ChannelService.bulkDeleteMessages(id, builder)
+        channelService.bulkDeleteMessages(id, builder.build())
 }
 
 class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
@@ -164,20 +161,20 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
         Identified(user.id.asSnowflake()) { User(user) }
     }
 
-    override suspend fun typing() = ChannelService.triggerTyping(id)
+    override suspend fun typing() = channelService.triggerTyping(id)
 
     override suspend fun createMessage(content: String): IMessage = createMessage {
         this.content = content
     }
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        ChannelService.createMessage(id, builder)
+        channelService.createMessage(id, builder.build()).unwrap()
 
     override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
         createMessage { embed = builder }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
-        ChannelService.bulkDeleteMessages(id, builder)
+        channelService.bulkDeleteMessages(id, builder.build())
 
     init {
         requireNotNull(raw.owner_id)
@@ -188,12 +185,11 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
         raw.owner_id!!.asSnowflake()
     ) { client.findUser(it)!! }
 
-    override val messages: Flow<IMessage>
-        get() = flow {
-            ChannelService.getMessages(id) {
-                this.limit = 1000
-            }.forEach { emit(it) }
-        }
+    override val messages: Flow<IMessage> = flow {
+        channelService.getMessages(id, MessagesQuery().apply {
+            limit = 1000
+        }.create()).map { it.unwrap() }.forEach { emit(it) }
+    }
 }
 
 class GroupPrivateChannel(raw: ChannelResponse) : Channel(raw), IGroupPrivateChannel {
@@ -208,27 +204,25 @@ class GroupPrivateChannel(raw: ChannelResponse) : Channel(raw), IGroupPrivateCha
     override val icon: Image? = raw.icon?.let { ImageResponse(it, null) }?.let { Image(it) }
 
     override val messages: Flow<IMessage> = flow {
-        ChannelService.getMessages(id) {
+        channelService.getMessages(id, MessagesQuery().apply {
             limit = 1000
-        }.forEach { emit(it) }
+        }.create()).map { it.unwrap() }.forEach { emit(it) }
     }
 
     override suspend fun typing() =
-        ChannelService.triggerTyping(id)
-
+        channelService.triggerTyping(id)
 
     override suspend fun createMessage(content: String): IMessage = createMessage {
         this.content = content
     }
 
     override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        ChannelService.createMessage(id, builder)
-
+        channelService.createMessage(id, builder.build()).unwrap()
 
     override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
         embed = builder
     }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
-        ChannelService.bulkDeleteMessages(id, builder)
+        channelService.bulkDeleteMessages(id, builder.build())
 }

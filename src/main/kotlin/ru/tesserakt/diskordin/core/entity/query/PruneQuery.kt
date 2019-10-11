@@ -1,9 +1,9 @@
 package ru.tesserakt.diskordin.core.entity.query
 
 class PruneQuery : IQuery {
-    lateinit var days: Unit
+    var days: Int = 0
 
     override fun create(): Query = mapOf(
-        "days" to days
-    ).toList()
+        "days" to days.toString()
+    )
 }

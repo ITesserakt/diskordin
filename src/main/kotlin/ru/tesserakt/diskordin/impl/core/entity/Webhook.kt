@@ -4,16 +4,12 @@ package ru.tesserakt.diskordin.impl.core.entity
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.WebhookResponse
-import ru.tesserakt.diskordin.core.entity.IChannel
-import ru.tesserakt.diskordin.core.entity.IGuild
-import ru.tesserakt.diskordin.core.entity.IUser
-import ru.tesserakt.diskordin.core.entity.IWebhook
-import ru.tesserakt.diskordin.rest.resource.WebhookResource
+import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.util.Identified
 
 class Webhook(raw: WebhookResponse) : IWebhook {
     override suspend fun delete(reason: String?) =
-        WebhookResource.General.removeWebhook(id.asLong(), reason)
+        webhookService.deleteWebhook(id)
 
     override val name: String? = raw.name
 

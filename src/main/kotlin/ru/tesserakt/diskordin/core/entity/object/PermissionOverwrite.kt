@@ -7,11 +7,9 @@ import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 
 internal typealias RoleId = Snowflake
-
 internal typealias MemberId = Snowflake
 
 interface IPermissionOverwrite : IDiscordObject {
-
     val targetId: Either<RoleId, MemberId>
     val type: Type
     val allowed: ValuedEnum<Permission>

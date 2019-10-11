@@ -8,13 +8,10 @@ import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
-import ru.tesserakt.diskordin.impl.core.service.EmojiService
-import ru.tesserakt.diskordin.rest.resource.EmojiResource
+import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
 
 open class Emoji(raw: EmojiResponse) : IEmoji {
-
-
     override val name: String = raw.name
 }
 
@@ -23,7 +20,7 @@ class CustomEmoji constructor(
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =
-        EmojiService.editEmoji(guild.id, id, builder)
+        emojiService.editGuildEmoji(guild.id, id, builder.build()).unwrap()
 
     override val guild: Identified<IGuild> = Identified(guildId) {
         client.findGuild(it) ?: throw NotCustomEmojiException()
@@ -58,8 +55,7 @@ class CustomEmoji constructor(
     override val mention: String = "<${if (isAnimated) "a" else ""}:$name:$id>"
 
 
-    override suspend fun delete(reason: String?) = EmojiResource.General
-        .deleteEmoji(guild.id.asLong(), id.asLong())
+    override suspend fun delete(reason: String?) = emojiService.deleteGuildEmoji(guild.id, id)
 }
 
 class NotCustomEmojiException : IllegalArgumentException("Not a custom emoji")

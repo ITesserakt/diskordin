@@ -7,21 +7,19 @@ import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.entity.IChannel
-import ru.tesserakt.diskordin.core.entity.IGuild
-import ru.tesserakt.diskordin.core.entity.ISelf
-import ru.tesserakt.diskordin.core.entity.IUser
+import ru.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
+import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
+import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 import ru.tesserakt.diskordin.impl.core.entity.User
-import ru.tesserakt.diskordin.impl.core.service.*
-import ru.tesserakt.diskordin.rest.resource.GatewayResource
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
+import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -34,7 +32,7 @@ data class DiscordClient(
     init {
         TokenVerification(token, tokenType).verify().map { id ->
             self = Identified(id) {
-                UserService.getCurrentUser()
+                userService.getCurrentUser().unwrap<ISelf>()
             }
         }.handleLeftWith {
             val message = when (it) {
@@ -43,7 +41,6 @@ data class DiscordClient(
                 InvalidCharacters -> "Token contains invalid characters!"
                 InvalidConstruction -> "Token does not fit into right form!"
             }
-            logger.error(message)
             throw IllegalStateException(message)
         }
     }
@@ -63,43 +60,45 @@ data class DiscordClient(
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun login() {
-        val gatewayURL = GatewayResource.General.getGatewayURL().url
-        val metadata = GatewayResource.General.getGatewayBot().sessionMeta
+        val gatewayURL = gatewayService.getGatewayUrl().url
+        val metadata = gatewayService.getGatewayBot().sessionMeta
         this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter.milliseconds)
         isConnected = true
-        this.gateway.run()
+        this.gateway.run().join()
     }
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
-        login()
+        isConnected = true
         block()
         logout()
     }
 
     override fun logout() {
         logger.info("Shutting down gateway")
-        gateway.stop()
+        if (this::gateway.isInitialized)
+            gateway.stop()
+        exitProcess(0)
     }
 
     override suspend fun findUser(id: Snowflake) =
-        UserService.getUser(id)
+        userService.getUser(id).unwrap<IUser>()
 
     override suspend fun findGuild(id: Snowflake) =
-        GuildService.getGuild(id)
+        guildService.getGuild(id).unwrap()
 
-    override suspend fun findChannel(id: Snowflake): IChannel? =
-        ChannelService.getChannel(id)
+    override suspend fun findChannel(id: Snowflake): IChannel =
+        channelService.getChannel(id).unwrap()
 
-    override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild = GuildService.createGuild(request)
+    override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild =
+        guildService.createGuild(request.build()).unwrap()
 
-    override suspend fun getInvite(code: String): IInvite? = runCatching {
-        InviteService.getInvite(code)
-    }.getOrNull()
+    override suspend fun getInvite(code: String): IInvite =
+        inviteService.getInvite(code).unwrap()
 
     override suspend fun deleteInvite(code: String, reason: String?) =
-        InviteService.deleteInvite(code, reason)
+        inviteService.deleteInvite(code)
 
-    override suspend fun getRegions(): List<IRegion> = VoiceService.getVoiceRegions()
+    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().map(VoiceRegionResponse::unwrap)
 }

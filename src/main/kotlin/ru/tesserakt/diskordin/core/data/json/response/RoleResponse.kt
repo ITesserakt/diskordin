@@ -1,5 +1,8 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.impl.core.entity.Role
+
 
 data class RoleResponse(
     val id: Long,
@@ -10,4 +13,6 @@ data class RoleResponse(
     val permissions: Long,
     val managed: Boolean,
     val mentionable: Boolean
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap(guildId: Snowflake) = Role(this, guildId)
+}

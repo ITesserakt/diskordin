@@ -8,8 +8,8 @@ class UserGuildsQuery : IQuery {
     var limit: Int = 100
 
     override fun create(): Query = mapOf(
-        "before" to before,
-        "after" to after,
-        "limit" to limit
-    ).filterValues { it != null }.toList()
+        "before" to before.toString(),
+        "after" to after.toString(),
+        "limit" to limit.toString()
+    )
 }

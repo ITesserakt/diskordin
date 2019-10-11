@@ -6,8 +6,8 @@ class MemberQuery : IQuery {
     var limit = 1
     lateinit var after: Snowflake
 
-    override fun create(): List<Pair<String, *>> = mapOf(
-        "limit" to limit,
-        "after" to if (::after.isInitialized) after.asLong() else 0
-    ).toList()
+    override fun create() = mapOf(
+        "limit" to limit.toString(),
+        "after" to after.asString()
+    )
 }

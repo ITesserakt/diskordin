@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.Connection
+
 
 data class ConnectionResponse(
     val id: String,
@@ -12,6 +14,8 @@ data class ConnectionResponse(
     val show_activity: Boolean,
     val visibility: Int
 ) : DiscordResponse() {
+    fun unwrap() = Connection(this)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

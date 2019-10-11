@@ -8,8 +8,9 @@ import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
-import ru.tesserakt.diskordin.impl.core.service.GuildService
-import ru.tesserakt.diskordin.rest.resource.GuildResource
+import ru.tesserakt.diskordin.core.entity.builder.build
+import ru.tesserakt.diskordin.core.entity.client
+import ru.tesserakt.diskordin.core.entity.guildService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
@@ -19,7 +20,7 @@ class Role constructor(
     private val guildId: Snowflake
 ) : IRole {
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole =
-        GuildService.editRole(guildId, id, builder)
+        guildService.editRole(guildId, id, builder.build(), null).unwrap(guildId)
 
     @ExperimentalUnsignedTypes
     override val permissions = ValuedEnum<Permission>(raw.permissions)
@@ -43,5 +44,5 @@ class Role constructor(
     override val name: String = raw.name
 
     override suspend fun delete(reason: String?) =
-        GuildResource.Roles.deleteRole(guildId.asLong(), id.asLong(), reason)
+        guildService.deleteRole(guildId, id, reason)
 }

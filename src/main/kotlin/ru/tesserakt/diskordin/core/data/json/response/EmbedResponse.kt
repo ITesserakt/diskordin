@@ -1,5 +1,10 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Embed
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Thumbnail
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Video
+
 
 data class EmbedResponse(
     val title: String? = null,
@@ -16,6 +21,8 @@ data class EmbedResponse(
     val author: EmbedUserResponse? = null,
     val fields: Array<FieldResponse>? = null
 ) : DiscordResponse() {
+    fun unwrap() = Embed(this)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -65,7 +72,9 @@ data class FieldResponse(
     val name: String,
     val value: String,
     val inline: Boolean? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Embed.Field(this)
+}
 
 
 data class EmbedUserResponse(
@@ -73,20 +82,26 @@ data class EmbedUserResponse(
     val url: String? = null,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Embed.Author(this)
+}
 
 
 data class ProviderResponse(
     val name: String? = null,
     val url: String? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Embed.Provider(this)
+}
 
 
 data class VideoResponse(
     val url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Video(this)
+}
 
 
 data class ThumbnailResponse(
@@ -94,7 +109,9 @@ data class ThumbnailResponse(
     val proxy_url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Thumbnail(this)
+}
 
 
 data class ImageResponse(
@@ -102,11 +119,15 @@ data class ImageResponse(
     val proxy_url: String?,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Image(this)
+}
 
 
 data class FooterResponse(
     val text: String,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Embed.Footer(this)
+}

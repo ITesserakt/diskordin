@@ -5,6 +5,7 @@ import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildEmbedResponse
 import ru.tesserakt.diskordin.core.entity.IGuildChannel
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildEmbed
+import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.util.Identified
 
 class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {

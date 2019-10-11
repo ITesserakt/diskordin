@@ -16,7 +16,8 @@ interface IInvite : IDiscordObject {
     val channelType: IChannel.Type
 
     companion object {
-        inline fun <reified I : IInvite> typed(raw: InviteResponse) = when {
+        @Suppress("UNCHECKED_CAST")
+        fun <I : IInvite> typed(raw: InviteResponse) = when {
             raw.guild != null -> GuildInvite(raw)
             else -> Invite(raw)
         } as I

@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Region
+
 
 data class VoiceRegionResponse(
     val id: String,
@@ -8,4 +10,6 @@ data class VoiceRegionResponse(
     val optimal: Boolean,
     val deprecated: Boolean,
     val custom: Boolean
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Region(this)
+}

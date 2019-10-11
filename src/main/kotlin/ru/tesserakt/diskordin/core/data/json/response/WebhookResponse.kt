@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.impl.core.entity.Webhook
+
 
 data class WebhookResponse(
     val id: Long,
@@ -9,4 +11,6 @@ data class WebhookResponse(
     val name: String?,
     val avatar: String?,
     val token: String
-) : DiscordResponse()
+) : DiscordResponse() {
+    fun unwrap() = Webhook(this)
+}
