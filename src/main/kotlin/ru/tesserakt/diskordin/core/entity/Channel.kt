@@ -3,16 +3,17 @@
 
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.data.NonEmptyList
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IImage
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.impl.core.entity.*
-import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
 import ru.tesserakt.diskordin.util.Identified
 
 interface IChannel : IMentioned, IDeletable {
@@ -30,13 +31,13 @@ interface IChannel : IMentioned, IDeletable {
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        fun <T : IChannel> typed(response: ChannelResponse) = when (response.type) {
-            GuildText.ordinal -> TextChannel(response)
-            Private.ordinal -> PrivateChannel(response)
-            GuildVoice.ordinal -> VoiceChannel(response)
-            GuildCategory.ordinal -> Category(response)
-            PrivateGroup.ordinal -> GroupPrivateChannel(response)
-            GuildNews.ordinal -> AnnouncementChannel(response)
+        internal fun <T : IChannel> typed(response: ChannelResponse<T>) = when (response.type) {
+            GuildText.ordinal -> TextChannel(response as ChannelResponse<ITextChannel>)
+            Private.ordinal -> PrivateChannel(response as ChannelResponse<IPrivateChannel>)
+            GuildVoice.ordinal -> VoiceChannel(response as ChannelResponse<IVoiceChannel>)
+            GuildCategory.ordinal -> Category(response as ChannelResponse<IGuildCategory>)
+            PrivateGroup.ordinal -> GroupPrivateChannel(response as ChannelResponse<IGroupPrivateChannel>)
+            GuildNews.ordinal -> AnnouncementChannel(response as ChannelResponse<IAnnouncementChannel>)
             else -> throw IllegalAccessException("Type of channel isn`t right (!in [0; 6) range)")
         } as T
     }
@@ -80,13 +81,11 @@ interface IAnnouncementChannel : IGuildChannel, IMessageChannel
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
     val owner: Identified<IUser>
-    val recipient: Identified<IUser>
+    val recipient: NonEmptyList<IUser>
 }
 
-interface IGroupPrivateChannel : IMessageChannel, IAudioChannel {
-    val owner: Identified<IUser>
-    val recipients: Flow<IUser>
-    val icon: Image?
+interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel {
+    val icon: IImage?
 }
 
 interface IMessageChannel : IChannel {

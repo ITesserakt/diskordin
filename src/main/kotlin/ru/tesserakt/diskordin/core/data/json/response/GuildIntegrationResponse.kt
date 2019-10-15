@@ -1,6 +1,8 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.entity.IIntegration
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Integration
 
 data class GuildIntegrationResponse(
@@ -12,9 +14,9 @@ data class GuildIntegrationResponse(
     val role_id: Long,
     val expire_behavior: Int,
     val expire_grace_period: Int,
-    val user: UserResponse,
+    val user: UserResponse<IUser>,
     val account: AccountResponse,
     val synced_at: String
-) : DiscordResponse() {
-    fun unwrap(guildId: Snowflake) = Integration(this, guildId)
+) : DiscordResponse<IIntegration>() {
+    override fun unwrap(vararg params: Any): IIntegration = Integration(this, params[0] as Snowflake)
 }

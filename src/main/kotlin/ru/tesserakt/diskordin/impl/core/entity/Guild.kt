@@ -34,7 +34,7 @@ class Guild(raw: GuildResponse) : IGuild {
         emojiService.createGuildEmoji(id, builder.build()).unwrap()
 
     override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) =
-        guildService.editCurrentNickname(id, builder.build()).unwrap()
+        guildService.editCurrentNickname(id, builder.build())
 
     override suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
         addChannelJ(builder)
@@ -44,24 +44,24 @@ class Guild(raw: GuildResponse) : IGuild {
 
     private suspend inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
         noinline builder: B.() -> Unit
-    ): C = guildService.createGuildChannel(id, builder.build(), null).unwrap()
+    ): C = guildService.createGuildChannel(id, builder.build(), null).unwrap() as C
 
     override suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) =
         guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
 
     override suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember =
-        guildService.newMember(id, userId, builder.build()).unwrap(id)
+        guildService.newMember(id, userId, builder.build()).unwrap()
 
     override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
 
     override suspend fun kick(memberId: Snowflake, reason: String?) = guildService.removeMember(id, memberId, reason)
 
     override suspend fun addRole(builder: RoleCreateBuilder.() -> Unit): IRole =
-        guildService.createRole(id, builder.build(), null).unwrap(id)
+        guildService.createRole(id, builder.build(), null).unwrap()
 
     override suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): List<IRole> =
         guildService.editRolePositions(id, builder.map { it.build() }.toTypedArray())
-            .map { it.unwrap(id) }
+            .map { it.unwrap() }
 
     override suspend fun findBan(userId: Snowflake): IBan? = guildService.getBan(id, userId).unwrap()
 
@@ -73,7 +73,7 @@ class Guild(raw: GuildResponse) : IGuild {
     override suspend fun pardon(userId: Snowflake, reason: String?) = guildService.removeBan(id, userId, reason)
 
     override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int =
-        guildService.getPruneCount(id, builder.query()).unwrap()
+        guildService.getPruneCount(id, builder.query())
 
     override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) =
         guildService.createIntegration(id, builder.build())
@@ -84,11 +84,11 @@ class Guild(raw: GuildResponse) : IGuild {
         channels.first { it.id == id } as C
 
     override val invites: Flow<IGuildInvite> = flow {
-        guildService.getInvites(id).map { it.unwrap<IGuildInvite>() }.forEach { emit(it) }
+        guildService.getInvites(id).map { it.unwrap() }.forEach { emit(it) }
     }
 
     override val emojis: Flow<ICustomEmoji> = flow {
-        emojiService.getGuildEmojis(id).map { it.unwrap<ICustomEmoji>() }.forEach { emit(it) }
+        emojiService.getGuildEmojis(id).map { it.unwrap() }.forEach { emit(it) }
     }
 
     override val bans: Flow<IBan> = flow {
@@ -133,11 +133,15 @@ class Guild(raw: GuildResponse) : IGuild {
     }
 
     override val channels: Flow<IGuildChannel> = flow {
-        guildService.getGuildChannels(id).map { it.unwrap<IGuildChannel>() }.forEach { emit(it) }
+        guildService.getGuildChannels(id).map { it.unwrap() }.forEach { emit(it) }
     }
 
     override val name: String = raw.name
 
-    @Deprecated("Bots can use this only 10 times!")
+    @Suppress("DEPRECATION")
+    @Deprecated(
+        "Bots can use this only 10 times!",
+        ReplaceWith("guildService.deleteGuild(id)", "ru.tesserakt.diskordin.core.entity.guildService")
+    )
     override suspend fun delete(reason: String?) = guildService.deleteGuild(id)
 }

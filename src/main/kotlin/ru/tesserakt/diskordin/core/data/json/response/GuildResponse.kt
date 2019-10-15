@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.ICustomEmoji
+import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 
 data class GuildResponse(
@@ -19,7 +21,7 @@ data class GuildResponse(
     val default_message_notifications: Int,
     val explicit_content_filter: Int,
     val roles: Array<RoleResponse>,
-    val emojis: Array<EmojiResponse>,
+    val emojis: Array<EmojiResponse<ICustomEmoji>>,
     val features: Array<String>,
     val mfa_level: Int,
     val application_id: Long?,
@@ -33,8 +35,8 @@ data class GuildResponse(
     val widget_channel_id: Long?,
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null
-) : DiscordResponse() {
-    fun unwrap() = Guild(this)
+) : DiscordResponse<IGuild>() {
+    override fun unwrap(vararg params: Any): IGuild = Guild(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

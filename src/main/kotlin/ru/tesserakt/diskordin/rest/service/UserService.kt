@@ -11,17 +11,20 @@ import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.ConnectionResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
+import ru.tesserakt.diskordin.core.entity.IGroupPrivateChannel
+import ru.tesserakt.diskordin.core.entity.IPrivateChannel
+import ru.tesserakt.diskordin.core.entity.ISelf
 import ru.tesserakt.diskordin.core.entity.query.Query
 
 interface UserService {
     @GET("/api/v6/users/@me")
-    suspend fun getCurrentUser(): UserResponse
+    suspend fun getCurrentUser(): UserResponse<ISelf>
 
     @GET("/api/v6/users/{id}")
-    suspend fun getUser(@Path("id") id: Snowflake): UserResponse
+    suspend fun getUser(@Path("id") id: Snowflake): UserResponse<*>
 
     @PATCH("/api/v6/users/@me")
-    suspend fun editCurrentUser(@Body request: UserEditRequest): UserResponse
+    suspend fun editCurrentUser(@Body request: UserEditRequest): UserResponse<ISelf>
 
     @GET("/api/v6/users/@me/guilds")
     suspend fun getCurrentUserGuilds(@QueryMap query: Query): Array<UserGuildResponse>
@@ -30,17 +33,17 @@ interface UserService {
     suspend fun leaveGuild(@Path("id") id: Snowflake)
 
     @GET("/api/v6/users/@me/channels")
-    suspend fun getUserDMs(): Array<ChannelResponse>
+    suspend fun getUserDMs(): Array<ChannelResponse<IPrivateChannel>>
 
     @POST("/api/v6/users/@me/channels")
-    suspend fun joinToDM(@Body request: DMCreateRequest): ChannelResponse
+    suspend fun joinToDM(@Body request: DMCreateRequest): ChannelResponse<IPrivateChannel>
 
     @Deprecated(
         "GameBridge SDK is deprecated for now",
         ReplaceWith("UserService.joinToDM()", "ru.tesserakt.diskordin.rest.service.UserService")
     )
     @POST("/api/v6/users/@me/channels")
-    suspend fun joinToGroupDM(@Body request: GroupDMCreateRequest): ChannelResponse
+    suspend fun joinToGroupDM(@Body request: GroupDMCreateRequest): ChannelResponse<IGroupPrivateChannel>
 
     @GET("/api/v6/users/@me/connections")
     suspend fun getCurrentUserConnections(): Array<ConnectionResponse>

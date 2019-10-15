@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
+import arrow.data.NonEmptyList
 import kotlinx.coroutines.flow.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -11,12 +12,12 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
-import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
+import ru.tesserakt.diskordin.util.combine
 import ru.tesserakt.diskordin.util.enums.not
 
-sealed class Channel(raw: ChannelResponse) : IChannel {
+sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     private val logger by Loggers
 
     final override val type: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.type }
@@ -26,18 +27,18 @@ sealed class Channel(raw: ChannelResponse) : IChannel {
     final override val mention: String = "<#$id>"
 
     final override suspend fun delete(reason: String?) {
-        channelService.deleteChannel(id, reason)
+        channelService.deleteChannel<IChannel>(id, reason)
     }
 
     override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite =
         channelService.createChannelInvite(id, builder.build(), null).unwrap()
 
     override val invites: Flow<IInvite> = flow {
-        channelService.getChannelInvites(id).map { it.unwrap<IInvite>() }.forEach { emit(it) }
+        channelService.getChannelInvites(id).map { it.unwrap() }.forEach { emit(it) }
     }
 }
 
-sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
+sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), IGuildChannel {
     init {
         requireNotNull(raw.guild_id)
         requireNotNull(raw.permission_overwrites)
@@ -53,18 +54,17 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
 
     final override val parentCategory: Snowflake? = raw.parent_id?.asSnowflake()
 
-    final override val guild: Identified<IGuild> = Identified(
-        raw.guild_id!!.asSnowflake()
-    ) { client.findGuild(it)!! }
+    final override val guild: Identified<IGuild> =
+        raw.guild_id!!.asSnowflake() combine { client.findGuild(it)!! }
 
     final override val name: String = raw.name!!
 
     final override val invites: Flow<IGuildInvite> = flow {
-        channelService.getChannelInvites(id).map { it.unwrap<IGuildInvite>() }.forEach { emit(it) }
+        channelService.getChannelInvites(id).map { it.unwrap() as IGuildInvite }.forEach { emit(it) }
     }
 
     final override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite =
-        channelService.createChannelInvite(id, builder.build(), null).unwrap()
+        channelService.createChannelInvite(id, builder.build(), null).unwrap() as IGuildInvite
 
     final override suspend fun editPermissions(
         overwrite: IPermissionOverwrite,
@@ -76,7 +76,7 @@ sealed class GuildChannel(raw: ChannelResponse) : Channel(raw), IGuildChannel {
         channelService.deleteChannelPermissions(id, (toRemove.allowed and !toRemove.denied).code, reason)
 }
 
-class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
+class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
     override suspend fun getPinnedMessages(): List<IMessage> = messages.filter { it.isPinned }.toList()
 
     override suspend fun typing() = channelService.triggerTyping(id)
@@ -113,10 +113,10 @@ class TextChannel(raw: ChannelResponse) : GuildChannel(raw), ITextChannel {
     override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
 
     override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) =
-        channelService.editChannel(id, builder.build(), null).unwrap<ITextChannel>()
+        channelService.editChannel<ITextChannel>(id, builder.build(), null).unwrap()
 }
 
-class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
+class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel {
     init {
         requireNotNull(raw.bitrate)
         requireNotNull(raw.user_limit)
@@ -127,14 +127,14 @@ class VoiceChannel(raw: ChannelResponse) : GuildChannel(raw), IVoiceChannel {
     override val userLimit: Int = raw.user_limit!!
 
     override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) =
-        channelService.editChannel(id, builder.build(), null).unwrap<IVoiceChannel>()
+        channelService.editChannel<IVoiceChannel>(id, builder.build(), null).unwrap()
 }
 
-class Category(raw: ChannelResponse) : GuildChannel(raw), IGuildCategory {
+class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
     override val parentId: Snowflake? = raw.parent_id?.asSnowflake()
 }
 
-class AnnouncementChannel(raw: ChannelResponse) : GuildChannel(raw), IAnnouncementChannel {
+class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw), IAnnouncementChannel {
     override val messages: Flow<IMessage> = flow {
         channelService.getMessages(id, MessagesQuery().apply {
             limit = 1000
@@ -156,10 +156,9 @@ class AnnouncementChannel(raw: ChannelResponse) : GuildChannel(raw), IAnnounceme
         channelService.bulkDeleteMessages(id, builder.build())
 }
 
-class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
-    override val recipient: Identified<IUser> = raw.recipients!![0].let { user ->
-        Identified(user.id.asSnowflake()) { User(user) }
-    }
+class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
+    override val recipient =
+        NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override suspend fun typing() = channelService.triggerTyping(id)
 
@@ -192,16 +191,15 @@ class PrivateChannel(raw: ChannelResponse) : Channel(raw), IPrivateChannel {
     }
 }
 
-class GroupPrivateChannel(raw: ChannelResponse) : Channel(raw), IGroupPrivateChannel {
+class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : Channel(raw), IGroupPrivateChannel {
+    override val recipient: NonEmptyList<IUser> =
+        NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
+
     override val owner: Identified<IUser> = Identified(raw.owner_id!!.asSnowflake()) {
         client.findUser(it)!!
     }
 
-    override val recipients: Flow<IUser> = raw.recipients!!
-        .map { User(it) }
-        .asFlow()
-
-    override val icon: Image? = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
+    override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override val messages: Flow<IMessage> = flow {
         channelService.getMessages(id, MessagesQuery().apply {

@@ -6,6 +6,8 @@ import retrofit2.http.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.*
 import ru.tesserakt.diskordin.core.data.json.response.*
+import ru.tesserakt.diskordin.core.entity.IGuildChannel
+import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.query.Query
 
 interface GuildService {
@@ -29,20 +31,20 @@ interface GuildService {
     suspend fun editCurrentNickname(
         @Path("id") id: Snowflake,
         @Body request: NicknameEditRequest
-    ): NicknameModifyResponse
+    ): String?
 
     @GET("/api/v6/guilds/{id}/invites")
-    suspend fun getInvites(@Path("id") id: Snowflake): Array<InviteResponse>
+    suspend fun getInvites(@Path("id") id: Snowflake): Array<InviteResponse<IGuildInvite>>
 
     @GET("/api/v6/guilds/{id}/channels")
-    suspend fun getGuildChannels(@Path("id") id: Snowflake): Array<ChannelResponse>
+    suspend fun getGuildChannels(@Path("id") id: Snowflake): Array<ChannelResponse<IGuildChannel>>
 
     @POST("/api/v6/guilds/{id}/channels")
     suspend fun createGuildChannel(
         @Path("id") id: Snowflake,
         @Body request: ChannelCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse
+    ): ChannelResponse<IGuildChannel>
 
     @PATCH("/api/v6/guilds/{id}/channels")
     suspend fun editGuildChannelPositions(
@@ -158,14 +160,14 @@ interface GuildService {
     suspend fun getPruneCount(
         @Path("id") id: Snowflake,
         @QueryMap query: Query
-    ): PruneResponse
+    ): Int
 
     @POST("/api/v6/guilds/{id}/prune")
     suspend fun startPrune(
         @Path("id") id: Snowflake,
         @QueryMap query: Query,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): PruneResponse
+    ): Int
 
     @GET("/api/v6/guilds/{id}/integrations")
     suspend fun getIntegrations(@Path("id") id: Snowflake): Array<GuildIntegrationResponse>

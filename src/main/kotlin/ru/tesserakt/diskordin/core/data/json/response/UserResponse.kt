@@ -1,11 +1,12 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.ISelf
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Self
 import ru.tesserakt.diskordin.impl.core.entity.User
 
 
-data class UserResponse(
+data class UserResponse<out U : IUser>(
     val id: Long,
     val username: String,
     val discriminator: String,
@@ -17,10 +18,10 @@ data class UserResponse(
     val email: String? = null,
     val flags: Int? = null,
     val premium_type: Int? = null
-) : DiscordResponse() {
+) : DiscordResponse<U>() {
     @Suppress("UNCHECKED_CAST")
-    fun <U : IUser> unwrap() = when (email) {
+    override fun unwrap(vararg params: Any): U = when (email) {
         null -> User(this)
-        else -> Self(this)
+        else -> Self(this as UserResponse<ISelf>)
     } as U
 }

@@ -11,6 +11,7 @@ import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
+import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -18,6 +19,8 @@ class Member constructor(
     raw: GuildMemberResponse,
     guildId: Snowflake
 ) : IMember {
+    override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
+
     override suspend fun asMember(guildId: Snowflake): IMember = this
 
     override suspend fun addRole(role: IRole, reason: String?) =
@@ -56,10 +59,6 @@ class Member constructor(
     override val isBot: Boolean = raw.user.bot ?: false
 
     override val id: Snowflake = raw.user.id.asSnowflake()
-
-    override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it) ?: throw IllegalArgumentException("Guild id isn`t right!")
-    }
 
     override val mention: String = "<@!$id>"
 }

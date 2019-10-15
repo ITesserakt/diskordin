@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.IGuild
+import ru.tesserakt.diskordin.impl.core.entity.PartialGuild
 
 data class UserGuildResponse(
     val id: Long,
@@ -7,4 +9,6 @@ data class UserGuildResponse(
     val icon: String,
     val owner: Boolean,
     val permissions: Int
-) : DiscordResponse()
+) : DiscordResponse<IGuild>() {
+    override fun unwrap(vararg params: Any) = PartialGuild(this)
+}

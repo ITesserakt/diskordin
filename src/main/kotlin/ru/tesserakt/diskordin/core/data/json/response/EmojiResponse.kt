@@ -1,24 +1,25 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
 import ru.tesserakt.diskordin.core.entity.IEmoji
+import ru.tesserakt.diskordin.core.entity.IUser
 
 
-data class EmojiResponse(
+data class EmojiResponse<out E : IEmoji>(
     val id: Long?,
     val name: String,
     val roles: Array<Long>? = null,
-    val user: UserResponse? = null,
+    val user: UserResponse<IUser>? = null,
     val require_colons: Boolean? = null,
     val managed: Boolean? = null,
     val animated: Boolean? = null
-) : DiscordResponse() {
-    fun <T : IEmoji> unwrap() = IEmoji.typed<T>(this)
+) : DiscordResponse<E>() {
+    override fun unwrap(vararg params: Any): E = IEmoji.typed(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as EmojiResponse
+        other as EmojiResponse<*>
 
         if (id != other.id) return false
         if (name != other.name) return false

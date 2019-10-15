@@ -10,3 +10,6 @@ class Identified<T : IEntity>(val id: Snowflake, private val render: suspend (Sn
 
     fun update(newId: Snowflake) = Identified(newId, render)
 }
+
+infix fun <T : IEntity> Snowflake.combine(render: suspend (Snowflake) -> T) =
+    Identified(this) { render(it) }

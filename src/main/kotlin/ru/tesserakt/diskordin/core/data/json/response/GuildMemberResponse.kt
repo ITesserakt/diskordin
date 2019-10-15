@@ -1,18 +1,19 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.impl.core.entity.Member
 
 
 data class GuildMemberResponse(
-    val user: UserResponse,
+    val user: UserResponse<IMember>,
     val nick: String? = null,
     val roles: Array<Long>,
     val joinedAt: String,
     val deaf: Boolean,
     val mute: Boolean
-) : DiscordResponse() {
-    fun unwrap(guildId: Snowflake) = Member(this, guildId)
+) : DiscordResponse<IMember>() {
+    override fun unwrap(vararg params: Any): IMember = Member(this, params[0] as Snowflake)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

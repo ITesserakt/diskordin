@@ -14,7 +14,7 @@ import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 
-open class User(raw: UserResponse) : IUser {
+open class User(raw: UserResponse<IUser>) : IUser {
     final override val username: String = raw.username
 
     final override val discriminator: Short = raw.discriminator.toShort()
@@ -29,7 +29,7 @@ open class User(raw: UserResponse) : IUser {
     final override val mention: String = "<@$id>"
 }
 
-class Self(raw: UserResponse) : User(raw), ISelf {
+class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     override val guilds: Flow<UserGuildResponse> = flow {
         userService.getCurrentUserGuilds(UserGuildsQuery().apply {
             this.limit = 1000
@@ -37,7 +37,7 @@ class Self(raw: UserResponse) : User(raw), ISelf {
     }
 
     override val privateChannels: Flow<IPrivateChannel> = flow {
-        userService.getUserDMs().map { it.unwrap<IPrivateChannel>() }.forEach { emit(it) }
+        userService.getUserDMs().map { it.unwrap() }.forEach { emit(it) }
     }
 
     override val connections: Flow<IConnection> = flow {

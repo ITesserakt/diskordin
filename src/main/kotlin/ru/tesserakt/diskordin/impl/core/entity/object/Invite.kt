@@ -10,14 +10,14 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 import ru.tesserakt.diskordin.util.Identified
 
-open class Invite(raw: InviteResponse) : IInvite {
+open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val code: String = raw.code
     override val channel: Identified<IChannel> =
-        Identified(raw.channel.id.asSnowflake()) { raw.channel.unwrap<IChannel>() }
+        Identified(raw.channel.id.asSnowflake()) { raw.channel.unwrap() }
     override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
 }
 
-class GuildInvite(raw: InviteResponse) : Invite(raw), IGuildInvite {
+class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGuildInvite {
     override val guild: Identified<IGuild> = run {
         requireNotNull(raw.guild) { "Not a guild invite" }
         Identified(raw.guild.id.asSnowflake()) { Guild(raw.guild) }

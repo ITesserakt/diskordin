@@ -10,21 +10,22 @@ import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
+import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class Integration(
     raw: GuildIntegrationResponse,
-    private val guildId: Snowflake
+    guildId: Snowflake
 ) : IIntegration {
-    override val guild: Identified<IGuild> = Identified(guildId) { client.findGuild(it)!! }
+    override suspend fun sync() = guildService.syncIntegration(guild.id, id)
 
-    override suspend fun sync() = guildService.syncIntegration(guildId, id)
+    override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
 
-    override suspend fun delete(reason: String?) = guildService.deleteIntegration(guildId, id)
+    override suspend fun delete(reason: String?) = guildService.deleteIntegration(guild.id, id)
 
     override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration =
-        guildService.editIntegration(guildId, id, builder.build()).run {
+        guildService.editIntegration(guild.id, id, builder.build()).run {
             guild().integrations.first { it.id == id }
         }
 
@@ -34,9 +35,7 @@ class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role: Identified<IRole> = Identified(raw.role_id.asSnowflake()) {
-        client.findGuild(guildId)?.getRole(it) ?: throw NoSuchElementException("Guild id isn`t right")
-    }
+    override val role = raw.role_id.asSnowflake() combine { guild().roles.first { role -> role.id == it } }
 
     override val expireBehavior: Int = raw.expire_behavior
 

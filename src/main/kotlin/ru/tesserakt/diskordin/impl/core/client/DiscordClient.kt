@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
@@ -21,7 +20,6 @@ import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 data class DiscordClient(
     override val tokenType: TokenType
@@ -32,7 +30,7 @@ data class DiscordClient(
     init {
         TokenVerification(token, tokenType).verify().map { id ->
             self = Identified(id) {
-                userService.getCurrentUser().unwrap<ISelf>()
+                userService.getCurrentUser().unwrap()
             }
         }.handleLeftWith {
             val message = when (it) {
@@ -60,9 +58,9 @@ data class DiscordClient(
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun login() {
-        val gatewayURL = gatewayService.getGatewayUrl().url
-        val metadata = gatewayService.getGatewayBot().sessionMeta
-        this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter.milliseconds)
+        val gatewayURL = gatewayService.getGatewayUrl()
+        val metadata = gatewayService.getGatewayBot().unwrap().session
+        this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
         isConnected = true
         this.gateway.run().join()
     }
@@ -83,13 +81,13 @@ data class DiscordClient(
     }
 
     override suspend fun findUser(id: Snowflake) =
-        userService.getUser(id).unwrap<IUser>()
+        userService.getUser(id).unwrap()
 
     override suspend fun findGuild(id: Snowflake) =
         guildService.getGuild(id).unwrap()
 
     override suspend fun findChannel(id: Snowflake): IChannel =
-        channelService.getChannel(id).unwrap()
+        channelService.getChannel<IChannel>(id).unwrap()
 
     override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild =
         guildService.createGuild(request.build()).unwrap()
@@ -100,5 +98,5 @@ data class DiscordClient(
     override suspend fun deleteInvite(code: String, reason: String?) =
         inviteService.deleteInvite(code)
 
-    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().map(VoiceRegionResponse::unwrap)
+    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().map { it.unwrap() }
 }

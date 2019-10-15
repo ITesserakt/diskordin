@@ -1,18 +1,22 @@
 package ru.tesserakt.diskordin.gateway.json.events
 
 import com.google.gson.annotations.SerializedName
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import ru.tesserakt.diskordin.core.data.json.response.UnloadedGuild
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
+import ru.tesserakt.diskordin.core.entity.IPrivateChannel
+import ru.tesserakt.diskordin.core.entity.ISelf
 import ru.tesserakt.diskordin.gateway.json.IRawEvent
+
+private typealias UnavailableGuild = Pair<Snowflake, Boolean>
 
 data class Ready(
     @SerializedName("v") val gatewayProtocolVersion: Int,
-    val user: UserResponse,
-    val privateChannels: Array<ChannelResponse>,
-    val guilds: Array<UnloadedGuild>,
+    val user: UserResponse<ISelf>,
+    val privateChannels: Array<ChannelResponse<IPrivateChannel>>,
+    val guilds: Array<UnavailableGuild>,
     val sessionId: String,
-    val shard: Array<Pair<Int, Int>>?,
+    val shard: Array<Int>?,
     @SerializedName("_trace") val trace: Array<String>
 ) : IRawEvent {
     override fun equals(other: Any?): Boolean {

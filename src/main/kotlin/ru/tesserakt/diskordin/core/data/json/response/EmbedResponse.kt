@@ -1,5 +1,10 @@
+@file:Suppress("DuplicatedCode")
+
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.`object`.IEmbed
+import ru.tesserakt.diskordin.core.entity.`object`.IImage
+import ru.tesserakt.diskordin.core.entity.`object`.IVideo
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Embed
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Image
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Thumbnail
@@ -20,8 +25,8 @@ data class EmbedResponse(
     val provider: ProviderResponse? = null,
     val author: EmbedUserResponse? = null,
     val fields: Array<FieldResponse>? = null
-) : DiscordResponse() {
-    fun unwrap() = Embed(this)
+) : DiscordResponse<IEmbed>() {
+    override fun unwrap(vararg params: Any): IEmbed = Embed(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -72,8 +77,8 @@ data class FieldResponse(
     val name: String,
     val value: String,
     val inline: Boolean? = null
-) : DiscordResponse() {
-    fun unwrap() = Embed.Field(this)
+) : DiscordResponse<IEmbed.IField>() {
+    override fun unwrap(vararg params: Any): IEmbed.IField = Embed.Field(this)
 }
 
 
@@ -82,16 +87,16 @@ data class EmbedUserResponse(
     val url: String? = null,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse() {
-    fun unwrap() = Embed.Author(this)
+) : DiscordResponse<IEmbed.IAuthor>() {
+    override fun unwrap(vararg params: Any): IEmbed.IAuthor = Embed.Author(this)
 }
 
 
 data class ProviderResponse(
     val name: String? = null,
     val url: String? = null
-) : DiscordResponse() {
-    fun unwrap() = Embed.Provider(this)
+) : DiscordResponse<IEmbed.IProvider>() {
+    override fun unwrap(vararg params: Any): IEmbed.IProvider = Embed.Provider(this)
 }
 
 
@@ -99,8 +104,8 @@ data class VideoResponse(
     val url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse() {
-    fun unwrap() = Video(this)
+) : DiscordResponse<IVideo>() {
+    override fun unwrap(vararg params: Any): IVideo = Video(this)
 }
 
 
@@ -109,8 +114,8 @@ data class ThumbnailResponse(
     val proxy_url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse() {
-    fun unwrap() = Thumbnail(this)
+) : DiscordResponse<IImage>() {
+    override fun unwrap(vararg params: Any): IImage = Thumbnail(this)
 }
 
 
@@ -119,8 +124,8 @@ data class ImageResponse(
     val proxy_url: String?,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse() {
-    fun unwrap() = Image(this)
+) : DiscordResponse<IImage>() {
+    override fun unwrap(vararg params: Any): IImage = Image(this)
 }
 
 
@@ -128,6 +133,6 @@ data class FooterResponse(
     val text: String,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse() {
-    fun unwrap() = Embed.Footer(this)
+) : DiscordResponse<IEmbed.IFooter>() {
+    override fun unwrap(vararg params: Any): IEmbed.IFooter = Embed.Footer(this)
 }

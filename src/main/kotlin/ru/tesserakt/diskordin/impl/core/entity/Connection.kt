@@ -11,8 +11,7 @@ class Connection(raw: ConnectionResponse) : IConnection {
 
     override val isRevoked: Boolean = raw.revoked
 
-    override val integrations: Array<Pair<Snowflake, String>> =
-        raw.integrations.map { it.id.asSnowflake() to it.name }.toTypedArray()
+    override val integrations: Array<Pair<Snowflake, String>> = raw.integrations
 
     override val isVerified: Boolean = raw.verified
 

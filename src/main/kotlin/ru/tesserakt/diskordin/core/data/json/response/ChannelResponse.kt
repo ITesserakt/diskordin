@@ -1,9 +1,10 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
 import ru.tesserakt.diskordin.core.entity.IChannel
+import ru.tesserakt.diskordin.core.entity.IUser
 
 
-data class ChannelResponse(
+data class ChannelResponse<out C : IChannel>(
     val id: Long,
     val type: Int,
     val guild_id: Long? = null,
@@ -16,20 +17,20 @@ data class ChannelResponse(
     val bitrate: Int? = null,
     val user_limit: Int? = null,
     val rate_limit_per_user: Int? = null,
-    val recipients: Array<UserResponse>? = null,
+    val recipients: Array<UserResponse<IUser>>? = null,
     val icon: String? = null,
     val owner_id: Long? = null,
     val application_id: Long? = null,
     val parent_id: Long? = null,
     val last_pin_timestamp: String? = null
-) : DiscordResponse() {
-    fun <T : IChannel> unwrap() = IChannel.typed<T>(this)
+) : DiscordResponse<C>() {
+    override fun unwrap(vararg params: Any): C = IChannel.typed(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as ChannelResponse
+        other as ChannelResponse<*>
 
         if (id != other.id) return false
         if (type != other.type) return false

@@ -25,7 +25,7 @@ class Message(raw: MessageResponse) : IMessage {
         channelService.removeReaction(channel.id, id, emoji.name, userId)
 
     override suspend fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): List<IUser> =
-        channelService.getReactions(channel.id, id, emoji.name, builder.query()).map { it.unwrap<IUser>() }
+        channelService.getReactions(channel.id, id, emoji.name, builder.query()).map { it.unwrap() }
 
     override suspend fun deleteAllReactions() = channelService.removeAllReactions(channel.id, id)
 

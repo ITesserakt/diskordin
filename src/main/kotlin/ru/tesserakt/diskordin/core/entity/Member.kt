@@ -5,7 +5,7 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import java.time.Instant
 
-interface IMember : IUser, IGuildObject, IEditable<IMember, MemberEditBuilder> {
+interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject {
     val nickname: String?
     override val name: String
         get() = nickname ?: username

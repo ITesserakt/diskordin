@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.entity.IMessage
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Message
 
 
@@ -7,7 +9,7 @@ data class MessageResponse(
     val id: Long,
     val channel_id: Long,
     val guild_id: Long? = null,
-    val author: UserResponse,
+    val author: UserResponse<IUser>,
     val member: GuildMemberResponse? = null,
     val content: String,
     val timestamp: String,
@@ -23,8 +25,8 @@ data class MessageResponse(
     val pinned: Boolean,
     val webhook_id: Long? = null,
     val type: Int
-) : DiscordResponse() {
-    fun unwrap() = Message(this)
+) : DiscordResponse<IMessage>() {
+    override fun unwrap(vararg params: Any): IMessage = Message(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

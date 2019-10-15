@@ -20,24 +20,24 @@ interface IEmbed : IDiscordObject {
     val author: IAuthor?
     val fields: Flow<IField>
 
-    interface IField {
+    interface IField : IDiscordObject {
         val name: String
         val value: String
         val inline: Boolean?
     }
 
-    interface IAuthor {
+    interface IAuthor : IDiscordObject {
         val name: String?
         val url: String?
         val iconUrl: String?
     }
 
-    interface IProvider {
+    interface IProvider : IDiscordObject {
         val name: String?
         val url: String?
     }
 
-    interface IFooter {
+    interface IFooter : IDiscordObject {
         val text: String
         val iconUrl: String?
     }

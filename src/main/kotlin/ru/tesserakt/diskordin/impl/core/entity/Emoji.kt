@@ -11,12 +11,12 @@ import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
 
-open class Emoji(raw: EmojiResponse) : IEmoji {
+open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
     override val name: String = raw.name
 }
 
 class CustomEmoji constructor(
-    raw: EmojiResponse,
+    raw: EmojiResponse<ICustomEmoji>,
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =

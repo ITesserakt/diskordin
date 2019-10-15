@@ -1,20 +1,23 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.entity.IConnection
 import ru.tesserakt.diskordin.impl.core.entity.Connection
 
+private typealias ServerIntegration = Pair<Snowflake, String>
 
 data class ConnectionResponse(
     val id: String,
     val name: String,
     val type: String,
     val revoked: Boolean,
-    val integrations: Array<ServerIntegrationResponse>,
+    val integrations: Array<ServerIntegration>,
     val verified: Boolean,
     val friend_sync: Boolean,
     val show_activity: Boolean,
     val visibility: Int
-) : DiscordResponse() {
-    fun unwrap() = Connection(this)
+) : DiscordResponse<IConnection>() {
+    override fun unwrap(vararg params: Any): IConnection = Connection(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

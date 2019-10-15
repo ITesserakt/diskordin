@@ -17,8 +17,8 @@ interface IInvite : IDiscordObject {
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        fun <I : IInvite> typed(raw: InviteResponse) = when {
-            raw.guild != null -> GuildInvite(raw)
+        internal fun <I : IInvite> typed(raw: InviteResponse<I>) = when {
+            raw.guild != null -> GuildInvite(raw as InviteResponse<IGuildInvite>)
             else -> Invite(raw)
         } as I
     }

@@ -7,25 +7,28 @@ import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
+import ru.tesserakt.diskordin.core.entity.IChannel
+import ru.tesserakt.diskordin.core.entity.IUser
+import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.query.Query
 
 @Suppress("unused")
 interface ChannelService {
     @GET("/api/v6channels/{id}")
-    suspend fun getChannel(@Path("id") id: Snowflake): ChannelResponse
+    suspend fun <C : IChannel> getChannel(@Path("id") id: Snowflake): ChannelResponse<C>
 
     @PATCH("/api/v6/channels/{id}")
-    suspend fun editChannel(
+    suspend fun <C : IChannel> editChannel(
         @Path("id") id: Snowflake,
         @Body request: ChannelEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse
+    ): ChannelResponse<C>
 
     @DELETE("/api/v6/channels/{id}")
-    suspend fun deleteChannel(
+    suspend fun <C : IChannel> deleteChannel(
         @Path("id") id: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse
+    ): ChannelResponse<C>
 
     @POST("/api/v6/channels/{id}/typing")
     suspend fun triggerTyping(@Path("id") id: Snowflake)
@@ -111,7 +114,7 @@ interface ChannelService {
         @Path("messageId") messageId: Snowflake,
         @Path("emoji") emoji: String,
         @QueryMap query: Query
-    ): Array<UserResponse>
+    ): Array<UserResponse<IUser>>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions")
     suspend fun removeAllReactions(
@@ -120,14 +123,14 @@ interface ChannelService {
     )
 
     @GET("/api/v6/channels/{id}/invites")
-    suspend fun getChannelInvites(@Path("id") id: Snowflake): Array<InviteResponse>
+    suspend fun getChannelInvites(@Path("id") id: Snowflake): Array<InviteResponse<IInvite>>
 
     @POST("/api/v6/channels/{id}/invites")
     suspend fun createChannelInvite(
         @Path("id") id: Snowflake,
         @Body request: InviteCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): InviteResponse
+    ): InviteResponse<IInvite>
 
     @DELETE("/api/v6/channels/{channelId}/permissions/{overwriteId}")
     suspend fun deleteChannelPermissions(

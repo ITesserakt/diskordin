@@ -53,7 +53,7 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val iconUrl: String? = raw.icon_url
     }
 
-    override val fields: Flow<IEmbed.IField> = (raw.fields ?: emptyArray()).map(FieldResponse::unwrap).asFlow()
+    override val fields: Flow<IEmbed.IField> = (raw.fields ?: emptyArray()).map { it.unwrap() }.asFlow()
 
     class Field(raw: FieldResponse) : IEmbed.IField {
         override val name: String = raw.name
