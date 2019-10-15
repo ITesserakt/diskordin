@@ -13,7 +13,7 @@ import ru.tesserakt.diskordin.util.Identified
 open class Invite(raw: InviteResponse) : IInvite {
     override val code: String = raw.code
     override val channel: Identified<IChannel> =
-        Identified(raw.channel.id.asSnowflake()) { IChannel.typed<IChannel>(raw.channel) }
+        Identified(raw.channel.id.asSnowflake()) { raw.channel.unwrap<IChannel>() }
     override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
 }
 

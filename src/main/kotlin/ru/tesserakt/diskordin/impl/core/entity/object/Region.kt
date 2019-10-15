@@ -15,6 +15,5 @@ class Region(raw: VoiceRegionResponse) : IRegion {
 
     override val isCustom: Boolean = raw.custom
 
-
     override val name: String = raw.name
 }

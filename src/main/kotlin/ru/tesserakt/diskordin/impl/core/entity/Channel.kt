@@ -201,7 +201,7 @@ class GroupPrivateChannel(raw: ChannelResponse) : Channel(raw), IGroupPrivateCha
         .map { User(it) }
         .asFlow()
 
-    override val icon: Image? = raw.icon?.let { ImageResponse(it, null) }?.let { Image(it) }
+    override val icon: Image? = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override val messages: Flow<IMessage> = flow {
         channelService.getMessages(id, MessagesQuery().apply {

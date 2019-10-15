@@ -44,16 +44,11 @@ class CustomEmoji constructor(
 
     override val isAnimated: Boolean = raw.animated ?: throw NotCustomEmojiException()
 
-
     override val id: Snowflake = raw.id?.asSnowflake() ?: throw NotCustomEmojiException()
-
-
 
     override val name: String = raw.name
 
-
     override val mention: String = "<${if (isAnimated) "a" else ""}:$name:$id>"
-
 
     override suspend fun delete(reason: String?) = emojiService.deleteGuildEmoji(guild.id, id)
 }
