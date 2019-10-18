@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IEmoji
 import ru.tesserakt.diskordin.core.entity.IUser
 
@@ -13,7 +14,7 @@ data class EmojiResponse<out E : IEmoji>(
     val managed: Boolean? = null,
     val animated: Boolean? = null
 ) : DiscordResponse<E>() {
-    override fun unwrap(vararg params: Any): E = IEmoji.typed(this)
+    override fun unwrap(vararg params: Any): E = IEmoji.typed(this, params.firstOrNull() as Snowflake?)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -12,6 +12,7 @@ data class Payload<T : IPayload>(
     @SerializedName("d") val rawData: JsonElement?
 ) {
     inline fun <reified E : T> unwrap(): E = gson.fromJson(rawData, E::class.java)
+    inline fun <reified R> unwrapAsResponse(): R = gson.fromJson(rawData, R::class.java)
     fun opcode() = opcode.asOpcode()
 }
 

@@ -10,6 +10,7 @@ import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.util.Identified
 
 interface IDiscordClient : IDiscordObject {
+    val eventDispatcher: EventDispatcher
     val token: String
     val tokenType: TokenType
     val self: Identified<ISelf>

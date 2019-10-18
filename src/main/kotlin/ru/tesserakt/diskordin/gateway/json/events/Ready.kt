@@ -8,7 +8,7 @@ import ru.tesserakt.diskordin.core.entity.IPrivateChannel
 import ru.tesserakt.diskordin.core.entity.ISelf
 import ru.tesserakt.diskordin.gateway.json.IRawEvent
 
-private typealias UnavailableGuild = Pair<Snowflake, Boolean>
+typealias UnavailableGuild = Pair<Snowflake, Boolean>
 
 data class Ready(
     @SerializedName("v") val gatewayProtocolVersion: Int,

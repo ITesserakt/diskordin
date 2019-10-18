@@ -6,11 +6,13 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import ru.tesserakt.diskordin.core.data.Snowflake
+import java.time.Instant
 
 val gson: Gson = GsonBuilder()
     .setPrettyPrinting()
     .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
     .registerTypeAdapter(Snowflake::class.java, SnowflakeTypeAdapter())
+    .registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
     .create()
 
 fun <T> T.toJson(): String = gson.toJson(this)

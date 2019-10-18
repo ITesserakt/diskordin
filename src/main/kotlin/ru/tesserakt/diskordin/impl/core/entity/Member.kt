@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
@@ -13,12 +12,11 @@ import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class Member constructor(
     raw: GuildMemberResponse,
     guildId: Snowflake
-) : IMember {
+) : User(raw.user), IMember {
     override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
 
     override suspend fun asMember(guildId: Snowflake): IMember = this
@@ -50,15 +48,6 @@ class Member constructor(
             }.forEach { emit(it) }
     }
 
-    override val joinTime: Instant = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(raw.joinedAt, Instant::from)
-
-    override val username: String = raw.user.username
-
-    override val discriminator: Short = raw.user.discriminator.toShort()
-
-    override val isBot: Boolean = raw.user.bot ?: false
-
-    override val id: Snowflake = raw.user.id.asSnowflake()
-
+    override val joinTime: Instant = raw.joinedAt
     override val mention: String = "<@!$id>"
 }

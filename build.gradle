@@ -31,8 +31,6 @@ dependencies {
     compile "org.koin:koin-core:$koin_version"
     compile "org.koin:koin-logger-slf4j:$koin_version"
 
-    compile "com.github.stuhlmeier:kotlin-events:v2.0"
-
     compile "io.arrow-kt:arrow-core:$arrow_version"
     compile "io.arrow-kt:arrow-syntax:$arrow_version"
     compile "io.arrow-kt:arrow-typeclasses:$arrow_version"

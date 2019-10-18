@@ -13,7 +13,6 @@ import ru.tesserakt.diskordin.gateway.json.Payload
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
 import ru.tesserakt.diskordin.gateway.json.events.HeartbeatACK
 import ru.tesserakt.diskordin.gateway.json.events.Hello
-import ru.tesserakt.diskordin.gateway.json.events.Ready
 
 interface GatewayAPI {
     @Send
@@ -32,6 +31,3 @@ interface GatewayAPI {
 fun GatewayAPI.observeHello() = allPayloads().filter { it.opcode() == Opcode.HELLO }.map { it.unwrap<Hello>() }
 fun GatewayAPI.observeHeartbeatACK() =
     allPayloads().filter { it.opcode() == Opcode.HEARTBEAT_ACK }.map { HeartbeatACK() }
-
-fun GatewayAPI.observeReady() =
-    allPayloads().filter { it.opcode() == Opcode.DISPATCH && it.name == "READY" }.map { it.unwrap<Ready>() }

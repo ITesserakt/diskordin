@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.koin.core.context.loadKoinModules
@@ -12,12 +13,11 @@ import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.gateway.GatewayLifecycle
 import ru.tesserakt.diskordin.rest.service.*
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.CoroutineContext
 
 class DiscordClientBuilder private constructor() {
     var token: String = "Invalid"
     var tokenType: TokenType = TokenType.Bot
-    var gatewayContext: CoroutineContext = Dispatchers.Default + Job()
+    var gatewayContext: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
 
     companion object {
         private val isEnabled = AtomicBoolean(false)
@@ -29,7 +29,7 @@ class DiscordClientBuilder private constructor() {
             val koin = setupKoin()
             if (koin.getProperty<String>("token") == null)
                 koin.setProperty("token", builder.token)
-            koin.setProperty("gatewayContext", builder.gatewayContext)
+            koin.setProperty("gatewayScope", builder.gatewayContext)
 
             return DiscordClient(builder.tokenType).also { client ->
                 loadKoinModules(module {

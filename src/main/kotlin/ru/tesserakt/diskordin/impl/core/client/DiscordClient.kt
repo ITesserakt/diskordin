@@ -3,7 +3,8 @@ package ru.tesserakt.diskordin.impl.core.client
 import arrow.data.handleLeftWith
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOf
+import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -14,8 +15,6 @@ import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
-import ru.tesserakt.diskordin.impl.core.entity.Guild
-import ru.tesserakt.diskordin.impl.core.entity.User
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
@@ -24,6 +23,8 @@ import kotlin.time.ExperimentalTime
 data class DiscordClient(
     override val tokenType: TokenType
 ) : IDiscordClient {
+    @ExperimentalCoroutinesApi
+    override lateinit var eventDispatcher: EventDispatcher
     private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
 
@@ -32,6 +33,7 @@ data class DiscordClient(
             self = Identified(id) {
                 userService.getCurrentUser().unwrap()
             }
+            logger.info("Token verified")
         }.handleLeftWith {
             val message = when (it) {
                 BlankString -> "Token cannot be blank"
@@ -52,17 +54,19 @@ data class DiscordClient(
     override lateinit var gateway: Gateway
         private set
 
-    override val users: Flow<IUser> = emptyArray<User>().asFlow()
-    override val guilds: Flow<IGuild> = emptyArray<Guild>().asFlow()
+    override val users: Flow<IUser> = flowOf()
+    override val guilds: Flow<IGuild> = flowOf()
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     override suspend fun login() {
-        val gatewayURL = gatewayService.getGatewayUrl()
-        val metadata = gatewayService.getGatewayBot().unwrap().session
+        val gatewayStats = gatewayService.getGatewayBot().unwrap()
+        val gatewayURL = gatewayStats.url
+        val metadata = gatewayStats.session
         this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
+        eventDispatcher = gateway.eventDispatcher
         isConnected = true
-        this.gateway.run().join()
+        this.gateway.run()
     }
 
     @ExperimentalCoroutinesApi
@@ -81,7 +85,7 @@ data class DiscordClient(
     }
 
     override suspend fun findUser(id: Snowflake) =
-        userService.getUser(id).unwrap()
+        userService.getUser(id).unwrap("User")
 
     override suspend fun findGuild(id: Snowflake) =
         guildService.getGuild(id).unwrap()

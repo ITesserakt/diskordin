@@ -2,14 +2,15 @@ package ru.tesserakt.diskordin.core.data.json.response
 
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IMember
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Member
-
+import java.time.Instant
 
 data class GuildMemberResponse(
-    val user: UserResponse<IMember>,
+    val user: UserResponse<IUser>,
     val nick: String? = null,
     val roles: Array<Long>,
-    val joinedAt: String,
+    val joinedAt: Instant,
     val deaf: Boolean,
     val mute: Boolean
 ) : DiscordResponse<IMember>() {
