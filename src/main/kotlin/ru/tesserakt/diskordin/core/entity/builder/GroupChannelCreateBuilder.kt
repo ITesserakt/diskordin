@@ -5,9 +5,7 @@ import ru.tesserakt.diskordin.core.data.json.request.GroupDMCreateRequest
 
 class GroupChannelCreateBuilder : BuilderBase<GroupDMCreateRequest>() {
     lateinit var accessTokens: Array<String>
-
     lateinit var users: Map<Snowflake, String>
-
 
     override fun create(): GroupDMCreateRequest = GroupDMCreateRequest(
         accessTokens,
