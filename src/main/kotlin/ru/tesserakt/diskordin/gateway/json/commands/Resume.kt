@@ -5,5 +5,5 @@ import ru.tesserakt.diskordin.gateway.json.IGatewayCommand
 data class Resume(
     val token: String,
     val sessionId: String,
-    val seq: Int
+    val seq: String
 ) : IGatewayCommand

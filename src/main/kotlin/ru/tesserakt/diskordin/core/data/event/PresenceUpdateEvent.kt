@@ -18,20 +18,20 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
     val activities = raw.activities.map { it.unwrap() }
     val clientStatus = when {
         raw.clientStatus.desktop != null ->
-            ClientStatus.Desktop(raw.clientStatus.desktop)
+            ClientStatus.Desktop(UserStatus.valueOf(raw.clientStatus.desktop.toUpperCase()))
         raw.clientStatus.mobile != null ->
-            ClientStatus.Mobile(raw.clientStatus.mobile)
+            ClientStatus.Mobile(UserStatus.valueOf(raw.clientStatus.mobile.toUpperCase()))
         raw.clientStatus.web != null ->
-            ClientStatus.Web(raw.clientStatus.web)
+            ClientStatus.Web(UserStatus.valueOf(raw.clientStatus.web.toUpperCase()))
         else -> null
     }
     val user = raw.user.id combine { raw.user.unwrap() }
 }
 
 sealed class ClientStatus {
-    data class Desktop(val platform: String) : ClientStatus()
-    data class Mobile(val platform: String) : ClientStatus()
-    data class Web(val platform: String) : ClientStatus()
+    data class Desktop(val status: UserStatus) : ClientStatus()
+    data class Mobile(val status: UserStatus) : ClientStatus()
+    data class Web(val status: UserStatus) : ClientStatus()
 }
 
 enum class UserStatus {

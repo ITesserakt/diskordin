@@ -1,8 +1,8 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.data.Validated
-import arrow.data.invalid
-import arrow.data.valid
+import arrow.core.Validated
+import arrow.core.invalid
+import arrow.core.valid
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
@@ -44,6 +44,6 @@ internal class TokenVerification(private val token: String, private val tokenTyp
         object InvalidConstruction : VerificationError()
         object CorruptedId : VerificationError()
 
-        operator fun <A> invoke() = this.invalid<VerificationError, A>()
+        operator fun invoke() = this.invalid()
     }
 }

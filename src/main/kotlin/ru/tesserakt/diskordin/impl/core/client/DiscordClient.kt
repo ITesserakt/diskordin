@@ -1,6 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.data.handleLeftWith
+import arrow.core.handleLeftWith
+import arrow.fx.IO
+import arrow.fx.extensions.io.async.async
+import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -51,6 +54,7 @@ data class DiscordClient(
     override var isConnected: Boolean = false
         private set
 
+    @ExperimentalCoroutinesApi
     override lateinit var gateway: Gateway
         private set
 
@@ -77,6 +81,7 @@ data class DiscordClient(
         logout()
     }
 
+    @ExperimentalCoroutinesApi
     override fun logout() {
         logger.info("Shutting down gateway")
         if (this::gateway.isInitialized)
@@ -102,5 +107,7 @@ data class DiscordClient(
     override suspend fun deleteInvite(code: String, reason: String?) =
         inviteService.deleteInvite(code)
 
-    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().map { it.unwrap() }
+    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().async(IO.async())
+        .fix().suspended()
+        .body()!!.map { it.unwrap() }
 }

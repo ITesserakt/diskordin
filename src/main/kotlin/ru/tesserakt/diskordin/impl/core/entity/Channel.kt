@@ -1,6 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import arrow.data.NonEmptyList
+import arrow.core.NonEmptyList
 import kotlinx.coroutines.flow.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake

@@ -10,6 +10,9 @@ import ru.tesserakt.diskordin.gateway.json.IRawEvent
 
 typealias UnavailableGuild = Pair<Snowflake, Boolean>
 
+internal lateinit var sessionIdForResume: String
+    private set
+
 data class Ready(
     @SerializedName("v") val gatewayProtocolVersion: Int,
     val user: UserResponse<ISelf>,
@@ -19,6 +22,10 @@ data class Ready(
     val shard: Array<Int>?,
     @SerializedName("_trace") val trace: Array<String>
 ) : IRawEvent {
+    init {
+        sessionIdForResume = sessionId
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Ready) return false

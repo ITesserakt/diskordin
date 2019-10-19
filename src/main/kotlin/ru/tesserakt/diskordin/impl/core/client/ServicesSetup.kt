@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import arrow.integrations.retrofit.adapter.CallKindAdapterFactory
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
@@ -30,6 +31,7 @@ internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Re
     .baseUrl(discordApiUrl)
     .addConverterFactory(GsonConverterFactory.create(gson))
     .addConverterFactory(SnowflakeTypeAdapter())
+    .addCallAdapterFactory(CallKindAdapterFactory.create())
     .build()
 
 internal fun setupKoin() = startKoin {

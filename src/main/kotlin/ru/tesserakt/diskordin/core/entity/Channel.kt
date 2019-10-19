@@ -3,7 +3,7 @@
 
 package ru.tesserakt.diskordin.core.entity
 
-import arrow.data.NonEmptyList
+import arrow.core.NonEmptyList
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse

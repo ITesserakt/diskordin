@@ -2,7 +2,7 @@ buildscript {
     ext.kotlin_version = "1.3.50"
     ext.coroutines_version = "1.3.2"
     ext.koin_version = "2.0.1"
-    ext.arrow_version = "0.8.2"
+    ext.arrow_version = "0.10.0"
     ext.fuel_version = "2.2.1"
     ext.scarlet_version = "0.2.5-SNAPSHOT"
     ext.retrofit_version = "2.6.2"
@@ -11,6 +11,8 @@ buildscript {
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.50'
 }
+
+apply plugin: 'kotlin-kapt'
 
 group 'ru.tesserakt.diskordin'
 version '0.0.1'
@@ -33,8 +35,10 @@ dependencies {
 
     compile "io.arrow-kt:arrow-core:$arrow_version"
     compile "io.arrow-kt:arrow-syntax:$arrow_version"
-    compile "io.arrow-kt:arrow-typeclasses:$arrow_version"
-    compile "io.arrow-kt:arrow-data:$arrow_version"
+    compile "io.arrow-kt:arrow-fx:$arrow_version"
+    compile "io.arrow-kt:arrow-core-data:$arrow_version"
+    compile "io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version"
+    kapt "io.arrow-kt:arrow-meta:$arrow_version"
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"

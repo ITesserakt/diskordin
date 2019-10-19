@@ -20,24 +20,26 @@ import ru.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
 import ru.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemoveEvent
 import ru.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import ru.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
+import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.gateway.GatewayAPI
 import ru.tesserakt.diskordin.gateway.json.*
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
-import ru.tesserakt.diskordin.gateway.lastSequence
+import ru.tesserakt.diskordin.gateway.json.commands.Resume
 import ru.tesserakt.diskordin.util.receiveAsFlow
 
 @ExperimentalCoroutinesApi
-internal class EventDispatcherImpl(private val api: GatewayAPI) : EventDispatcher() {
+internal class EventDispatcherImpl(private val gateway: Gateway, private val api: GatewayAPI) : EventDispatcher() {
     override fun sendAnswer(payload: IGatewayCommand) = when (payload) {
-        is Identify -> api.identify(payload.wrapWith(Opcode.IDENTIFY, lastSequence))
-        is Heartbeat -> api.heartbeat(payload.wrapWith(Opcode.HEARTBEAT, lastSequence))
+        is Identify -> api.identify(payload.wrapWith(Opcode.IDENTIFY, gateway.lastSequenceId))
+        is Heartbeat -> api.heartbeat(payload.wrapWith(Opcode.HEARTBEAT, gateway.lastSequenceId))
+        is Resume -> api.resume(payload.wrapWith(Opcode.RESUME, gateway.lastSequenceId))
         else -> TODO()
     }
 
     private val channel = BroadcastChannel<IEvent>(Channel.CONFLATED)
 
     override suspend fun publish(rawEvent: Payload<IRawEvent>) = when (rawEvent.opcode()) {
-        Opcode.HEARTBEAT -> TODO()
+        Opcode.HEARTBEAT -> HeartbeatEvent(rawEvent.unwrap())
         Opcode.RECONNECT -> TODO()
         Opcode.INVALID_SESSION -> InvalidSessionEvent(rawEvent.unwrapAsResponse())
         Opcode.HELLO -> HelloEvent(rawEvent.unwrap())

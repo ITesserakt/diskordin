@@ -10,7 +10,6 @@ import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.gateway.json.Heartbeat
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
-import ru.tesserakt.diskordin.gateway.lastSequence
 import ru.tesserakt.diskordin.util.Loggers
 import sun.awt.OSInfo
 import java.util.concurrent.TimeUnit
@@ -51,7 +50,7 @@ internal class HelloHandler(private val gateway: Gateway) : KoinComponent {
             }.launchIn(this)
 
         while (isActive) {
-            dispatcher.sendAnswer(Heartbeat(lastSequence))
+            dispatcher.sendAnswer(Heartbeat(gateway.lastSequenceId))
             delay(interval)
         }
     }

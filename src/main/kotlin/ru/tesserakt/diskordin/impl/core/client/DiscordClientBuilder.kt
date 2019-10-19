@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class DiscordClientBuilder private constructor() {
     var token: String = "Invalid"
     var tokenType: TokenType = TokenType.Bot
-    var gatewayContext: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    var gatewayScope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
 
     companion object {
         private val isEnabled = AtomicBoolean(false)
@@ -29,7 +29,7 @@ class DiscordClientBuilder private constructor() {
             val koin = setupKoin()
             if (koin.getProperty<String>("token") == null)
                 koin.setProperty("token", builder.token)
-            koin.setProperty("gatewayScope", builder.gatewayContext)
+            koin.setProperty("gatewayScope", builder.gatewayScope)
 
             return DiscordClient(builder.tokenType).also { client ->
                 loadKoinModules(module {
