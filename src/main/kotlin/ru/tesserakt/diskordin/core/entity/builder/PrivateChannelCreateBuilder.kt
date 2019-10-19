@@ -9,6 +9,6 @@ class PrivateChannelCreateBuilder : BuilderBase<DMCreateRequest>() {
 
 
     override fun create(): DMCreateRequest = DMCreateRequest(
-        recipientId.asLong()
+        recipientId
     )
 }

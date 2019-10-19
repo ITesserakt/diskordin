@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.entity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
@@ -79,7 +78,7 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val integrations: Flow<IIntegration> by lazy { delegate.integrations }
     override val roles: Flow<IRole> by lazy { delegate.roles }
     override val channels: Flow<IGuildChannel> by lazy { delegate.channels }
-    override val id: Snowflake = raw.id.asSnowflake()
+    override val id: Snowflake = raw.id
     override val name: String = raw.name
 
     override suspend fun delete(reason: String?) = delegate.delete(reason)

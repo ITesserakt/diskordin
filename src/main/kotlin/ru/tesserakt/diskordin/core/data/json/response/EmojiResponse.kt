@@ -6,7 +6,7 @@ import ru.tesserakt.diskordin.core.entity.IUser
 
 
 data class EmojiResponse<out E : IEmoji>(
-    val id: Long?,
+    val id: Snowflake?,
     val name: String,
     val roles: Array<Long>? = null,
     val user: UserResponse<IUser>? = null,

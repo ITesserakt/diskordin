@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 import arrow.core.Either
 import ru.tesserakt.diskordin.core.data.Permission
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.OverwriteResponse
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.`object`.MemberId
@@ -14,8 +13,8 @@ class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
     override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.of(raw.type)
 
     override val targetId: Either<RoleId, MemberId> = Either.cond(type == IPermissionOverwrite.Type.Role,
-        { raw.id.asSnowflake() },
-        { raw.id.asSnowflake() }
+        { raw.id },
+        { raw.id }
     )
 
     @ExperimentalUnsignedTypes

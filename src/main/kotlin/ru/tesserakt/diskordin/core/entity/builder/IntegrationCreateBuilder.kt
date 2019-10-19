@@ -9,6 +9,6 @@ class IntegrationCreateBuilder : BuilderBase<IntegrationCreateRequest>() {
 
     override fun create(): IntegrationCreateRequest = IntegrationCreateRequest(
         type,
-        id.asLong()
+        id
     )
 }

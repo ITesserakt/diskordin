@@ -9,6 +9,6 @@ class GuildEmbedEditBuilder : BuilderBase<GuildEmbedEditRequest>() {
     var channelId: Snowflake? = null
 
     override fun create(): GuildEmbedEditRequest = GuildEmbedEditRequest(
-        enabled, channelId?.asLong()
+        enabled, channelId
     )
 }

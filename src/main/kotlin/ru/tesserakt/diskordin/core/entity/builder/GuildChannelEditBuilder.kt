@@ -29,7 +29,7 @@ class TextChannelEditBuilder : GuildChannelEditBuilder<ITextChannel>() {
         isNsfw,
         rateLimit,
         permission_overwrites = permissionOverwrites,
-        parent_id = parentId?.asLong()
+        parent_id = parentId
     )
 }
 
@@ -42,7 +42,7 @@ class VoiceChannelEditBuilder : GuildChannelEditBuilder<IVoiceChannel>() {
         name,
         position,
         permission_overwrites = permissionOverwrites,
-        parent_id = parentId?.asLong(),
+        parent_id = parentId,
         bitrate = bitrate,
         user_limit = userLimit
     )

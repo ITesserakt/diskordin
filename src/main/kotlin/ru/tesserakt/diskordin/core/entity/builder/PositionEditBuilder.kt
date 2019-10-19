@@ -9,6 +9,6 @@ class PositionEditBuilder : BuilderBase<PositionEditRequest>() {
     var position by Delegates.notNull<Int>()
 
     override fun create(): PositionEditRequest = PositionEditRequest(
-        id.asLong(), position
+        id, position
     )
 }

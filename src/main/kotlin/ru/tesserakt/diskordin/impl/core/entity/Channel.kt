@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.entity
 import arrow.core.NonEmptyList
 import kotlinx.coroutines.flow.*
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.ImageResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -22,7 +21,7 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     final override val type: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.type }
 
-    final override val id: Snowflake = raw.id.asSnowflake()
+    final override val id: Snowflake = raw.id
 
     final override val mention: String = "<#$id>"
 
@@ -52,10 +51,10 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
         it.unwrap()
     }.asFlow()
 
-    final override val parentCategory: Snowflake? = raw.parent_id?.asSnowflake()
+    final override val parentCategory: Snowflake? = raw.parent_id
 
     final override val guild: Identified<IGuild> =
-        raw.guild_id!!.asSnowflake() combine { client.findGuild(it)!! }
+        raw.guild_id!!.combine { client.findGuild(it)!! }
 
     final override val name: String = raw.name!!
 
@@ -131,7 +130,7 @@ class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVo
 }
 
 class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
-    override val parentId: Snowflake? = raw.parent_id?.asSnowflake()
+    override val parentId: Snowflake? = raw.parent_id
 }
 
 class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw), IAnnouncementChannel {
@@ -180,9 +179,7 @@ class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPri
         requireNotNull(raw.recipients)
     }
 
-    override val owner: Identified<IUser> = Identified(
-        raw.owner_id!!.asSnowflake()
-    ) { client.findUser(it)!! }
+    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.findUser(it)!! }
 
     override val messages: Flow<IMessage> = flow {
         channelService.getMessages(id, MessagesQuery().apply {
@@ -195,9 +192,7 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : Channel(
     override val recipient: NonEmptyList<IUser> =
         NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
-    override val owner: Identified<IUser> = Identified(raw.owner_id!!.asSnowflake()) {
-        client.findUser(it)!!
-    }
+    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.findUser(it)!! }
 
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 

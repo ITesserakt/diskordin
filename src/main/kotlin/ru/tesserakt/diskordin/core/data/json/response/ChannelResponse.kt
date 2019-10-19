@@ -1,27 +1,28 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IUser
 
 
 data class ChannelResponse<out C : IChannel>(
-    val id: Long,
+    val id: Snowflake,
     val type: Int,
-    val guild_id: Long? = null,
+    val guild_id: Snowflake? = null,
     val position: Int? = null,
     val permission_overwrites: Array<OverwriteResponse>? = null,
     val name: String? = null,
     val topic: String? = null,
     val nsfw: Boolean? = null,
-    val last_message_id: Long? = null,
+    val last_message_id: Snowflake? = null,
     val bitrate: Int? = null,
     val user_limit: Int? = null,
     val rate_limit_per_user: Int? = null,
     val recipients: Array<UserResponse<IUser>>? = null,
     val icon: String? = null,
-    val owner_id: Long? = null,
-    val application_id: Long? = null,
-    val parent_id: Long? = null,
+    val owner_id: Snowflake? = null,
+    val application_id: Snowflake? = null,
+    val parent_id: Snowflake? = null,
     val last_pin_timestamp: String? = null
 ) : DiscordResponse<C>() {
     override fun unwrap(vararg params: Any): C = IChannel.typed(this)

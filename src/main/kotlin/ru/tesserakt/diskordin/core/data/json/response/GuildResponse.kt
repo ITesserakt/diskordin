@@ -1,22 +1,23 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.ICustomEmoji
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.impl.core.entity.Guild
 
 data class GuildResponse(
-    val id: Long,
+    val id: Snowflake,
     val name: String,
     val icon: String?,
     val splash: String?,
     val owner: Boolean? = null,
-    val owner_id: Long,
+    val owner_id: Snowflake,
     val permissions: Int? = null,
     val region: String,
-    val afk_channel_id: Long?,
+    val afk_channel_id: Snowflake?,
     val afk_timeout: Int,
     val embed_enabled: Boolean? = null,
-    val embed_channel_id: Long? = null,
+    val embed_channel_id: Snowflake? = null,
     val verification_level: Int,
     val default_message_notifications: Int,
     val explicit_content_filter: Int,
@@ -24,15 +25,15 @@ data class GuildResponse(
     val emojis: Array<EmojiResponse<ICustomEmoji>>,
     val features: Array<String>,
     val mfa_level: Int,
-    val application_id: Long?,
+    val application_id: Snowflake?,
     val widget_enabled: Boolean? = null,
-    val system_channel_id: Long?,
+    val system_channel_id: Snowflake?,
     val max_presences: Long?,
     val max_members: Long,
     val vanity_url_code: String?,
     val description: String?,
     val banner: String?,
-    val widget_channel_id: Long?,
+    val widget_channel_id: Snowflake?,
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null
 ) : DiscordResponse<IGuild>() {

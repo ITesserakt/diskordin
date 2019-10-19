@@ -35,7 +35,7 @@ class CustomEmoji constructor(
     }
 
     override val creator: Identified<IUser> = Identified(
-        raw.user?.id?.asSnowflake() ?: throw NotCustomEmojiException()
+        raw.user?.id ?: throw NotCustomEmojiException()
     ) { User(raw.user) }
 
     override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
@@ -44,7 +44,7 @@ class CustomEmoji constructor(
 
     override val isAnimated: Boolean = raw.animated ?: throw NotCustomEmojiException()
 
-    override val id: Snowflake = raw.id?.asSnowflake() ?: throw NotCustomEmojiException()
+    override val id: Snowflake = raw.id ?: throw NotCustomEmojiException()
 
     override val name: String = raw.name
 

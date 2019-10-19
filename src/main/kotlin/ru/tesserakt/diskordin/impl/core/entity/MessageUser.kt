@@ -2,7 +2,6 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.flow.first
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.MessageUserResponse
 import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.core.entity.IUser
@@ -16,6 +15,6 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
     override suspend fun asMember(guildId: Snowflake): IMember = raw.member?.unwrap(guildId)
         ?: client.findGuild(guildId)!!.members.first { it.id == id }
 
-    override val id: Snowflake = raw.id.asSnowflake()
+    override val id: Snowflake = raw.id
     override val mention: String = "<@$id>"
 }

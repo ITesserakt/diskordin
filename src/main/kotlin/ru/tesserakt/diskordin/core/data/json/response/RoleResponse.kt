@@ -6,7 +6,7 @@ import ru.tesserakt.diskordin.impl.core.entity.Role
 
 
 data class RoleResponse(
-    val id: Long,
+    val id: Snowflake,
     val name: String,
     val color: Int,
     val hoist: Boolean,

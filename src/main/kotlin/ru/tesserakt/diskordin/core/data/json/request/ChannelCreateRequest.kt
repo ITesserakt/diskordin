@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.core.data.json.request
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.OverwriteResponse
 
 
@@ -12,7 +13,7 @@ data class ChannelCreateRequest(
     val rate_limit_per_user: Int? = null,
     val position: Int? = null,
     val permission_overwrites: Array<OverwriteResponse>? = null,
-    val parent_id: Long? = null,
+    val parent_id: Snowflake? = null,
     val nsfw: Boolean? = null
 ) : JsonRequest() {
     override fun equals(other: Any?): Boolean {

@@ -78,7 +78,7 @@ internal class EventDispatcherImpl(private val gateway: Gateway, private val api
             "VOICE_STATE_UPDATE" -> VoiceStateUpdateEvent(rawEvent.unwrapAsResponse())
             "VOICE_SERVER_UPDATE" -> VoiceServerUpdateEvent(rawEvent.unwrap())
             "WEBHOOKS_UPDATE" -> WebhooksUpdateEvent(rawEvent.unwrap())
-            else -> throw NoSuchElementException("No such event name or opcode")
+            else -> throw NoSuchElementException("No such event name or opcode: ${rawEvent.opcode}, ${rawEvent.name}")
         }
         else -> throw IllegalStateException("Only send")
     }.let { channel.send(it) }

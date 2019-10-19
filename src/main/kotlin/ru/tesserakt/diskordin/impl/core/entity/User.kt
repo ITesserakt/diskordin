@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -21,7 +20,7 @@ open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val isBot: Boolean = raw.bot ?: false
 
-    final override val id: Snowflake = raw.id.asSnowflake()
+    final override val id: Snowflake = raw.id
 
     override suspend fun asMember(guildId: Snowflake): IMember =
         client.findGuild(guildId)!!.members.first { it.id == id }

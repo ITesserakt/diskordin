@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
@@ -31,7 +30,7 @@ class Role constructor(
 
     override val isMentionable: Boolean = raw.mentionable
 
-    override val id: Snowflake = raw.id.asSnowflake()
+    override val id: Snowflake = raw.id
 
     override val isEveryone: Boolean = id == guildId
 

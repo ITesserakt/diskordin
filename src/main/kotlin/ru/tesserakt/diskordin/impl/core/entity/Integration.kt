@@ -3,7 +3,6 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.flow.first
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.AccountResponse
 import ru.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -35,25 +34,25 @@ class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role = raw.role_id.asSnowflake() combine { guild().roles.first { role -> role.id == it } }
+    override val role = raw.role_id combine { guild().roles.first { role -> role.id == it } }
 
     override val expireBehavior: Int = raw.expire_behavior
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: Identified<IUser> = Identified(raw.user.id.asSnowflake()) { User(raw.user) }
+    override val user: Identified<IUser> = Identified(raw.user.id) { User(raw.user) }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 
     override val syncedAt: Instant = DateTimeFormatter.ISO_DATE_TIME.parse(raw.synced_at, Instant::from)
 
-    override val id: Snowflake = raw.id.asSnowflake()
+    override val id: Snowflake = raw.id
 
 
     override val name: String = raw.name
 
     class Account(raw: AccountResponse) : IIntegration.IAccount {
-        override val id: Snowflake = raw.id.asSnowflake()
+        override val id: Snowflake = raw.id
 
         override val name: String = raw.name
     }

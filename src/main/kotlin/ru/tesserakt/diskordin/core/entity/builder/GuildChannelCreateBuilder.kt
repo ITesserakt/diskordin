@@ -31,7 +31,7 @@ class TextChannelCreateBuilder : GuildChannelCreateBuilder<TextChannel>() {
         rate_limit_per_user = rateLimitPerUser,
         position = position,
         permission_overwrites = permissionOverwrites,
-        parent_id = parentId?.asLong(),
+        parent_id = parentId,
         nsfw = isNsfw
     )
 }
@@ -48,6 +48,6 @@ class VoiceChannelCreateBuilder : GuildChannelCreateBuilder<VoiceChannel>() {
         user_limit = userLimit,
         position = position,
         permission_overwrites = permissionOverwrites,
-        parent_id = parentId?.asLong()
+        parent_id = parentId
     )
 }

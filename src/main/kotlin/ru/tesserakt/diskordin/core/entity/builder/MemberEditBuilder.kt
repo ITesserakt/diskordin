@@ -5,7 +5,7 @@ import ru.tesserakt.diskordin.core.data.json.request.MemberEditRequest
 
 class MemberEditBuilder : AuditLogging<MemberEditRequest>() {
     override fun create(): MemberEditRequest = MemberEditRequest(
-        nick, roles?.map { it.asLong() }?.toTypedArray(), isMuted, isDeafen, channelId?.asLong()
+        nick, roles?.map { it.asLong() }?.toTypedArray(), isMuted, isDeafen, channelId
     )
 
     var nick: String? = null

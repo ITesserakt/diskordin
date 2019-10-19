@@ -14,7 +14,7 @@ import ru.tesserakt.diskordin.core.entity.query.Query
 
 @Suppress("unused")
 interface ChannelService {
-    @GET("/api/v6channels/{id}")
+    @GET("/api/v6/channels/{id}")
     suspend fun <C : IChannel> getChannel(@Path("id") id: Snowflake): ChannelResponse<C>
 
     @PATCH("/api/v6/channels/{id}")

@@ -1,14 +1,15 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IMessage
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Message
 
 
 data class MessageResponse(
-    val id: Long,
-    val channel_id: Long,
-    val guild_id: Long? = null,
+    val id: Snowflake,
+    val channel_id: Snowflake,
+    val guild_id: Snowflake? = null,
     val author: UserResponse<IUser>,
     val member: GuildMemberResponse? = null,
     val content: String,
@@ -23,7 +24,7 @@ data class MessageResponse(
     val reactions: Array<ReactionResponse>? = null,
     val nonce: Long? = null,
     val pinned: Boolean,
-    val webhook_id: Long? = null,
+    val webhook_id: Snowflake? = null,
     val type: Int
 ) : DiscordResponse<IMessage>() {
     override fun unwrap(vararg params: Any): IMessage = Message(this)
