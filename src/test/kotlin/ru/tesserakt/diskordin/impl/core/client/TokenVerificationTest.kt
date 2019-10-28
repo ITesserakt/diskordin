@@ -1,7 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.data.Validated
-import arrow.data.orNull
+import arrow.core.Validated
+import arrow.core.orNull
 import org.amshove.kluent.`should be`
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldEqual
