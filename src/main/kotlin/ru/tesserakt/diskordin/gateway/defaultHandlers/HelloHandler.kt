@@ -1,18 +1,16 @@
 package ru.tesserakt.diskordin.gateway.defaultHandlers
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.rx2.asFlowable
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import org.koin.core.KoinComponent
-import ru.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.gateway.json.Heartbeat
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
 import ru.tesserakt.diskordin.util.Loggers
 import sun.awt.OSInfo
-import java.util.concurrent.TimeUnit
 
 @ExperimentalCoroutinesApi
 internal class HelloHandler(private val gateway: Gateway) : KoinComponent {
@@ -36,22 +34,15 @@ internal class HelloHandler(private val gateway: Gateway) : KoinComponent {
                         shard = arrayOf(0, 1)
                     )
                 )
-            }.map { heartbeat(it, dispatcher.subscribeOn()) }
+            }.map { heartbeat(it) }
             .launchIn(scope)
     }
 
     @ExperimentalCoroutinesApi
-    private fun heartbeat(interval: Long, flow: Flow<HeartbeatACKEvent>) = scope.launch {
-        flow.asFlowable()
-            .timeout(interval + 20000, TimeUnit.MILLISECONDS)
-            .asFlow().catch {
-                logger.error("Zombie process detected. Restarting")
-                gateway.restart()
-            }.launchIn(this)
-
+    private fun heartbeat(interval: Long) = scope.launch {
         while (isActive) {
-            dispatcher.sendAnswer(Heartbeat(gateway.lastSequenceId))
             delay(interval)
+            dispatcher.sendAnswer(Heartbeat(gateway.lastSequenceId))
         }
     }
 }

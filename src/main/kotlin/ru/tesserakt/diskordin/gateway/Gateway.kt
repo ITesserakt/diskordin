@@ -13,6 +13,7 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.koin.core.parameter.parametersOf
 import ru.tesserakt.diskordin.core.client.EventDispatcher
+import ru.tesserakt.diskordin.gateway.defaultHandlers.HeartbeatHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.HelloHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.RestartHandler
 import ru.tesserakt.diskordin.impl.core.client.EventDispatcherImpl
@@ -46,6 +47,7 @@ class Gateway @ExperimentalTime constructor(
     init {
         HelloHandler(this)
         restartHandler = RestartHandler(this)
+        HeartbeatHandler(this)
     }
 
     internal fun stop() {
