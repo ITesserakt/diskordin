@@ -33,10 +33,7 @@ class Activity(raw: ActivityResponse) : IActivity {
     }
 
     override val name: String = raw.name
-    override val type: IActivity.Type? = IActivity.Type.values().find { it.ordinal == raw.type } ?: {
-        println(raw.type)
-        null
-    }()
+    override val type: IActivity.Type = IActivity.Type.values().first { it.ordinal == raw.type }
     @ExperimentalContracts
     override val streamUrl: String? = raw.url
     override val applicationId: Snowflake? = raw.applicationId

@@ -59,6 +59,7 @@ interface IActivity : IDiscordObject {
         Game,
         Streaming,
         Listening,
-        Watching;
+        Watching,
+        Unknown;
     }
 }
