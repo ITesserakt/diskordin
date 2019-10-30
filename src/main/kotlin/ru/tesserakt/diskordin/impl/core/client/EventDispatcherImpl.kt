@@ -70,7 +70,7 @@ internal class EventDispatcherImpl(private val gateway: Gateway, private val api
             "MESSAGE_DELETE" -> MessageDeleteEvent(rawEvent.unwrap())
             "MESSAGE_DELETE_BULK" -> MessageBulkDeleteEvent(rawEvent.unwrap())
             "MESSAGE_REACTION_ADD" -> ReactionAddEvent(rawEvent.unwrap())
-            "MESSAGE_REACTION_DELETE" -> ReactionRemoveEvent(rawEvent.unwrap())
+            "MESSAGE_REACTION_REMOVE" -> ReactionRemoveEvent(rawEvent.unwrap())
             "MESSAGE_REACTION_REMOVE_ALL" -> AllReactionsRemoveEvent(rawEvent.unwrap())
             "PRESENCE_UPDATE" -> PresenceUpdateEvent(rawEvent.unwrap())
             "TYPING_START" -> TypingEvent(rawEvent.unwrap())
