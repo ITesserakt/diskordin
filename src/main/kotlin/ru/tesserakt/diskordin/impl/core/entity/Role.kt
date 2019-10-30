@@ -12,6 +12,7 @@ import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.core.entity.guildService
 import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
+import ru.tesserakt.diskordin.util.typeclass.integral
 import java.awt.Color
 
 class Role constructor(
@@ -22,7 +23,7 @@ class Role constructor(
         guildService.editRole(guildId, id, builder.build(), null).unwrap(guildId)
 
     @ExperimentalUnsignedTypes
-    override val permissions = ValuedEnum<Permission>(raw.permissions)
+    override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
 
     override val color: Color = Color(raw.color)
 

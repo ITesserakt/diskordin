@@ -8,6 +8,7 @@ import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.`object`.MemberId
 import ru.tesserakt.diskordin.core.entity.`object`.RoleId
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
+import ru.tesserakt.diskordin.util.typeclass.integral
 
 class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
     override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.of(raw.type)
@@ -17,10 +18,6 @@ class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
         { raw.id }
     )
 
-    @ExperimentalUnsignedTypes
-    override val allowed = ValuedEnum<Permission>(raw.allow)
-    @ExperimentalUnsignedTypes
-    override val denied = ValuedEnum<Permission>(raw.deny)
-
-
+    override val allowed = ValuedEnum<Permission, Long>(raw.allow, Long.integral())
+    override val denied = ValuedEnum<Permission, Long>(raw.deny, Long.integral())
 }

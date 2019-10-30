@@ -1,25 +1,27 @@
 package ru.tesserakt.diskordin.util.enums
 
-data class ValuedEnum<E>(val code: Long)
-        where E : Enum<E>, E : IValued<E> {
-    infix fun and(other: IValued<E>) =
-        ValuedEnum<E>(code and other.value)
+import ru.tesserakt.diskordin.util.typeclass.Integral
 
-    infix fun or(other: IValued<E>) =
-        ValuedEnum<E>(code or other.value)
+class ValuedEnum<E, I>(val code: I, val integral: Integral<I>) : Integral<I> by integral
+        where E : Enum<E>, E : IValued<E, I> {
+    infix fun and(other: IValued<E, I>) =
+        ValuedEnum<E, I>(code and other.value, integral)
 
-    infix fun xor(other: IValued<E>) =
-        ValuedEnum<E>(code xor other.value)
+    infix fun or(other: IValued<E, I>) =
+        ValuedEnum<E, I>(code or other.value, integral)
 
-    infix fun and(other: ValuedEnum<E>) =
-        ValuedEnum<E>(code and other.code)
+    infix fun xor(other: IValued<E, I>) =
+        ValuedEnum<E, I>(code xor other.value, integral)
 
-    infix fun or(other: ValuedEnum<E>) =
-        ValuedEnum<E>(code or other.code)
+    infix fun and(other: ValuedEnum<E, I>) =
+        ValuedEnum<E, I>(code and other.code, integral)
 
-    infix fun xor(other: ValuedEnum<E>) =
-        ValuedEnum<E>(code xor other.code)
+    infix fun or(other: ValuedEnum<E, I>) =
+        ValuedEnum<E, I>(code or other.code, integral)
 
-    operator fun contains(other: IValued<E>) = code and other.value == other.value
-    operator fun contains(other: ValuedEnum<E>) = code and other.code == other.code
+    infix fun xor(other: ValuedEnum<E, I>) =
+        ValuedEnum<E, I>(code xor other.code, integral)
+
+    operator fun contains(other: IValued<E, I>) = code and other.value == other.value
+    operator fun contains(other: ValuedEnum<E, I>) = code and other.code == other.code
 }

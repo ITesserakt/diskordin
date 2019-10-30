@@ -6,6 +6,8 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import ru.tesserakt.diskordin.util.enums.IValued
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
+import ru.tesserakt.diskordin.util.typeclass.Integral
+import ru.tesserakt.diskordin.util.typeclass.integral
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -25,9 +27,9 @@ interface IActivity : IDiscordObject {
     val assets: IAssets?
     val secrets: ISecrets?
     val instanceOfGame: Boolean?
-    val flags: ValuedEnum<Flags>?
+    val flags: ValuedEnum<Flags, Short>?
 
-    enum class Flags(override val value: Long) : IValued<Flags> {
+    enum class Flags(override val value: Short) : IValued<Flags, Short>, Integral<Short> by Short.integral() {
         INSTANCE(1 shl 0),
         JOIN(1 shl 1),
         SPECTATE(1 shl 2),

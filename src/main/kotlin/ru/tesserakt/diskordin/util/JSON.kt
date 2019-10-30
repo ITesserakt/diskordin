@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.util.typeAdapter.InstantTypeAdapter
+import ru.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import java.time.Instant
 
 val gson: Gson = GsonBuilder()

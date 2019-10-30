@@ -3,8 +3,10 @@
 package ru.tesserakt.diskordin.core.data
 
 import ru.tesserakt.diskordin.util.enums.IValued
+import ru.tesserakt.diskordin.util.typeclass.Integral
+import ru.tesserakt.diskordin.util.typeclass.integral
 
-enum class Permission(override val value: Long) : IValued<Permission> {
+enum class Permission(override val value: Long) : IValued<Permission, Long>, Integral<Long> by Long.integral() {
     CreateInstantInvite(1),
     KickMembers(2),
     BanMembers(4),

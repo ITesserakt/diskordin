@@ -12,8 +12,8 @@ internal typealias MemberId = Snowflake
 interface IPermissionOverwrite : IDiscordObject {
     val targetId: Either<RoleId, MemberId>
     val type: Type
-    val allowed: ValuedEnum<Permission>
-    val denied: ValuedEnum<Permission>
+    val allowed: ValuedEnum<Permission, Long>
+    val denied: ValuedEnum<Permission, Long>
 
     enum class Type(internal val value: String) {
         Role("role"),

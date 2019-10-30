@@ -6,8 +6,8 @@ import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 
 class PermissionEditBuilder : AuditLogging<PermissionsEditRequest>() {
-    lateinit var allowed: ValuedEnum<Permission>
-    lateinit var denied: ValuedEnum<Permission>
+    lateinit var allowed: ValuedEnum<Permission, Long>
+    lateinit var denied: ValuedEnum<Permission, Long>
     lateinit var type: IPermissionOverwrite.Type
 
     override fun create(): PermissionsEditRequest = PermissionsEditRequest(

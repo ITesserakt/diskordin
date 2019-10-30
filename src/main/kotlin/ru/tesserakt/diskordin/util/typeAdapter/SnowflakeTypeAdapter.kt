@@ -1,4 +1,4 @@
-package ru.tesserakt.diskordin.util
+package ru.tesserakt.diskordin.util.typeAdapter
 
 import com.google.gson.*
 import com.tinder.scarlet.utils.getRawType

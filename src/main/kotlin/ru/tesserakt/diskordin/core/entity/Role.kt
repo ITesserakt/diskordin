@@ -6,7 +6,7 @@ import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
 interface IRole : IGuildObject, IMentioned, INamed, IDeletable, IEditable<IRole, RoleEditBuilder> {
-    val permissions: ValuedEnum<Permission>
+    val permissions: ValuedEnum<Permission, Long>
     val color: Color
     val isHoisted: Boolean
     val isMentionable: Boolean

@@ -1,6 +1,7 @@
-package ru.tesserakt.diskordin.util
+package ru.tesserakt.diskordin.util.typeAdapter
 
 import com.google.gson.*
+import ru.tesserakt.diskordin.util.toJsonTree
 import java.lang.reflect.Type
 import java.time.Instant
 import java.time.format.DateTimeFormatter

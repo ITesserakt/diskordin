@@ -21,8 +21,8 @@ import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.gateway.GatewayLifecycle
 import ru.tesserakt.diskordin.util.FlowStreamAdapter
 import ru.tesserakt.diskordin.util.Loggers
-import ru.tesserakt.diskordin.util.SnowflakeTypeAdapter
 import ru.tesserakt.diskordin.util.gson
+import ru.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import java.io.File
 import java.util.concurrent.TimeUnit
 

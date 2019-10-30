@@ -2,57 +2,59 @@
 
 package ru.tesserakt.diskordin.util.enums
 
+import ru.tesserakt.diskordin.util.typeclass.Integral
 import java.util.*
 
-interface IValued<E : Enum<E>> {
-    val value: Long
+interface IValued<E : Enum<E>, N> : Integral<N> {
+    val value: N
 }
 
-infix fun <E> IValued<E>.and(other: IValued<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value and other.value)
+infix fun <E, N> IValued<E, N>.and(other: IValued<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value and other.value, this)
 
-infix fun <E> IValued<E>.or(other: IValued<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value or other.value)
+infix fun <E, N> IValued<E, N>.or(other: IValued<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value or other.value, this)
 
-infix fun <E> IValued<E>.xor(other: IValued<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value xor other.value)
+infix fun <E, N> IValued<E, N>.xor(other: IValued<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value xor other.value, this)
 
-infix fun <E> IValued<E>.and(other: ValuedEnum<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value and other.code)
+infix fun <E, N> IValued<E, N>.and(other: ValuedEnum<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value and other.code, this)
 
-infix fun <E> IValued<E>.or(other: ValuedEnum<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value or other.code)
+infix fun <E, N> IValued<E, N>.or(other: ValuedEnum<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value or other.code, this)
 
-infix fun <E> IValued<E>.xor(other: ValuedEnum<E>)
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(value xor other.code)
+infix fun <E, N> IValued<E, N>.xor(other: ValuedEnum<E, N>)
+        where E : Enum<E>, E : IValued<E, N> =
+    ValuedEnum<E, N>(value xor other.code, this)
 
-operator fun <E> Enum<E>.not()
-        where E : Enum<E>, E : IValued<E> = ValuedEnum<E>(
-    this.declaringClass.enumConstants
-        .map(IValued<E>::value)
-        .reduce(Long::plus) - (this as IValued<*>).value
+operator fun <E, N> E.not()
+        where E : Enum<E>, E : IValued<E, N> = ValuedEnum<E, N>(
+    this@not.declaringClass.enumConstants
+        .map(IValued<E, N>::value)
+        .reduce { acc, i -> acc + i } - value, this
 )
 
-inline operator fun <reified E> ValuedEnum<E>.not()
-        where E : Enum<E>, E : IValued<E> = ValuedEnum<E>(
+inline operator fun <reified E, N> ValuedEnum<E, N>.not()
+        where E : Enum<E>, E : IValued<E, N> = ValuedEnum<E, N>(
     E::class.java.enumConstants
         .map { it.value }
-        .reduce(Long::plus) - code
+        .reduce { acc, n -> acc + n } - code, integral
 )
 
-inline fun <reified E> ValuedEnum<E>.asSet(): EnumSet<E>
-        where E : Enum<E>, E : IValued<E> = EnumSet.allOf(E::class.java).apply {
+inline fun <reified E, N> ValuedEnum<E, N>.asSet(): EnumSet<E>
+        where E : Enum<E>, E : IValued<E, N> = EnumSet.allOf(E::class.java).apply {
     removeIf {
         code and it.value != it.value
     }
 }
 
-fun <E> EnumSet<E>.enhance()
-        where E : Enum<E>, E : IValued<E> =
-    ValuedEnum<E>(map { it.value }.reduce(Long::plus))
+fun <E, N> EnumSet<E>.enhance(integral: Integral<N>)
+        where E : Enum<E>, E : IValued<E, N> = with(integral) {
+    ValuedEnum<E, N>(map { it.value }.reduce { acc, n -> acc + n }, integral)
+}

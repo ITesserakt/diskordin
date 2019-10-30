@@ -6,6 +6,7 @@ import org.amshove.kluent.`should equal`
 import org.junit.jupiter.api.Test
 import ru.tesserakt.diskordin.core.data.Permission.*
 import ru.tesserakt.diskordin.util.enums.*
+import ru.tesserakt.diskordin.util.typeclass.integral
 import java.util.*
 
 internal class PermissionTest {
@@ -28,15 +29,15 @@ internal class PermissionTest {
     @Test
     fun `code before compute and after recompute should be same`() {
         val code = 2146958847L //code with all entries
-        val set = ValuedEnum<Permission>(code).asSet()
+        val set: EnumSet<Permission> = ValuedEnum<Permission, Long>(code, Long.integral()).asSet()
         EnumSet.allOf(Permission::class.java) `should equal` set
     }
 }
 
-private infix fun <E> ValuedEnum<E>.shouldContain(data: IValued<E>)
-        where E : Enum<E>, E : IValued<E> =
+private infix fun <E, I> ValuedEnum<E, I>.shouldContain(data: IValued<E, I>)
+        where E : Enum<E>, E : IValued<E, I> =
     (data in this) `should be` true
 
-private infix fun <E> ValuedEnum<E>.shouldNotContain(data: IValued<E>)
-        where E : Enum<E>, E : IValued<E> =
+private infix fun <E, I> ValuedEnum<E, I>.shouldNotContain(data: IValued<E, I>)
+        where E : Enum<E>, E : IValued<E, I> =
     (data in this) `should be` false

@@ -4,6 +4,7 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import ru.tesserakt.diskordin.core.entity.`object`.IActivity
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
+import ru.tesserakt.diskordin.util.typeclass.integral
 import java.time.Instant
 import kotlin.contracts.ExperimentalContracts
 import kotlin.time.Duration
@@ -43,7 +44,8 @@ class Activity(raw: ActivityResponse) : IActivity {
     override val assets: IActivity.IAssets? = raw.assets?.unwrap()
     override val secrets: IActivity.ISecrets? = raw.secrets?.unwrap()
     override val instanceOfGame: Boolean? = raw.instance
-    override val flags: ValuedEnum<IActivity.Flags>? = raw.flags?.let { ValuedEnum(it) }
+    override val flags: ValuedEnum<IActivity.Flags, Short>? =
+        raw.flags?.let { ValuedEnum(it.toShort(), Short.integral()) }
 
     class Party(raw: ActivityResponse.PartyResponse) : IActivity.IParty {
         override val id: String? = raw.id
