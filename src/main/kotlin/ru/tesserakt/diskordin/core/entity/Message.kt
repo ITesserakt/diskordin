@@ -1,10 +1,10 @@
 package ru.tesserakt.diskordin.core.entity
 
 import kotlinx.coroutines.flow.Flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
-import ru.tesserakt.diskordin.util.Identified
 
 interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder> {
     val channel: Identified<IMessageChannel>

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flowOf
 import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -18,7 +19,6 @@ import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
-import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
@@ -89,14 +89,17 @@ data class DiscordClient(
         exitProcess(0)
     }
 
-    override suspend fun findUser(id: Snowflake) =
+    override suspend fun findUser(id: Snowflake) = runCatching {
         userService.getUser(id).unwrap("User")
+    }.getOrNull()
 
-    override suspend fun findGuild(id: Snowflake) =
+    override suspend fun findGuild(id: Snowflake) = runCatching {
         guildService.getGuild(id).unwrap()
+    }.getOrNull()
 
-    override suspend fun findChannel(id: Snowflake): IChannel =
+    override suspend fun findChannel(id: Snowflake) = runCatching {
         channelService.getChannel<IChannel>(id).unwrap()
+    }.getOrNull()
 
     override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild =
         guildService.createGuild(request.build()).unwrap()
@@ -110,4 +113,10 @@ data class DiscordClient(
     override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().async(IO.async())
         .fix().suspended()
         .body()!!.map { it.unwrap() }
+
+    override suspend fun getChannel(id: Snowflake): IChannel = getChannel(id)
+
+    override suspend fun getGuild(id: Snowflake): IGuild = findGuild(id)!!
+
+    override suspend fun getUser(id: Snowflake): IUser = getUser(id)
 }

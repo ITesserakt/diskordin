@@ -5,6 +5,7 @@ package ru.tesserakt.diskordin.core.entity
 
 import arrow.core.NonEmptyList
 import kotlinx.coroutines.flow.Flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
@@ -14,7 +15,6 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.impl.core.entity.*
-import ru.tesserakt.diskordin.util.Identified
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type

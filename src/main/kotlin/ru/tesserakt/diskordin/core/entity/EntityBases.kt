@@ -6,10 +6,10 @@ package ru.tesserakt.diskordin.core.entity
 import org.koin.core.KoinComponent
 import org.koin.core.get
 import ru.tesserakt.diskordin.core.client.IDiscordClient
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
 import ru.tesserakt.diskordin.rest.service.*
-import ru.tesserakt.diskordin.util.Identified
 
 interface IEntity : IDiscordObject {
     val id: Snowflake

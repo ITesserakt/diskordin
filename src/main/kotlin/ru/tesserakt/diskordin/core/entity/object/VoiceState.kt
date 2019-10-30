@@ -1,10 +1,10 @@
 package ru.tesserakt.diskordin.core.entity.`object`
 
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IUser
-import ru.tesserakt.diskordin.util.Identified
 
 interface IVoiceState : IDiscordObject {
     val channel: Identified<IChannel>?

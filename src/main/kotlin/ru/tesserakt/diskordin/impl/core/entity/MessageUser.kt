@@ -13,7 +13,7 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
     override val isBot: Boolean = raw.bot ?: false
 
     override suspend fun asMember(guildId: Snowflake): IMember = raw.member?.unwrap(guildId)
-        ?: client.findGuild(guildId)!!.members.first { it.id == id }
+        ?: client.getGuild(guildId).members.first { it.id == id }
 
     override val id: Snowflake = raw.id
     override val mention: String = "<@$id>"

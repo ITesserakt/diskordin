@@ -1,6 +1,6 @@
 package ru.tesserakt.diskordin.core.entity
 
-import ru.tesserakt.diskordin.util.Identified
+import ru.tesserakt.diskordin.core.data.Identified
 
 interface IWebhook : IEntity, IDeletable {
     val name: String?

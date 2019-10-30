@@ -3,13 +3,13 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
-import ru.tesserakt.diskordin.util.Identified
 
 open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
     override val name: String = raw.name
@@ -22,9 +22,10 @@ class CustomEmoji constructor(
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =
         emojiService.editGuildEmoji(guild.id, id, builder.build()).unwrap()
 
-    override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it) ?: throw NotCustomEmojiException()
-    }
+    override val guild: Identified<IGuild> =
+        Identified(guildId) {
+            client.findGuild(it) ?: throw NotCustomEmojiException()
+        }
 
     override val roles: Flow<IRole> = flow {
         raw.roles?.map(Long::asSnowflake)
@@ -34,9 +35,10 @@ class CustomEmoji constructor(
             ?.forEach { emit(it) } ?: throw NotCustomEmojiException()
     }
 
-    override val creator: Identified<IUser> = Identified(
-        raw.user?.id ?: throw NotCustomEmojiException()
-    ) { User(raw.user) }
+    override val creator: Identified<IUser> =
+        Identified(
+            raw.user?.id ?: throw NotCustomEmojiException()
+        ) { User(raw.user) }
 
     override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
 

@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
@@ -10,7 +11,6 @@ import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.core.entity.guildService
-import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
 import java.awt.Color
@@ -35,9 +35,10 @@ class Role constructor(
 
     override val isEveryone: Boolean = id == guildId
 
-    override val guild: Identified<IGuild> = Identified(guildId) {
-        client.findGuild(it) ?: throw NoSuchElementException("Guild id is not right")
-    }
+    override val guild: Identified<IGuild> =
+        Identified(guildId) {
+            client.findGuild(it) ?: throw NoSuchElementException("Guild id is not right")
+        }
 
     override val mention: String = "<@&$id>"
 

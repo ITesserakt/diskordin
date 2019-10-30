@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
@@ -15,8 +17,6 @@ import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.query
-import ru.tesserakt.diskordin.util.Identified
-import ru.tesserakt.diskordin.util.combine
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -105,9 +105,10 @@ class Guild(raw: GuildResponse) : IGuild {
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
-    override val owner: Identified<IMember> = Identified(raw.owner_id) { id ->
-        members.first { it.id == id }
-    }
+    override val owner: Identified<IMember> =
+        Identified(raw.owner_id) { id ->
+            members.first { it.id == id }
+        }
 
     override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.combine { id ->
         channels.first { channel -> channel.id == id } as VoiceChannel

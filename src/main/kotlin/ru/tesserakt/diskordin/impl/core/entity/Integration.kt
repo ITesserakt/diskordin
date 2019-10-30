@@ -2,14 +2,14 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 
 import kotlinx.coroutines.flow.first
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.AccountResponse
 import ru.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
-import ru.tesserakt.diskordin.util.Identified
-import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -19,7 +19,7 @@ class Integration(
 ) : IIntegration {
     override suspend fun sync() = guildService.syncIntegration(guild.id, id)
 
-    override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
+    override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
 
     override suspend fun delete(reason: String?) = guildService.deleteIntegration(guild.id, id)
 
@@ -40,7 +40,8 @@ class Integration(
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: Identified<IUser> = Identified(raw.user.id) { User(raw.user) }
+    override val user: Identified<IUser> =
+        Identified(raw.user.id) { User(raw.user) }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 

@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -10,12 +11,11 @@ import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
-import ru.tesserakt.diskordin.util.Identified
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
 class PartialGuild(raw: UserGuildResponse) : IGuild {
-    private val delegate by lazy { runBlocking { client.findGuild(id)!! } }
+    private val delegate by lazy { runBlocking { client.getGuild(id) } }
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }

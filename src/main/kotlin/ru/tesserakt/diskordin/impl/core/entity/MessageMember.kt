@@ -5,21 +5,21 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.MessageMemberResponse
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import ru.tesserakt.diskordin.core.entity.client
-import ru.tesserakt.diskordin.util.Identified
-import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
 
 class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) : IMember {
     private val delegate by lazy { runBlocking { guild().members.first { it.nickname == raw.nick } } }
-    override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
+    override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
     override val nickname: String? = raw.nick
     override val roles: Flow<IRole> = raw.roles.map { it.asSnowflake() }.asFlow().map { guild().getRole(it) }
     override val joinTime: Instant = raw.joined_at

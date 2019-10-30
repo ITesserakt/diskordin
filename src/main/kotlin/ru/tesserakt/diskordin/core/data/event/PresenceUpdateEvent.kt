@@ -1,13 +1,13 @@
 package ru.tesserakt.diskordin.core.data.event
 
 import kotlinx.coroutines.flow.flow
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.gateway.json.events.PresenceUpdate
-import ru.tesserakt.diskordin.util.combine
 import kotlin.time.ExperimentalTime
 
 class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
-    val guild = raw.guildId combine { client.findGuild(it)!! }
+    val guild = raw.guildId combine { client.getGuild(it) }
     val roles = flow {
         raw.roles.map { guild().getRole(it) }.forEach { emit(it) }
     }

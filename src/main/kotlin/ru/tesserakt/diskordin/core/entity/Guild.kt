@@ -3,13 +3,13 @@
 package ru.tesserakt.diskordin.core.entity
 
 import kotlinx.coroutines.flow.Flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
-import ru.tesserakt.diskordin.util.Identified
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 

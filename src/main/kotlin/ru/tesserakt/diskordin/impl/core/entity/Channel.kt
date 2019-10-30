@@ -2,7 +2,9 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.NonEmptyList
 import kotlinx.coroutines.flow.*
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import ru.tesserakt.diskordin.core.data.json.response.ImageResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -11,9 +13,7 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
-import ru.tesserakt.diskordin.util.Identified
 import ru.tesserakt.diskordin.util.Loggers
-import ru.tesserakt.diskordin.util.combine
 import ru.tesserakt.diskordin.util.enums.not
 
 sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
@@ -54,7 +54,7 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
     final override val parentCategory: Snowflake? = raw.parent_id
 
     final override val guild: Identified<IGuild> =
-        raw.guild_id!!.combine { client.findGuild(it)!! }
+        raw.guild_id!!.combine { client.getGuild(it) }
 
     final override val name: String = raw.name!!
 
@@ -179,7 +179,7 @@ class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPri
         requireNotNull(raw.recipients)
     }
 
-    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.findUser(it)!! }
+    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.getUser(it) }
 
     override val messages: Flow<IMessage> = flow {
         channelService.getMessages(id, MessagesQuery().apply {
@@ -192,7 +192,7 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : Channel(
     override val recipient: NonEmptyList<IUser> =
         NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
-    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.findUser(it)!! }
+    override val owner: Identified<IUser> = raw.owner_id!!.combine { client.getUser(it) }
 
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 

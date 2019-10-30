@@ -1,13 +1,13 @@
 package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.json.response.InviteResponse
 import ru.tesserakt.diskordin.core.entity.IChannel
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.impl.core.entity.Guild
-import ru.tesserakt.diskordin.util.Identified
 
 open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val code: String = raw.code

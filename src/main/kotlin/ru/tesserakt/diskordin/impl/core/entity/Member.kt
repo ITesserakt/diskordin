@@ -4,20 +4,20 @@ package ru.tesserakt.diskordin.impl.core.entity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
-import ru.tesserakt.diskordin.util.Identified
-import ru.tesserakt.diskordin.util.combine
 import java.time.Instant
 
 class Member constructor(
     raw: GuildMemberResponse,
     guildId: Snowflake
 ) : User(raw.user), IMember {
-    override val guild: Identified<IGuild> = guildId combine { client.findGuild(it)!! }
+    override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
 
     override suspend fun asMember(guildId: Snowflake): IMember = this
 

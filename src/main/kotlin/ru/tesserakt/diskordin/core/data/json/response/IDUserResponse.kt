@@ -21,7 +21,7 @@ class IDUserResponse(
 ) : DiscordResponse<IUser>() {
     override fun unwrap(vararg params: Any) = object : IUser {
         private val raw = this@IDUserResponse
-        private val delegate by lazy { runBlocking { client.findUser(raw.id)!! } }
+        private val delegate by lazy { runBlocking { client.getUser(raw.id) } }
         override val username: String by lazy { raw.username ?: delegate.username }
         override val discriminator: Short by lazy { raw.discriminator?.toShort() ?: delegate.discriminator }
         override val isBot: Boolean by lazy { raw.bot ?: delegate.isBot }

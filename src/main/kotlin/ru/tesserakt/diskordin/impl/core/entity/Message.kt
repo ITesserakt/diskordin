@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
 import ru.tesserakt.diskordin.core.entity.*
@@ -10,7 +11,6 @@ import ru.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import ru.tesserakt.diskordin.core.entity.query.query
-import ru.tesserakt.diskordin.util.Identified
 
 class Message(raw: MessageResponse) : IMessage {
     override suspend fun addReaction(emoji: IEmoji) = channelService.addReaction(channel.id, id, emoji.name)
@@ -30,13 +30,15 @@ class Message(raw: MessageResponse) : IMessage {
 
     override suspend fun delete(reason: String?) = channelService.deleteMessage(channel.id, id, reason)
 
-    override val channel: Identified<IMessageChannel> = Identified(raw.channel_id) {
-        client.findChannel(it) as IMessageChannel
-    }
+    override val channel: Identified<IMessageChannel> =
+        Identified(raw.channel_id) {
+            client.findChannel(it) as IMessageChannel
+        }
 
-    override val author: Identified<IUser> = Identified(raw.author.id) {
-        User(raw.author)
-    }
+    override val author: Identified<IUser> =
+        Identified(raw.author.id) {
+            User(raw.author)
+        }
 
     override val content: String = raw.content
 

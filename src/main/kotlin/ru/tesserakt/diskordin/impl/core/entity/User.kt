@@ -23,7 +23,7 @@ open class User(raw: UserResponse<IUser>) : IUser {
     final override val id: Snowflake = raw.id
 
     override suspend fun asMember(guildId: Snowflake): IMember =
-        client.findGuild(guildId)!!.members.first { it.id == id }
+        client.getGuild(guildId).members.first { it.id == id }
 
     override val mention: String = "<@$id>"
 }

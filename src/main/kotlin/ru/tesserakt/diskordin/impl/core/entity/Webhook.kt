@@ -1,10 +1,10 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.WebhookResponse
 import ru.tesserakt.diskordin.core.entity.*
-import ru.tesserakt.diskordin.util.Identified
 
 class Webhook(raw: WebhookResponse) : IWebhook {
     override suspend fun delete(reason: String?) =
@@ -22,9 +22,10 @@ class Webhook(raw: WebhookResponse) : IWebhook {
         }
     }
 
-    override val channel: Identified<IChannel> = Identified(raw.channel_id) {
-        client.findChannel(it) ?: throw NoSuchElementException()
-    }
+    override val channel: Identified<IChannel> =
+        Identified(raw.channel_id) {
+            client.findChannel(it) ?: throw NoSuchElementException()
+        }
 
     override val user: Identified<IUser>? = raw.user?.let { user ->
         Identified(user.id) {
