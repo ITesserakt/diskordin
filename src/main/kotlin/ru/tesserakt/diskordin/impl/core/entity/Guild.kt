@@ -66,8 +66,9 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val premiumSubscriptions: Int? = raw.premiumSubscribersCount
 
-    override val features: EnumSet<IGuild.Feature> =
-        EnumSet.copyOf(raw.features.map { IGuild.Feature.valueOf(it) })
+    override val features: EnumSet<IGuild.Feature> = if (raw.features.isEmpty())
+        EnumSet.noneOf(IGuild.Feature::class.java)
+    else EnumSet.copyOf(raw.features.map { IGuild.Feature.valueOf(it) })
 
     override val id: Snowflake = raw.id
 

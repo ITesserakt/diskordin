@@ -8,13 +8,32 @@ import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
+import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
 class PartialGuild(raw: UserGuildResponse) : IGuild {
+    override val region: IRegion by lazy { delegate.region }
+    override val isEmbedEnabled: Boolean by lazy { delegate.isEmbedEnabled }
+    override val defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel
+            by lazy { delegate.defaultMessageNotificationLevel }
+    override val explicitContentFilter: IGuild.ExplicitContentFilter by lazy { delegate.explicitContentFilter }
+    override val mfaLevel: IGuild.MFALevel by lazy { delegate.mfaLevel }
+    override val isWidgetEnabled: Boolean by lazy { delegate.isWidgetEnabled }
+    override val widgetChannel: Identified<IGuildChannel>? by lazy { delegate.widgetChannel }
+    override val systemChannel: Identified<IGuildChannel>? by lazy { delegate.systemChannel }
+    override val maxMembers: Long? by lazy { delegate.maxMembers }
+    override val maxPresences: Long by lazy { delegate.maxPresences }
+    override val description: String? by lazy { delegate.description }
+    override val bannerHash: String? by lazy { delegate.bannerHash }
+    override val premiumTier: IGuild.PremiumTier by lazy { delegate.premiumTier }
+    override val premiumSubscriptions: Int? by lazy { delegate.premiumSubscriptions }
+    override val features: EnumSet<IGuild.Feature> by lazy { delegate.features }
+
     private val delegate by lazy { runBlocking { client.getGuild(id) } }
 
     override val iconHash: String? = raw.icon

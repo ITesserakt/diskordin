@@ -10,14 +10,19 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.MessageMemberResponse
-import ru.tesserakt.diskordin.core.entity.IGuild
-import ru.tesserakt.diskordin.core.entity.IMember
-import ru.tesserakt.diskordin.core.entity.IRole
+import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
-import ru.tesserakt.diskordin.core.entity.client
+import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import java.time.Instant
 
 class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) : IMember {
+    override val avatar: String? by lazy { delegate.avatar }
+    override val mfaEnabled: Boolean by lazy { delegate.mfaEnabled }
+    override val locale: String? by lazy { delegate.locale }
+    override val verified: Boolean by lazy { delegate.verified }
+    override val email: String? by lazy { delegate.email }
+    override val flags: ValuedEnum<IUser.Flags, Short> by lazy { delegate.flags }
+    override val premiumType: IUser.Type? by lazy { delegate.premiumType }
     private val delegate by lazy { runBlocking { guild().members.first { it.nickname == raw.nick } } }
     override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
     override val nickname: String? = raw.nick
