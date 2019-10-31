@@ -11,6 +11,6 @@ data class VoiceRegionResponse(
     val optimal: Boolean,
     val deprecated: Boolean,
     val custom: Boolean
-) : DiscordResponse<IRegion>() {
-    override fun unwrap(vararg params: Any): IRegion = Region(this)
+) : DiscordResponse<IRegion, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IRegion = Region(this)
 }

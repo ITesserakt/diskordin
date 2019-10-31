@@ -37,9 +37,8 @@ data class GuildResponse(
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null,
     val premiumSubscribersCount: Int?
-) : DiscordResponse<IGuild>() {
-
-    override fun unwrap(vararg params: Any): IGuild = Guild(this)
+) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = Guild(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

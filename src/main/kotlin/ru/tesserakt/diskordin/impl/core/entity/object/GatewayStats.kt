@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 import ru.tesserakt.diskordin.core.data.json.response.GatewayBotResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.`object`.IGatewayStats
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime

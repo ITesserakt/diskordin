@@ -18,9 +18,9 @@ data class ActivityResponse(
     val secrets: SecretsResponse? = null,
     val instance: Boolean? = false,
     val flags: Long? = null
-) : DiscordResponse<IActivity>() {
+) : DiscordResponse<IActivity, UnwrapContext.EmptyContext>() {
     @ExperimentalTime
-    override fun unwrap(vararg params: Any): IActivity = Activity(this)
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity = Activity(this)
 
     data class TimestampsResponse(
         val start: Long? = null,
@@ -30,9 +30,9 @@ data class ActivityResponse(
     data class PartyResponse(
         val id: String = "",
         val size: Array<Int> = emptyArray()
-    ) : DiscordResponse<IActivity.IParty>() {
+    ) : DiscordResponse<IActivity.IParty, UnwrapContext.EmptyContext>() {
         @ExperimentalTime
-        override fun unwrap(vararg params: Any): IActivity.IParty = Activity.Party(this)
+        override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity.IParty = Activity.Party(this)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -56,17 +56,17 @@ data class ActivityResponse(
         val largeText: String? = null,
         val smallImage: String? = null,
         val smallText: String? = null
-    ) : DiscordResponse<IActivity.IAssets>() {
+    ) : DiscordResponse<IActivity.IAssets, UnwrapContext.EmptyContext>() {
         @ExperimentalTime
-        override fun unwrap(vararg params: Any): IActivity.IAssets = Activity.Assets(this)
+        override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity.IAssets = Activity.Assets(this)
     }
 
     data class SecretsResponse(
         val join: String? = null,
         val spectate: String? = null,
         val match: String? = null
-    ) : DiscordResponse<IActivity.ISecrets>() {
+    ) : DiscordResponse<IActivity.ISecrets, UnwrapContext.EmptyContext>() {
         @ExperimentalTime
-        override fun unwrap(vararg params: Any): IActivity.ISecrets = Activity.Secrets(this)
+        override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity.ISecrets = Activity.Secrets(this)
     }
 }

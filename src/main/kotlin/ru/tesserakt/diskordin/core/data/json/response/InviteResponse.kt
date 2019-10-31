@@ -12,6 +12,6 @@ data class InviteResponse<out I : IInvite>(
     val target_user_type: Int? = null,
     val approximate_presence_count: Int? = null,
     val approximate_member_count: Int? = null
-) : DiscordResponse<I>() {
-    override fun unwrap(vararg params: Any): I = IInvite.typed(this)
+) : DiscordResponse<I, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): I = IInvite.typed(this)
 }

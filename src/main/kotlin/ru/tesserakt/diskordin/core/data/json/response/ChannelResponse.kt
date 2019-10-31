@@ -24,8 +24,8 @@ data class ChannelResponse<out C : IChannel>(
     val application_id: Snowflake? = null,
     val parent_id: Snowflake? = null,
     val last_pin_timestamp: String? = null
-) : DiscordResponse<C>() {
-    override fun unwrap(vararg params: Any): C = IChannel.typed(this)
+) : DiscordResponse<C, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): C = IChannel.typed(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

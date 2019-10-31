@@ -14,6 +14,6 @@ data class RoleResponse(
     val permissions: Long,
     val managed: Boolean,
     val mentionable: Boolean
-) : DiscordResponse<IRole>() {
-    override fun unwrap(vararg params: Any): IRole = Role(this, params[0] as Snowflake)
+) : DiscordResponse<IRole, UnwrapContext.GuildContext>() {
+    override fun unwrap(ctx: UnwrapContext.GuildContext): IRole = Role(this, ctx.guildId)
 }

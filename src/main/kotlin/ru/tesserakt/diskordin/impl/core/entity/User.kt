@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder

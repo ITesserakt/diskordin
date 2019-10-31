@@ -17,8 +17,8 @@ data class UserResponse<out U : IUser>(
     val email: String? = null,
     val flags: Short? = null,
     val premium_type: Int? = null
-) : DiscordResponse<U>() {
+) : DiscordResponse<U, UnwrapContext.EmptyContext>() {
     @Suppress("UNCHECKED_CAST")
-    override fun unwrap(vararg params: Any): U = Self(this as UserResponse<ISelf>) as? U
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): U = Self(this as UserResponse<ISelf>) as? U
         ?: throw IllegalArgumentException("Illegal type parameter. Allowed {User, Self}.")
 }

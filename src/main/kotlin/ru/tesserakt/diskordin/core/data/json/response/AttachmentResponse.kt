@@ -13,6 +13,6 @@ data class AttachmentResponse(
     val proxy_url: String,
     val height: Int?,
     val width: Int?
-) : DiscordResponse<IAttachment>() {
-    override fun unwrap(vararg params: Any): IAttachment = Attachment(this)
+) : DiscordResponse<IAttachment, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IAttachment = Attachment(this)
 }

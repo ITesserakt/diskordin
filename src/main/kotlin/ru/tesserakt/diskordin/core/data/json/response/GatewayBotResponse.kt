@@ -8,14 +8,14 @@ data class GatewayBotResponse(
     val url: String,
     val shards: Int,
     @SerializedName("session_start_limit") val sessionMeta: SessionStartLimit
-) : DiscordResponse<IGatewayStats>() {
-    override fun unwrap(vararg params: Any): IGatewayStats = GatewayStats(this)
+) : DiscordResponse<IGatewayStats, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IGatewayStats = GatewayStats(this)
 
     data class SessionStartLimit(
         val total: Int,
         val remaining: Int,
         val resetAfter: Int
-    ) : DiscordResponse<IGatewayStats.ISession>() {
-        override fun unwrap(vararg params: Any): IGatewayStats.ISession = GatewayStats.Session(this)
+    ) : DiscordResponse<IGatewayStats.ISession, UnwrapContext.EmptyContext>() {
+        override fun unwrap(ctx: UnwrapContext.EmptyContext): IGatewayStats.ISession = GatewayStats.Session(this)
     }
 }

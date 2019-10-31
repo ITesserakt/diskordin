@@ -8,6 +8,6 @@ import ru.tesserakt.diskordin.impl.core.entity.`object`.Ban
 data class BanResponse(
     val reason: String?,
     val user: UserResponse<IUser>
-) : DiscordResponse<IBan>() {
-    override fun unwrap(vararg params: Any): IBan = Ban(this)
+) : DiscordResponse<IBan, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IBan = Ban(this)
 }

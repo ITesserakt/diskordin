@@ -10,6 +10,6 @@ data class OverwriteResponse(
     val type: String,
     val allow: Long,
     val deny: Long
-) : DiscordResponse<IPermissionOverwrite>() {
-    override fun unwrap(vararg params: Any): IPermissionOverwrite = PermissionOverwrite(this)
+) : DiscordResponse<IPermissionOverwrite, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IPermissionOverwrite = PermissionOverwrite(this)
 }

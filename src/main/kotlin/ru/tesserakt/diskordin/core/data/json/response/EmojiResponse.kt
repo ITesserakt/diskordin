@@ -13,8 +13,8 @@ data class EmojiResponse<out E : IEmoji>(
     val require_colons: Boolean? = null,
     val managed: Boolean? = null,
     val animated: Boolean? = null
-) : DiscordResponse<E>() {
-    override fun unwrap(vararg params: Any): E = IEmoji.typed(this, params.firstOrNull() as Snowflake?)
+) : DiscordResponse<E, UnwrapContext.PartialGuildContext>() {
+    override fun unwrap(ctx: UnwrapContext.PartialGuildContext): E = IEmoji.typed(this, ctx.guildId)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

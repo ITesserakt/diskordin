@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
-import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.impl.core.entity.MessageMember
 import java.time.Instant
@@ -12,8 +11,8 @@ data class MessageMemberResponse(
     val mute: Boolean,
     val deaf: Boolean,
     val joined_at: Instant
-) : DiscordResponse<IMember>() {
-    override fun unwrap(vararg params: Any): IMember = MessageMember(this, params[0] as Snowflake)
+) : DiscordResponse<IMember, UnwrapContext.GuildContext>() {
+    override fun unwrap(ctx: UnwrapContext.GuildContext): IMember = MessageMember(this, ctx.guildId)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

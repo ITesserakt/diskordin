@@ -26,8 +26,8 @@ data class MessageResponse(
     val pinned: Boolean,
     val webhook_id: Snowflake? = null,
     val type: Int
-) : DiscordResponse<IMessage>() {
-    override fun unwrap(vararg params: Any): IMessage = Message(this)
+) : DiscordResponse<IMessage, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IMessage = Message(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

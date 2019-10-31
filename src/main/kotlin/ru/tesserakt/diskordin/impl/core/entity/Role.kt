@@ -5,6 +5,7 @@ import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder

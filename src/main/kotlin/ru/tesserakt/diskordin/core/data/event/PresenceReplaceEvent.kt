@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.core.data.event
 
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.combine
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.gateway.json.events.PresenceUpdate
 import kotlin.time.ExperimentalTime

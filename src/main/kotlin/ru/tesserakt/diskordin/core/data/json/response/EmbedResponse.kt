@@ -25,8 +25,8 @@ data class EmbedResponse(
     val provider: ProviderResponse? = null,
     val author: EmbedUserResponse? = null,
     val fields: Array<FieldResponse>? = null
-) : DiscordResponse<IEmbed>() {
-    override fun unwrap(vararg params: Any): IEmbed = Embed(this)
+) : DiscordResponse<IEmbed, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IEmbed = Embed(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -77,8 +77,8 @@ data class FieldResponse(
     val name: String,
     val value: String,
     val inline: Boolean? = null
-) : DiscordResponse<IEmbed.IField>() {
-    override fun unwrap(vararg params: Any): IEmbed.IField = Embed.Field(this)
+) : DiscordResponse<IEmbed.IField, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IEmbed.IField = Embed.Field(this)
 }
 
 
@@ -87,16 +87,16 @@ data class EmbedUserResponse(
     val url: String? = null,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse<IEmbed.IAuthor>() {
-    override fun unwrap(vararg params: Any): IEmbed.IAuthor = Embed.Author(this)
+) : DiscordResponse<IEmbed.IAuthor, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IEmbed.IAuthor = Embed.Author(this)
 }
 
 
 data class ProviderResponse(
     val name: String? = null,
     val url: String? = null
-) : DiscordResponse<IEmbed.IProvider>() {
-    override fun unwrap(vararg params: Any): IEmbed.IProvider = Embed.Provider(this)
+) : DiscordResponse<IEmbed.IProvider, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IEmbed.IProvider = Embed.Provider(this)
 }
 
 
@@ -104,8 +104,8 @@ data class VideoResponse(
     val url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse<IVideo>() {
-    override fun unwrap(vararg params: Any): IVideo = Video(this)
+) : DiscordResponse<IVideo, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IVideo = Video(this)
 }
 
 
@@ -114,8 +114,8 @@ data class ThumbnailResponse(
     val proxy_url: String? = null,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse<IImage>() {
-    override fun unwrap(vararg params: Any): IImage = Thumbnail(this)
+) : DiscordResponse<IImage, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IImage = Thumbnail(this)
 }
 
 
@@ -124,8 +124,8 @@ data class ImageResponse(
     val proxy_url: String?,
     val height: Int? = null,
     val width: Int? = null
-) : DiscordResponse<IImage>() {
-    override fun unwrap(vararg params: Any): IImage = Image(this)
+) : DiscordResponse<IImage, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IImage = Image(this)
 }
 
 
@@ -133,6 +133,6 @@ data class FooterResponse(
     val text: String,
     val icon_url: String? = null,
     val proxy_icon_url: String? = null
-) : DiscordResponse<IEmbed.IFooter>() {
-    override fun unwrap(vararg params: Any): IEmbed.IFooter = Embed.Footer(this)
+) : DiscordResponse<IEmbed.IFooter, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IEmbed.IFooter = Embed.Footer(this)
 }

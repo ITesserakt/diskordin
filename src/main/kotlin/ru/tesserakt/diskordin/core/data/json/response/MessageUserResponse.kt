@@ -12,6 +12,6 @@ data class MessageUserResponse(
     val avatar: String?,
     val bot: Boolean? = null,
     val member: MessageMemberResponse? = null
-) : DiscordResponse<IUser>() {
-    override fun unwrap(vararg params: Any): IUser = MessageUser(this)
+) : DiscordResponse<IUser, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IUser = MessageUser(this)
 }

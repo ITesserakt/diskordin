@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.some
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
@@ -9,6 +10,8 @@ import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
+import ru.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -18,6 +21,7 @@ import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.query
+import ru.tesserakt.diskordin.impl.core.entity.`object`.Region
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -25,14 +29,16 @@ import kotlin.time.seconds
 
 @Suppress("UNCHECKED_CAST")
 class Guild(raw: GuildResponse) : IGuild {
-    override val region: IRegion = object : IRegion {
-        override val isOptimal: Boolean = false
-        override val isVIP: Boolean = false
-        override val isDeprecated: Boolean = false
-        override val name: String = raw.region
-        override val id: String = raw.region
-        override val isCustom: Boolean = false
-    }
+    override val region: IRegion = Region(
+        VoiceRegionResponse(
+            raw.region,
+            raw.region,
+            vip = false,
+            optimal = false,
+            deprecated = false,
+            custom = false
+        )
+    )
 
     override val isEmbedEnabled: Boolean = raw.embed_enabled ?: false
 
@@ -75,10 +81,11 @@ class Guild(raw: GuildResponse) : IGuild {
     override suspend fun getRole(id: Snowflake): IRole =
         roles.first { it.id == id }
 
-    override suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji = emojiService.getGuildEmoji(id, emojiId).unwrap()
+    override suspend fun getEmoji(emojiId: Snowflake) =
+        emojiService.getGuildEmoji(id, emojiId).unwrap(id.some())
 
     override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji =
-        emojiService.createGuildEmoji(id, builder.build()).unwrap()
+        emojiService.createGuildEmoji(id, builder.build()).unwrap(id.some())
 
     override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) =
         guildService.editCurrentNickname(id, builder.build())
@@ -97,18 +104,18 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
 
     override suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember =
-        guildService.newMember(id, userId, builder.build()).unwrap()
+        guildService.newMember(id, userId, builder.build()).unwrap(id)
 
     override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
 
     override suspend fun kick(memberId: Snowflake, reason: String?) = guildService.removeMember(id, memberId, reason)
 
     override suspend fun addRole(builder: RoleCreateBuilder.() -> Unit): IRole =
-        guildService.createRole(id, builder.build(), null).unwrap()
+        guildService.createRole(id, builder.build(), null).unwrap(id)
 
     override suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): List<IRole> =
         guildService.editRolePositions(id, builder.map { it.build() }.toTypedArray())
-            .map { it.unwrap() }
+            .map { it.unwrap(id) }
 
     override suspend fun findBan(userId: Snowflake): IBan? = guildService.getBan(id, userId).unwrap()
 
@@ -135,7 +142,7 @@ class Guild(raw: GuildResponse) : IGuild {
     }
 
     override val emojis: Flow<ICustomEmoji> = flow {
-        emojiService.getGuildEmojis(id).map { it.unwrap() }.forEach { emit(it) }
+        emojiService.getGuildEmojis(id).map { it.unwrap(id.some()) }.forEach { emit(it) }
     }
 
     override val bans: Flow<IBan> = flow {

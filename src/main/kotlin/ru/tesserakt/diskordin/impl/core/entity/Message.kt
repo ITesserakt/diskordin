@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build

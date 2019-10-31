@@ -14,6 +14,6 @@ data class WebhookResponse(
     val name: String?,
     val avatar: String?,
     val token: String
-) : DiscordResponse<IWebhook>() {
-    override fun unwrap(vararg params: Any): IWebhook = Webhook(this)
+) : DiscordResponse<IWebhook, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IWebhook = Webhook(this)
 }

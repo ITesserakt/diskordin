@@ -16,6 +16,6 @@ data class VoiceStateResponse(
     val selfMute: Boolean,
     val selfStream: Boolean? = null,
     val suppress: Boolean
-) : DiscordResponse<IVoiceState>() {
-    override fun unwrap(vararg params: Any): IVoiceState = VoiceState(this)
+) : DiscordResponse<IVoiceState, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IVoiceState = VoiceState(this)
 }

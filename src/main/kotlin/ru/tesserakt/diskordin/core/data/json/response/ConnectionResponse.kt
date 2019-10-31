@@ -16,8 +16,8 @@ data class ConnectionResponse(
     val friend_sync: Boolean,
     val show_activity: Boolean,
     val visibility: Int
-) : DiscordResponse<IConnection>() {
-    override fun unwrap(vararg params: Any): IConnection = Connection(this)
+) : DiscordResponse<IConnection, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IConnection = Connection(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

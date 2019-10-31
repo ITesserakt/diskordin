@@ -12,6 +12,7 @@ import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
@@ -90,7 +91,7 @@ data class DiscordClient(
     }
 
     override suspend fun findUser(id: Snowflake) = runCatching {
-        userService.getUser(id).unwrap("User")
+        userService.getUser(id).unwrap()
     }.getOrNull()
 
     override suspend fun findGuild(id: Snowflake) = runCatching {

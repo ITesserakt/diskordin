@@ -1,12 +1,14 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.some
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
@@ -20,7 +22,7 @@ class CustomEmoji constructor(
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit): ICustomEmoji =
-        emojiService.editGuildEmoji(guild.id, id, builder.build()).unwrap()
+        emojiService.editGuildEmoji(guild.id, id, builder.build()).unwrap(guild.id.some())
 
     override val guild: Identified<IGuild> =
         Identified(guildId) {

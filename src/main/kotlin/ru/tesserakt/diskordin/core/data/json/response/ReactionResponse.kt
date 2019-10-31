@@ -8,6 +8,6 @@ data class ReactionResponse(
     val count: Int,
     val me: Boolean,
     val emoji: EmojiResponse<*>
-) : DiscordResponse<IReaction>() {
-    override fun unwrap(vararg params: Any): IReaction = Reaction(this)
+) : DiscordResponse<IReaction, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IReaction = Reaction(this)
 }

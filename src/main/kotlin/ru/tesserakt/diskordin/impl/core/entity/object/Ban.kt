@@ -3,6 +3,7 @@ package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.json.response.BanResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 

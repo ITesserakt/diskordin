@@ -17,6 +17,6 @@ data class GuildIntegrationResponse(
     val user: UserResponse<IUser>,
     val account: AccountResponse,
     val synced_at: String
-) : DiscordResponse<IIntegration>() {
-    override fun unwrap(vararg params: Any): IIntegration = Integration(this, params[0] as Snowflake)
+) : DiscordResponse<IIntegration, UnwrapContext.GuildContext>() {
+    override fun unwrap(ctx: UnwrapContext.GuildContext): IIntegration = Integration(this, ctx.guildId)
 }

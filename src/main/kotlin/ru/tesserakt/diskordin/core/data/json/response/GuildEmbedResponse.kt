@@ -8,6 +8,6 @@ import ru.tesserakt.diskordin.impl.core.entity.`object`.GuildEmbed
 data class GuildEmbedResponse(
     val enabled: Boolean,
     val channel_id: Snowflake?
-) : DiscordResponse<IGuildEmbed>() {
-    override fun unwrap(vararg params: Any): IGuildEmbed = GuildEmbed(this)
+) : DiscordResponse<IGuildEmbed, UnwrapContext.EmptyContext>() {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuildEmbed = GuildEmbed(this)
 }

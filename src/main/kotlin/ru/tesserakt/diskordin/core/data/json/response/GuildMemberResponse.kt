@@ -1,6 +1,5 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
-import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.impl.core.entity.Member
@@ -13,8 +12,8 @@ data class GuildMemberResponse(
     val joinedAt: Instant,
     val deaf: Boolean,
     val mute: Boolean
-) : DiscordResponse<IMember>() {
-    override fun unwrap(vararg params: Any): IMember = Member(this, params[0] as Snowflake)
+) : DiscordResponse<IMember, UnwrapContext.GuildContext>() {
+    override fun unwrap(ctx: UnwrapContext.GuildContext): IMember = Member(this, ctx.guildId)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ActivityResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.`object`.IActivity
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
