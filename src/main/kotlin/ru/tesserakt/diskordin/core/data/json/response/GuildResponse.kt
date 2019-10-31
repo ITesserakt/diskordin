@@ -29,14 +29,16 @@ data class GuildResponse(
     val widget_enabled: Boolean? = null,
     val system_channel_id: Snowflake?,
     val max_presences: Long?,
-    val max_members: Long,
+    val max_members: Long?,
     val vanity_url_code: String?,
     val description: String?,
     val banner: String?,
     val widget_channel_id: Snowflake?,
     val system_channel_flags: Long? = null,
-    val premium_tier: Int? = null
+    val premium_tier: Int? = null,
+    val premiumSubscribersCount: Int?
 ) : DiscordResponse<IGuild>() {
+
     override fun unwrap(vararg params: Any): IGuild = Guild(this)
 
     override fun equals(other: Any?): Boolean {

@@ -12,8 +12,24 @@ import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
+import ru.tesserakt.diskordin.util.enums.ValuedEnum
+import ru.tesserakt.diskordin.util.typeclass.integral
 
 open class User(raw: UserResponse<IUser>) : IUser {
+    final override val avatar: String? = raw.avatar
+
+    final override val mfaEnabled: Boolean = raw.mfa_enabled ?: false
+
+    final override val locale: String? = raw.locale
+
+    final override val verified: Boolean = raw.verified ?: false
+
+    final override val email: String? = raw.email
+
+    final override val flags: ValuedEnum<IUser.Flags, Short> = ValuedEnum(raw.flags ?: 0, Short.integral())
+
+    final override val premiumType: IUser.Type? = IUser.Type.values().find { it.ordinal == raw.premium_type }
+
     final override val username: String = raw.username
 
     final override val discriminator: Short = raw.discriminator.toShort()

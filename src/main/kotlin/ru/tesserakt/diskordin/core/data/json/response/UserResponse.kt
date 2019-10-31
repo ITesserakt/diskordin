@@ -15,7 +15,7 @@ data class UserResponse<out U : IUser>(
     val locale: String? = null,
     val verified: Boolean? = null,
     val email: String? = null,
-    val flags: Int? = null,
+    val flags: Short? = null,
     val premium_type: Int? = null
 ) : DiscordResponse<U>() {
     @Suppress("UNCHECKED_CAST")

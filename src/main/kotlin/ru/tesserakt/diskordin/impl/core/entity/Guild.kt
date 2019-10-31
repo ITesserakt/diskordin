@@ -12,17 +12,63 @@ import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
+import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.query
+import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
 @Suppress("UNCHECKED_CAST")
 class Guild(raw: GuildResponse) : IGuild {
+    override val region: IRegion = object : IRegion {
+        override val isOptimal: Boolean = false
+        override val isVIP: Boolean = false
+        override val isDeprecated: Boolean = false
+        override val name: String = raw.region
+        override val id: String = raw.region
+        override val isCustom: Boolean = false
+    }
+
+    override val isEmbedEnabled: Boolean = raw.embed_enabled ?: false
+
+    override val defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel =
+        IGuild.DefaultMessageNotificationLevel.values().first { raw.default_message_notifications == it.ordinal }
+
+    override val explicitContentFilter: IGuild.ExplicitContentFilter =
+        IGuild.ExplicitContentFilter.values().first { raw.explicit_content_filter == it.ordinal }
+
+    override val mfaLevel: IGuild.MFALevel =
+        IGuild.MFALevel.values().first { it.ordinal == raw.mfa_level }
+
+    override val isWidgetEnabled: Boolean = raw.widget_enabled ?: false
+
+    override val widgetChannel: Identified<IGuildChannel>? =
+        raw.widget_channel_id?.combine { getChannel<IGuildChannel>(it) }
+
+    override val systemChannel: Identified<IGuildChannel>? =
+        raw.system_channel_id?.combine { getChannel<IGuildChannel>(it) }
+
+    override val maxMembers: Long? = raw.max_members
+
+    override val maxPresences: Long = raw.max_presences ?: 5000
+
+    override val description: String? = raw.description
+
+    override val bannerHash: String? = raw.banner
+
+    override val premiumTier: IGuild.PremiumTier =
+        IGuild.PremiumTier.values().first { it.ordinal == raw.premium_tier ?: 0 }
+
+    override val premiumSubscriptions: Int? = raw.premiumSubscribersCount
+
+    override val features: EnumSet<IGuild.Feature> =
+        EnumSet.copyOf(raw.features.map { IGuild.Feature.valueOf(it) })
+
     override val id: Snowflake = raw.id
 
     override suspend fun getRole(id: Snowflake): IRole =
