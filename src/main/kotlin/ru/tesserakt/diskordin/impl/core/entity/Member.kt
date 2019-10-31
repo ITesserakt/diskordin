@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.combine
-import ru.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
+import ru.tesserakt.diskordin.core.data.json.response.MemberResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import java.time.Instant
 
 class Member constructor(
-    raw: GuildMemberResponse,
+    raw: MemberResponse<*>,
     guildId: Snowflake
 ) : User(raw.user), IMember {
     override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
@@ -37,6 +37,10 @@ class Member constructor(
         guildService.editMember(guild.id, id, builder.build(), null).run {
             guild().members.first { it.id == id }
         }
+
+    override fun toString(): String {
+        return "Member(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime, mention='$mention') ${super.toString()}"
+    }
 
     override val nickname: String? = raw.nick
 

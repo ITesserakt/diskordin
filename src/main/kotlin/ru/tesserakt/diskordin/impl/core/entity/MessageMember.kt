@@ -53,4 +53,8 @@ class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) 
     override val mention: String by lazy { delegate.mention }
 
     override suspend fun edit(builder: MemberEditBuilder.() -> Unit): IMember = delegate.edit(builder)
+
+    override fun toString(): String {
+        return "MessageMember(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime)"
+    }
 }

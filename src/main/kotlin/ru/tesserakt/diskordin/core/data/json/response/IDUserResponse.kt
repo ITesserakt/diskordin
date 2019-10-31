@@ -43,6 +43,6 @@ class IDUserResponse(
         override suspend fun asMember(guildId: Snowflake): IMember = delegate.asMember(guildId)
 
         override val id: Snowflake = raw.id
-        override val mention: String = "<@$id>"
+        override val mention: String = "<@${id.asString()}>"
     }
 }

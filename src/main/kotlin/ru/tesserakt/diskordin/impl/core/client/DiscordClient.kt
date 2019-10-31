@@ -84,9 +84,10 @@ data class DiscordClient(
 
     @ExperimentalCoroutinesApi
     override fun logout() {
-        logger.info("Shutting down gateway")
-        if (this::gateway.isInitialized)
+        if (this::gateway.isInitialized) {
+            logger.info("Shutting down gateway")
             gateway.stop()
+        }
         exitProcess(0)
     }
 
@@ -115,9 +116,9 @@ data class DiscordClient(
         .fix().suspended()
         .body()!!.map { it.unwrap() }
 
-    override suspend fun getChannel(id: Snowflake): IChannel = getChannel(id)
+    override suspend fun getChannel(id: Snowflake): IChannel = findChannel(id)!!
 
     override suspend fun getGuild(id: Snowflake): IGuild = findGuild(id)!!
 
-    override suspend fun getUser(id: Snowflake): IUser = getUser(id)
+    override suspend fun getUser(id: Snowflake): IUser = findUser(id)!!
 }

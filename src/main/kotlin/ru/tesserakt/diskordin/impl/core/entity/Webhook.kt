@@ -10,6 +10,10 @@ class Webhook(raw: WebhookResponse) : IWebhook {
     override suspend fun delete(reason: String?) =
         webhookService.deleteWebhook(id)
 
+    override fun toString(): String {
+        return "Webhook(name=$name, avatar=$avatar, token='$token', guild=$guild, channel=$channel, user=$user, id=$id)"
+    }
+
     override val name: String? = raw.name
 
     override val avatar: String? = raw.avatar

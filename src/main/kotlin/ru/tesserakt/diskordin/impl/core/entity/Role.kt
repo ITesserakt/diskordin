@@ -18,10 +18,10 @@ import java.awt.Color
 
 class Role constructor(
     raw: RoleResponse,
-    private val guildId: Snowflake
+    guildId: Snowflake
 ) : IRole {
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole =
-        guildService.editRole(guildId, id, builder.build(), null).unwrap(guildId)
+        guildService.editRole(guild.id, id, builder.build(), null).unwrap(guild.id)
 
     @ExperimentalUnsignedTypes
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
@@ -46,5 +46,9 @@ class Role constructor(
     override val name: String = raw.name
 
     override suspend fun delete(reason: String?) =
-        guildService.deleteRole(guildId, id, reason)
+        guildService.deleteRole(guild.id, id, reason)
+
+    override fun toString(): String {
+        return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
+    }
 }

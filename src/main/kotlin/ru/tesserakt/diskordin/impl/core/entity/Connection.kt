@@ -25,4 +25,8 @@ class Connection(raw: ConnectionResponse) : IConnection {
     override val id: Snowflake = raw.id.asSnowflake()
 
     override val name: String = raw.name
+
+    override fun toString(): String {
+        return "Connection(type='$type', isRevoked=$isRevoked, integrations=${integrations.contentToString()}, isVerified=$isVerified, isFriendSyncing=$isFriendSyncing, isShowingActivity=$isShowingActivity, visibility=$visibility, id=$id, name='$name')"
+    }
 }

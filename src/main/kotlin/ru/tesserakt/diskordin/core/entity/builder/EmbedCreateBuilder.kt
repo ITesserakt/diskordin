@@ -26,7 +26,7 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
     var image: (ImageBuilder.() -> Unit)? = null
     var thumbnail: (ThumbnailBuilder.() -> Unit)? = null
     var author: (AuthorBuilder.() -> Unit)? = null
-    var fields: Array<(FieldBuilder.() -> Unit)>? = null
+    var fields: Array<FieldBuilder.() -> Unit>? = null
         set(value) {
             if (value != null)
                 require(value.size < 25)

@@ -11,4 +11,8 @@ class Attachment(raw: AttachmentResponse) : IAttachment {
     override val id: Snowflake = raw.id
 
     override val fileName: String = raw.filename
+
+    override fun toString(): String {
+        return "Attachment(url='$url', id=$id, fileName='$fileName')"
+    }
 }

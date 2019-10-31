@@ -28,6 +28,10 @@ class Integration(
             guild().integrations.first { it.id == id }
         }
 
+    override fun toString(): String {
+        return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"
+    }
+
     override val type: String = raw.type
 
     override val enabled: Boolean = raw.enabled

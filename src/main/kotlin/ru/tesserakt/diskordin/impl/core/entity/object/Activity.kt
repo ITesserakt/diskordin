@@ -7,7 +7,6 @@ import ru.tesserakt.diskordin.core.entity.`object`.IActivity
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
 import java.time.Instant
-import kotlin.contracts.ExperimentalContracts
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -36,7 +35,6 @@ class Activity(raw: ActivityResponse) : IActivity {
 
     override val name: String = raw.name
     override val type: IActivity.Type = IActivity.Type.values().first { it.ordinal == raw.type }
-    @ExperimentalContracts
     override val streamUrl: String? = raw.url
     override val applicationId: Snowflake? = raw.applicationId
     override val details: String? = raw.details
@@ -52,6 +50,9 @@ class Activity(raw: ActivityResponse) : IActivity {
         override val id: String? = raw.id
         override val currentSize: Int? = raw.size.getOrNull(0)
         override val maxSize: Int? = raw.size.getOrNull(1)
+        override fun toString(): String {
+            return "Party(id=$id, currentSize=$currentSize, maxSize=$maxSize)"
+        }
     }
 
     class Assets(raw: ActivityResponse.AssetsResponse) : IActivity.IAssets {
@@ -59,11 +60,21 @@ class Activity(raw: ActivityResponse) : IActivity {
         override val largeText: String? = raw.largeText
         override val smallImageHash: String? = raw.smallImage
         override val smallText: String? = raw.smallText
+        override fun toString(): String {
+            return "Assets(largeImageHash=$largeImageHash, largeText=$largeText, smallImageHash=$smallImageHash, smallText=$smallText)"
+        }
     }
 
     class Secrets(raw: ActivityResponse.SecretsResponse) : IActivity.ISecrets {
         override val join: String? = raw.join
         override val spectate: String? = raw.spectate
         override val match: String? = raw.match
+        override fun toString(): String {
+            return "Secrets(join=$join, spectate=$spectate, match=$match)"
+        }
+    }
+
+    override fun toString(): String {
+        return "Activity(startPlaying=$startPlaying, duration=$duration, endPlaying=$endPlaying, name='$name', type=$type, streamUrl=$streamUrl, applicationId=$applicationId, details=$details, state=$state, party=$party, assets=$assets, secrets=$secrets, instanceOfGame=$instanceOfGame, flags=$flags)"
     }
 }

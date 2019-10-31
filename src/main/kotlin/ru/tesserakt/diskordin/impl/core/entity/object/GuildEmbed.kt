@@ -15,4 +15,8 @@ class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
             client.getChannel(it) as IGuildChannel
         }
     }
+
+    override fun toString(): String {
+        return "GuildEmbed(enabled=$enabled, channel=$channel)"
+    }
 }

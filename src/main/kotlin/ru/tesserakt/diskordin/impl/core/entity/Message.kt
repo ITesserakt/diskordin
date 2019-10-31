@@ -57,4 +57,8 @@ class Message(raw: MessageResponse) : IMessage {
     override suspend fun pin() = channelService.pinMessage(channel.id, id)
 
     override suspend fun unpin() = channelService.unpinMessage(channel.id, id)
+
+    override fun toString(): String {
+        return "Message(channel=$channel, author=$author, content='$content', isTTS=$isTTS, attachments=$attachments, isPinned=$isPinned, id=$id)"
+    }
 }

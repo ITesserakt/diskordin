@@ -12,4 +12,8 @@ class Ban(raw: BanResponse) : IBan {
 
     override val user: Identified<IUser> =
         Identified(raw.user.id) { raw.user.unwrap() }
+
+    override fun toString(): String {
+        return "Ban(reason=$reason, user=$user)"
+    }
 }

@@ -7,7 +7,7 @@ internal class SnowflakeTest {
     @Test
     fun `toString()`() {
         val snowflake = 100000000000.asSnowflake()
-        "Snowflake { 100000000000 }" `should be equal to` snowflake.toString()
+        "100000000000" `should be equal to` snowflake.toString()
     }
 
     @Test

@@ -15,11 +15,18 @@ open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val channel: Identified<IChannel> =
         Identified(raw.channel.id) { raw.channel.unwrap() }
     override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
+    override fun toString(): String {
+        return "Invite(code='$code', channel=$channel, channelType=$channelType)"
+    }
 }
 
 class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGuildInvite {
     override val guild: Identified<IGuild> = run {
         requireNotNull(raw.guild) { "Not a guild invite" }
         Identified(raw.guild.id) { Guild(raw.guild) }
+    }
+
+    override fun toString(): String {
+        return "GuildInvite(guild=$guild) ${super.toString()}"
     }
 }

@@ -103,4 +103,8 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override suspend fun delete(reason: String?) = delegate.delete(reason)
 
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)
+
+    override fun toString(): String {
+        return "PartialGuild(iconHash=$iconHash, id=$id, name='$name')"
+    }
 }

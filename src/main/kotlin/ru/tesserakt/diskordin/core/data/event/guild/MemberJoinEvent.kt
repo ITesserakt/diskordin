@@ -1,8 +1,10 @@
 package ru.tesserakt.diskordin.core.data.event.guild
 
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.event.IEvent
-import ru.tesserakt.diskordin.gateway.json.events.MemberJoin
+import ru.tesserakt.diskordin.core.data.json.response.JoinMemberResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 
-class MemberJoinEvent(raw: MemberJoin) : IEvent {
-    //val member = raw.member.user.id combine { raw.member.unwrap(raw.guildId) } //FIXME unexpected NPE
+class MemberJoinEvent(raw: JoinMemberResponse) : IEvent {
+    val member = raw.user.id.combine { raw.unwrap() } //FIXME unexpected NPE
 }

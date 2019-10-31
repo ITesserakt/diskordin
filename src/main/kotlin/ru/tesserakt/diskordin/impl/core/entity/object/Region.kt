@@ -16,4 +16,8 @@ class Region(raw: VoiceRegionResponse) : IRegion {
     override val isCustom: Boolean = raw.custom
 
     override val name: String = raw.name
+
+    override fun toString(): String {
+        return "Region(id='$id', isOptimal=$isOptimal, isVIP=$isVIP, isDeprecated=$isDeprecated, isCustom=$isCustom, name='$name')"
+    }
 }

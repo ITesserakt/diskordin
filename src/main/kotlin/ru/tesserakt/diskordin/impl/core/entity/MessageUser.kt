@@ -27,6 +27,10 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
     override suspend fun asMember(guildId: Snowflake): IMember = raw.member?.unwrap(guildId)
         ?: client.getGuild(guildId).members.first { it.id == id }
 
+    override fun toString(): String {
+        return "MessageUser(avatar=$avatar, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
+    }
+
     override val id: Snowflake = raw.id
     override val mention: String = "<@$id>"
 }

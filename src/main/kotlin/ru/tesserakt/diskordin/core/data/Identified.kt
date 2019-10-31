@@ -2,6 +2,8 @@ package ru.tesserakt.diskordin.core.data
 
 import arrow.Kind
 import arrow.core.Eval
+import arrow.core.ForEval
+import arrow.core.fix
 import arrow.mtl.Kleisli
 import ru.tesserakt.diskordin.core.entity.IEntity
 
@@ -12,14 +14,20 @@ class Identified<T : IEntity>(val id: Snowflake, private val render: suspend (Sn
     suspend operator fun component2() = this()
 
     fun update(newId: Snowflake) = Identified(newId, render)
+    override fun toString(): String {
+        return "Identified(id=$id, render=$render)"
+    }
 }
 
 infix fun <T : IEntity> Snowflake.combine(render: suspend (Snowflake) -> T) =
     Identified(this) { render(it) }
 
-data class IdentifiedNew<F, E : IEntity>(val id: Snowflake, private val render: Eval<Kleisli<F, Snowflake, E>>) {
-    operator fun invoke() = render.map { it.run(id) }.value()
+data class IdentifiedNew<F, E : IEntity>(
+    val id: Snowflake,
+    private val render: Kleisli<ForEval, Snowflake, Kind<F, E>>
+) {
+    operator fun invoke() = render.run(id).fix().value()
 }
 
-infix fun <F, E : IEntity> Snowflake.combine(render: Eval<(Snowflake) -> Kind<F, E>>) =
-    IdentifiedNew(this, render.map { Kleisli(it) })
+infix fun <F, E : IEntity> Snowflake.combineNew(render: (Snowflake) -> Eval<Kind<F, E>>) =
+    IdentifiedNew(this, Kleisli(render))

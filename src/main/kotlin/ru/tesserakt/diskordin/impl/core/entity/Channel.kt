@@ -24,7 +24,7 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     final override val id: Snowflake = raw.id
 
-    final override val mention: String = "<#$id>"
+    final override val mention: String = "<#${id.asString()}>"
 
     final override suspend fun delete(reason: String?) {
         channelService.deleteChannel<IChannel>(id, reason)
@@ -32,6 +32,10 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite =
         channelService.createChannelInvite(id, builder.build(), null).unwrap()
+
+    override fun toString(): String {
+        return "Channel(type=$type, id=$id, mention='$mention', invites=$invites)"
+    }
 
     override val invites: Flow<IInvite> = flow {
         channelService.getChannelInvites(id).map { it.unwrap() }.forEach { emit(it) }
@@ -74,6 +78,10 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
 
     final override suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?) =
         channelService.deleteChannelPermissions(id, (toRemove.allowed and !toRemove.denied).code, reason)
+
+    override fun toString(): String {
+        return "GuildChannel(position=$position, permissionOverwrites=$permissionOverwrites, parentCategory=$parentCategory, guild=$guild, name='$name', invites=$invites) ${super.toString()}"
+    }
 }
 
 class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
@@ -114,6 +122,10 @@ class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), IText
 
     override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) =
         channelService.editChannel<ITextChannel>(id, builder.build(), null).unwrap()
+
+    override fun toString(): String {
+        return "TextChannel(messages=$messages, isNSFW=$isNSFW, topic=$topic, rateLimit=$rateLimit) ${super.toString()}"
+    }
 }
 
 class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel {
@@ -128,6 +140,10 @@ class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVo
 
     override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) =
         channelService.editChannel<IVoiceChannel>(id, builder.build(), null).unwrap()
+
+    override fun toString(): String {
+        return "VoiceChannel(bitrate=$bitrate, userLimit=$userLimit) ${super.toString()}"
+    }
 }
 
 class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
@@ -154,6 +170,10 @@ class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildCha
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
+
+    override fun toString(): String {
+        return "AnnouncementChannel(messages=$messages) ${super.toString()}"
+    }
 }
 
 class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
@@ -174,6 +194,10 @@ class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPri
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
+
+    override fun toString(): String {
+        return "PrivateChannel(recipient=$recipient, owner=$owner, messages=$messages) ${super.toString()}"
+    }
 
     init {
         requireNotNull(raw.owner_id)
@@ -219,4 +243,8 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : Channel(
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
+
+    override fun toString(): String {
+        return "GroupPrivateChannel(recipient=$recipient, owner=$owner, icon=$icon, messages=$messages) ${super.toString()}"
+    }
 }

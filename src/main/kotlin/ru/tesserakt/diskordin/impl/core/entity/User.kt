@@ -42,7 +42,11 @@ open class User(raw: UserResponse<IUser>) : IUser {
     override suspend fun asMember(guildId: Snowflake): IMember =
         client.getGuild(guildId).members.first { it.id == id }
 
-    override val mention: String = "<@$id>"
+    override fun toString(): String {
+        return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
+    }
+
+    override val mention: String = "<@${id.asString()}>"
 }
 
 class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
@@ -69,4 +73,8 @@ class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
 
     override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf =
         userService.editCurrentUser(builder.build()).unwrap()
+
+    override fun toString(): String {
+        return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) ${super.toString()}"
+    }
 }
