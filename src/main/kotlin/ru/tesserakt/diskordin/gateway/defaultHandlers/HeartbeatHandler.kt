@@ -17,7 +17,7 @@ import kotlin.time.ExperimentalTime
 
 @UseExperimental(ExperimentalTime::class)
 @ExperimentalCoroutinesApi
-class HeartbeatHandler(gateway: Gateway) {
+internal class HeartbeatHandler(override val gateway: Gateway) : GatewayHandler() {
     private val logger by Loggers
     private var interval = 0L
 

@@ -13,6 +13,7 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.koin.core.parameter.parametersOf
 import ru.tesserakt.diskordin.core.client.EventDispatcher
+import ru.tesserakt.diskordin.gateway.defaultHandlers.GatewayHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.HeartbeatHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.HelloHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.RestartHandler
@@ -36,7 +37,7 @@ class Gateway @ExperimentalTime constructor(
     private val scarlet by inject<Scarlet> { parametersOf(fullUrl) }
     private val logger by Loggers("[Gateway]")
     private val lifecycle by inject<GatewayLifecycle>()
-    private val restartHandler: RestartHandler
+    private val restartHandler = registerHandler(::RestartHandler)
     private val api = scarlet.create<GatewayAPI>()
 
     @ExperimentalCoroutinesApi
@@ -45,9 +46,8 @@ class Gateway @ExperimentalTime constructor(
     internal var lastSequenceId: Int? = null
 
     init {
-        HelloHandler(this)
-        restartHandler = RestartHandler(this)
-        HeartbeatHandler(this)
+        registerHandler(::HelloHandler)
+        registerHandler(::HeartbeatHandler)
     }
 
     internal fun stop() {
@@ -84,4 +84,6 @@ class Gateway @ExperimentalTime constructor(
             }
         }
     }
+
+    private fun <T : GatewayHandler> registerHandler(handler: (Gateway) -> T): T = handler(this)
 }
