@@ -2,16 +2,20 @@ package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.core.handleLeftWith
 import arrow.fx.IO
+import arrow.fx.extensions.io.applicativeError.applicativeError
 import arrow.fx.extensions.io.async.async
-import arrow.fx.fix
+import arrow.fx.extensions.io.monad.flatMap
+import arrow.integrations.retrofit.adapter.unwrapBody
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.event.UserUpdateEvent
+import ru.tesserakt.diskordin.core.data.event.guild.GuildCreateEvent
 import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -59,8 +63,10 @@ data class DiscordClient(
     override lateinit var gateway: Gateway
         private set
 
-    override val users: Flow<IUser> = flowOf()
-    override val guilds: Flow<IGuild> = flowOf()
+    override lateinit var users: Flow<IUser>
+        private set
+    override lateinit var guilds: Flow<IGuild>
+        private set
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
@@ -71,6 +77,12 @@ data class DiscordClient(
         this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
+
+        guilds = eventDispatcher.subscribeOn<GuildCreateEvent>()
+            .map { it.guild }
+        users = eventDispatcher.subscribeOn<UserUpdateEvent>()
+            .map { it.user() }
+
         this.gateway.run()
     }
 
@@ -113,8 +125,9 @@ data class DiscordClient(
         inviteService.deleteInvite(code)
 
     override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().async(IO.async())
-        .fix().suspended()
-        .body()!!.map { it.unwrap() }
+        .flatMap { it.unwrapBody(IO.applicativeError()) }
+        .suspended()
+        .map { it.unwrap() }
 
     override suspend fun getChannel(id: Snowflake): IChannel = findChannel(id)!!
 

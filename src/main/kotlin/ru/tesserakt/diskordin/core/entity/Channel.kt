@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IImage
@@ -92,9 +93,17 @@ interface IMessageChannel : IChannel {
     val messages: Flow<IMessage>
 
     suspend fun typing()
-    suspend fun createMessage(content: String): IMessage
-    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage
-    suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage
+    suspend fun createMessage(content: String): IMessage = createMessage {
+        this.content = content
+    }
+
+    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
+        channelService.createMessage(id, builder.build()).unwrap()
+
+    suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
+        embed = builder
+    }
+
     suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit)
 }
 

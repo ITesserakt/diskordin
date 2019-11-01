@@ -89,16 +89,6 @@ class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), IText
 
     override suspend fun typing() = channelService.triggerTyping(id)
 
-    override suspend fun createMessage(content: String): IMessage = createMessage {
-        this.content = content
-    }
-
-    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
-
-    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
-        createMessage { embed = builder }
-
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
 
@@ -159,15 +149,6 @@ class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildCha
 
     override suspend fun typing() = channelService.triggerTyping(id)
 
-    override suspend fun createMessage(content: String): IMessage = createMessage { this.content = content }
-
-    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
-
-    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
-        embed = builder
-    }
-
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
 
@@ -181,16 +162,6 @@ class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPri
         NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override suspend fun typing() = channelService.triggerTyping(id)
-
-    override suspend fun createMessage(content: String): IMessage = createMessage {
-        this.content = content
-    }
-
-    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
-
-    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage =
-        createMessage { embed = builder }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())
@@ -229,17 +200,6 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : Channel(
 
     override suspend fun typing() =
         channelService.triggerTyping(id)
-
-    override suspend fun createMessage(content: String): IMessage = createMessage {
-        this.content = content
-    }
-
-    override suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
-
-    override suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
-        embed = builder
-    }
 
     override suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) =
         channelService.bulkDeleteMessages(id, builder.build())

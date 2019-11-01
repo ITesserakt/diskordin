@@ -8,11 +8,11 @@ abstract class BuilderBase<R : JsonRequest> internal constructor() {
 }
 
 inline fun <R : JsonRequest, reified B : BuilderBase<out R>> (B.() -> Unit).build() =
-    B::class.createInstance().apply(this).create()
+    instance().create()
+
+inline fun <R : JsonRequest, reified B : BuilderBase<out R>> (B.() -> Unit).instance() =
+    B::class.createInstance().apply(this)
 
 abstract class AuditLogging<R : JsonRequest> : BuilderBase<R>() {
     abstract var reason: String?
 }
-
-inline fun <reified AB : AuditLogging<*>> (AB.() -> Unit).extractReason() =
-    AB::class.createInstance().apply(this).reason

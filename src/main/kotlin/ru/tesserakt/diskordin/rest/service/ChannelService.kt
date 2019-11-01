@@ -45,10 +45,11 @@ interface ChannelService {
         @Path("messageId") messageId: Snowflake
     ): MessageResponse
 
-    @POST("/api/v6/channels/{id}/messages/")
+    @Multipart
+    @POST("/api/v6/channels/{id}/messages")
     suspend fun createMessage(
         @Path("id") id: Snowflake,
-        @Body request: MessageCreateRequest
+        @Part("payload_json") request: MessageCreateRequest
     ): MessageResponse
 
     @PATCH("/api/v6/channels/{channelId}/messages/{messageId}")
