@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import arrow.fx.IO
+import arrow.fx.extensions.io.async.async
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,7 +44,7 @@ class DiscordClientBuilder private constructor() {
                     }
                     single { setupLifecycle() } bind GatewayLifecycle::class
                     single { (path: String) -> setupScarlet(path, get(), get()) }
-                    single { RestClient(get(), get()) }
+                    single { RestClient(get(), get(), IO.async()) }
                 })
             }
         }

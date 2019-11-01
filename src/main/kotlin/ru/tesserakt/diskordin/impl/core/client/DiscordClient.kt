@@ -1,11 +1,11 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import arrow.core.ListK
+import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
 import arrow.core.handleLeftWith
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicativeError.applicativeError
-import arrow.fx.extensions.io.async.async
-import arrow.fx.extensions.io.monad.flatMap
-import arrow.integrations.retrofit.adapter.unwrapBody
+import arrow.fx.ForIO
+import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,6 +26,7 @@ import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import ru.tesserakt.diskordin.rest.RestClient
+import ru.tesserakt.diskordin.rest.call
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
@@ -37,7 +38,7 @@ data class DiscordClient(
     override lateinit var eventDispatcher: EventDispatcher
     private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
-    override val rest: RestClient by inject()
+    override val rest: RestClient<ForIO> by inject()
 
     init {
         TokenVerification(token, tokenType).verify().map { id ->
@@ -127,10 +128,9 @@ data class DiscordClient(
     override suspend fun deleteInvite(code: String, reason: String?) =
         inviteService.deleteInvite(code)
 
-    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().async(IO.async())
-        .flatMap { it.unwrapBody(IO.applicativeError()) }
-        .suspended()
-        .map { it.unwrap() }
+    override suspend fun getRegions(): List<IRegion> = rest.call(ListK.functor()) {
+        voiceService.getVoiceRegions()
+    }.fix().suspended().fix()
 
     override suspend fun getChannel(id: Snowflake): IChannel = findChannel(id)!!
 

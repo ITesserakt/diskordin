@@ -1,5 +1,6 @@
 package ru.tesserakt.diskordin.core.client
 
+import arrow.fx.ForIO
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -17,7 +18,7 @@ interface IDiscordClient : IDiscordObject {
     val self: Identified<ISelf>
     val isConnected: Boolean
     val gateway: Gateway
-    val rest: RestClient
+    val rest: RestClient<ForIO>
 
     /*
     Performs a login to discord servers and enables the Gateway
