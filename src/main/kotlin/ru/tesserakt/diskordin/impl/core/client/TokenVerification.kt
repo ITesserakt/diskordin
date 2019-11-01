@@ -1,49 +1,55 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Validated
-import arrow.core.invalid
-import arrow.core.valid
+import arrow.Kind
+import arrow.typeclasses.MonadError
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError
+import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import java.util.*
 
-private typealias VerificationResult<T> = Validated<TokenVerification.VerificationError, T>
+@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
+internal class TokenVerification<F>(
+    private val token: String,
+    private val tokenType: TokenType,
+    ME: MonadError<F, VerificationError>
+) : MonadError<F, VerificationError> by ME {
+    fun verify(): Kind<F, Snowflake> {
+        if (token.isBlank()) return raiseError(BlankString)
+        if (token.contains(Regex("""\s"""))) return raiseError(InvalidCharacters)
 
-internal class TokenVerification(private val token: String, private val tokenType: TokenType) {
-    fun verify(): VerificationResult<Snowflake> {
-        if (token.isBlank()) return VerificationError.BlankString()
-        if (token.contains(Regex("""\s"""))) return VerificationError.InvalidCharacters()
-
-        if (tokenType == TokenType.Webhook || tokenType == TokenType.Bearer) return token.asSnowflake().valid()
+        if (tokenType == TokenType.Webhook || tokenType == TokenType.Bearer) return token.asSnowflake().just()
 
         val parts = token.split('.')
-        if (parts.size != 3) return VerificationError.InvalidConstruction()
+        if (parts.size != 3) return raiseError(InvalidConstruction)
 
         return turnToSnowflake(parts[0])
     }
 
-    private fun turnToSnowflake(tokenPart: String): VerificationResult<Snowflake> {
-        fun padBase64String(encoded: String): VerificationResult<String> {
-            if (encoded.indexOf('=') != -1) return encoded.valid()
+    private fun turnToSnowflake(tokenPart: String): Kind<F, Snowflake> = fx.monad {
+        fun padBase64String(encoded: String): Kind<F, String> {
+            if (encoded.indexOf('=') != -1) return encoded.just()
             val padding = (4 - (encoded.length % 4)) % 4
-            if (padding == 3) return VerificationError.CorruptedId()
-            if (padding == 0) return encoded.valid()
-            return encoded.padEnd(encoded.length + padding, '=').valid()
+            if (padding == 3) return raiseError(CorruptedId)
+            if (padding == 0) return encoded.just()
+            return encoded.padEnd(encoded.length + padding, '=').just()
         }
 
-        return padBase64String(tokenPart).map {
+        val padded = padBase64String(tokenPart).map {
             val bytes = Base64.getDecoder().decode(it)
             bytes.toString(Charsets.UTF_8)
-        }.map(String::asSnowflake)
+        }.bind()
+
+        catch({ CorruptedId }, {
+            padded.asSnowflake()
+        }).bind()
     }
 
-    internal sealed class VerificationError {
-        object BlankString : VerificationError()
-        object InvalidCharacters : VerificationError()
-        object InvalidConstruction : VerificationError()
-        object CorruptedId : VerificationError()
-
-        operator fun invoke() = this.invalid()
+    internal sealed class VerificationError(val message: String) {
+        object BlankString : VerificationError("Token cannot be blank")
+        object InvalidCharacters : VerificationError("Token contains invalid characters!")
+        object InvalidConstruction : VerificationError("Token does not fit into right form!")
+        object CorruptedId : VerificationError("Token is corrupted!")
     }
 }

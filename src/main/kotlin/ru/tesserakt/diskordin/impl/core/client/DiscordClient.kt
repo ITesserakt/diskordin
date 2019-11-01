@@ -1,6 +1,10 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.core.handleLeftWith
+import arrow.core.Either
+import arrow.core.extensions.either.monad.flatTap
+import arrow.core.extensions.either.monadError.monadError
+import arrow.core.getOrHandle
+import arrow.core.right
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicativeError.applicativeError
 import arrow.fx.extensions.io.async.async
@@ -14,6 +18,7 @@ import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.event.UserUpdateEvent
 import ru.tesserakt.diskordin.core.data.event.guild.GuildCreateEvent
 import ru.tesserakt.diskordin.core.data.json.response.unwrap
@@ -23,7 +28,6 @@ import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
-import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
@@ -35,26 +39,16 @@ data class DiscordClient(
     override lateinit var eventDispatcher: EventDispatcher
     private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
+    override val self: Identified<ISelf>
 
     init {
-        TokenVerification(token, tokenType).verify().map { id ->
-            self = Identified(id) {
-                userService.getCurrentUser().unwrap()
-            }
-            logger.info("Token verified")
-        }.handleLeftWith {
-            val message = when (it) {
-                BlankString -> "Token cannot be blank"
-                CorruptedId -> "Token is corrupted!"
-                InvalidCharacters -> "Token contains invalid characters!"
-                InvalidConstruction -> "Token does not fit into right form!"
-            }
-            throw IllegalStateException(message)
-        }
+        self = TokenVerification(token, tokenType, Either.monadError())
+            .verify()
+            .flatTap { logger.info("Token verified").right() }
+            .getOrHandle {
+                throw error(it.message)
+            } combine { userService.getCurrentUser().unwrap() }
     }
-
-    override lateinit var self: Identified<ISelf>
-        private set
 
     override var isConnected: Boolean = false
         private set
