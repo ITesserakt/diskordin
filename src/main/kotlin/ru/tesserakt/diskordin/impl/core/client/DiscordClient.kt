@@ -9,6 +9,7 @@ import arrow.integrations.retrofit.adapter.unwrapBody
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.koin.core.inject
 import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
@@ -24,6 +25,7 @@ import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
+import ru.tesserakt.diskordin.rest.RestClient
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
@@ -35,6 +37,7 @@ data class DiscordClient(
     override lateinit var eventDispatcher: EventDispatcher
     private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
+    override val rest: RestClient by inject()
 
     init {
         TokenVerification(token, tokenType).verify().map { id ->

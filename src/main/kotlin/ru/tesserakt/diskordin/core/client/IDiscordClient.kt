@@ -8,6 +8,7 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.gateway.Gateway
+import ru.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
     val eventDispatcher: EventDispatcher
@@ -16,6 +17,7 @@ interface IDiscordClient : IDiscordObject {
     val self: Identified<ISelf>
     val isConnected: Boolean
     val gateway: Gateway
+    val rest: RestClient
 
     /*
     Performs a login to discord servers and enables the Gateway

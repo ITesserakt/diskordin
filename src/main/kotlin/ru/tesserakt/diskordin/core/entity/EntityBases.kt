@@ -9,7 +9,6 @@ import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
-import ru.tesserakt.diskordin.rest.service.*
 
 interface IEntity : IDiscordObject {
     val id: Snowflake
@@ -20,21 +19,21 @@ interface IDiscordObject : KoinComponent
 val IDiscordObject.client: IDiscordClient
     get() = get()
 val IDiscordObject.userService
-    get() = get<UserService>()
+    get() = client.rest.userService
 val IDiscordObject.channelService
-    get() = get<ChannelService>()
+    get() = client.rest.channelService
 val IDiscordObject.emojiService
-    get() = get<EmojiService>()
+    get() = client.rest.emojiService
 val IDiscordObject.gatewayService
-    get() = get<GatewayService>()
+    get() = client.rest.gatewayService
 val IDiscordObject.guildService
-    get() = get<GuildService>()
+    get() = client.rest.guildService
 val IDiscordObject.inviteService
-    get() = get<InviteService>()
+    get() = client.rest.inviteService
 val IDiscordObject.voiceService
-    get() = get<VoiceService>()
+    get() = client.rest.voiceService
 val IDiscordObject.webhookService
-    get() = get<WebhookService>()
+    get() = client.rest.webhookService
 
 interface IGuildObject : IDiscordObject {
     val guild: Identified<IGuild>
