@@ -37,6 +37,12 @@ class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClien
             response.map { it.unwrap(c) }
         }
     }.run(ctx)
+
+    inline fun effect(
+        crossinline f: suspend RestClient<F>.() -> CallK<Unit>
+    ): Kind<F, Unit> = effect(kotlinx.coroutines.Dispatchers.IO) {
+        f().async(this)
+    }.map { Unit }
 }
 
 inline fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient<F>.call(

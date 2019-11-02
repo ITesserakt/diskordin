@@ -2,6 +2,9 @@
 
 package ru.tesserakt.diskordin.rest.service
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.integrations.retrofit.adapter.CallK
 import retrofit2.http.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.*
@@ -12,197 +15,197 @@ import ru.tesserakt.diskordin.core.entity.query.Query
 
 interface GuildService {
     @POST("/api/v6/guilds")
-    suspend fun createGuild(@Body request: GuildCreateRequest): GuildResponse
+    fun createGuild(@Body request: GuildCreateRequest): CallK<Id<GuildResponse>>
 
     @GET("/api/v6/guilds/{id}")
-    suspend fun getGuild(@Path("id") id: Snowflake): GuildResponse
+    fun getGuild(@Path("id") id: Snowflake): CallK<Id<GuildResponse>>
 
     @PATCH("/api/v6/guilds/{id}")
-    suspend fun editGuild(
+    fun editGuild(
         @Path("id") id: Snowflake,
         @Body request: GuildEditRequest
-    ): GuildResponse
+    ): CallK<Id<GuildResponse>>
 
     @Deprecated("Bots can use this only 10 times")
     @DELETE("/api/v6/guilds/{id}")
-    suspend fun deleteGuild(@Path("id") id: Snowflake)
+    fun deleteGuild(@Path("id") id: Snowflake): CallK<Unit>
 
     @PATCH("/api/v6/guilds/{id}/members/@me/nick")
-    suspend fun editCurrentNickname(
+    fun editCurrentNickname(
         @Path("id") id: Snowflake,
         @Body request: NicknameEditRequest
-    ): String?
+    ): CallK<Id<String?>>
 
     @GET("/api/v6/guilds/{id}/invites")
-    suspend fun getInvites(@Path("id") id: Snowflake): Array<InviteResponse<IGuildInvite>>
+    fun getInvites(@Path("id") id: Snowflake): CallK<ListK<InviteResponse<IGuildInvite>>>
 
     @GET("/api/v6/guilds/{id}/channels")
-    suspend fun getGuildChannels(@Path("id") id: Snowflake): Array<ChannelResponse<IGuildChannel>>
+    fun getGuildChannels(@Path("id") id: Snowflake): CallK<ListK<ChannelResponse<IGuildChannel>>>
 
     @POST("/api/v6/guilds/{id}/channels")
-    suspend fun createGuildChannel(
+    fun createGuildChannel(
         @Path("id") id: Snowflake,
         @Body request: ChannelCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse<IGuildChannel>
+    ): CallK<Id<ChannelResponse<IGuildChannel>>>
 
     @PATCH("/api/v6/guilds/{id}/channels")
-    suspend fun editGuildChannelPositions(
+    fun editGuildChannelPositions(
         @Path("id") id: Snowflake,
         @Body request: Array<PositionEditRequest>
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/guilds/{guildId}/members/{userId}")
-    suspend fun getMember(
+    fun getMember(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake
-    ): GuildMemberResponse
+    ): CallK<Id<GuildMemberResponse>>
 
     @GET("/api/v6/guilds/{id}/members")
-    suspend fun getMembers(
+    fun getMembers(
         @Path("id") id: Snowflake,
         @QueryMap query: Query
-    ): Array<GuildMemberResponse>
+    ): CallK<ListK<GuildMemberResponse>>
 
     @PUT("/api/v6/guilds/{guildId}/members/{userId}")
-    suspend fun newMember(
+    fun newMember(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Body request: MemberAddRequest
-    ): GuildMemberResponse
+    ): CallK<Id<GuildMemberResponse>>
 
     @PATCH("/api/v6/guilds/{guildId}/members/{userId}")
-    suspend fun editMember(
+    fun editMember(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Body request: MemberEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/guilds/{guildId}/members/{userId}")
-    suspend fun removeMember(
+    fun removeMember(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @PUT("/api/v6/guilds/{guildId}/members/{userId}/roles/{roleId}")
-    suspend fun addMemberRole(
+    fun addMemberRole(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/guilds/{guildId}/members/{userId}/roles/{roleId}")
-    suspend fun deleteMemberRole(
+    fun deleteMemberRole(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/guilds/{id}/roles")
-    suspend fun getRoles(@Path("id") id: Snowflake): Array<RoleResponse>
+    fun getRoles(@Path("id") id: Snowflake): CallK<ListK<RoleResponse>>
 
     @POST("/api/v6/guilds/{id}/roles")
-    suspend fun createRole(
+    fun createRole(
         @Path("id") id: Snowflake,
         @Body request: GuildRoleCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): RoleResponse
+    ): CallK<Id<RoleResponse>>
 
     @PATCH("/api/v6/guilds/{id}/roles")
-    suspend fun editRolePositions(
+    fun editRolePositions(
         @Path("id") id: Snowflake,
         @Body request: Array<PositionEditRequest>
-    ): Array<RoleResponse>
+    ): CallK<ListK<RoleResponse>>
 
     @PATCH("/api/v6/guilds/{guildId}/roles/{roleId}")
-    suspend fun editRole(
+    fun editRole(
         @Path("guildId") guildId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Body request: GuildRoleEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): RoleResponse
+    ): CallK<Id<RoleResponse>>
 
     @DELETE("/api/v6/guilds/{guildId}/roles/{roleId}")
-    suspend fun deleteRole(
+    fun deleteRole(
         @Path("guildId") guildId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/guilds/{id}/bans")
-    suspend fun getBans(@Path("id") id: Snowflake): Array<BanResponse>
+    fun getBans(@Path("id") id: Snowflake): CallK<ListK<BanResponse>>
 
     @GET("/api/v6/guilds/{guildId}/bans/{userId}")
-    suspend fun getBan(
+    fun getBan(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake
-    ): BanResponse
+    ): CallK<Id<BanResponse>>
 
     @PUT("/api/v6/guilds/{guildId}/bans/{userId}")
-    suspend fun ban(
+    fun ban(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @QueryMap query: Query
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/guilds/{guildId}/bans/{userId}")
-    suspend fun removeBan(
+    fun removeBan(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/guilds/{id}/prune")
-    suspend fun getPruneCount(
+    fun getPruneCount(
         @Path("id") id: Snowflake,
         @QueryMap query: Query
-    ): Int
+    ): CallK<Id<Int>>
 
     @POST("/api/v6/guilds/{id}/prune")
-    suspend fun startPrune(
+    fun startPrune(
         @Path("id") id: Snowflake,
         @QueryMap query: Query,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Int
+    ): CallK<Id<Int>>
 
     @GET("/api/v6/guilds/{id}/integrations")
-    suspend fun getIntegrations(@Path("id") id: Snowflake): Array<GuildIntegrationResponse>
+    fun getIntegrations(@Path("id") id: Snowflake): CallK<ListK<GuildIntegrationResponse>>
 
     @POST("/api/v6/guilds/{id}/integrations")
-    suspend fun createIntegration(
+    fun createIntegration(
         @Path("id") id: Snowflake,
         @Body request: IntegrationCreateRequest
-    )
+    ): CallK<Unit>
 
     @PATCH("/api/v6/guilds/{guildId}/integrations/{intId}")
-    suspend fun editIntegration(
+    fun editIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake,
         @Body request: IntegrationEditRequest
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/guilds/{guildId}/integrations/{intId}")
-    suspend fun deleteIntegration(
+    fun deleteIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake
-    )
+    ): CallK<Unit>
 
     @POST("/api/v6/guilds/{guildId}/integrations/{intId}")
-    suspend fun syncIntegration(
+    fun syncIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/guilds/{id}/embed")
-    suspend fun getEmbed(@Path("id") id: Snowflake): GuildEmbedResponse
+    fun getEmbed(@Path("id") id: Snowflake): CallK<Id<GuildEmbedResponse>>
 
     @PATCH("/api/v6/guilds/{id}/embed")
-    suspend fun editEmbed(
+    fun editEmbed(
         @Path("id") id: Snowflake,
         @Body request: GuildEmbedEditRequest
-    ): GuildEmbedResponse
+    ): CallK<Id<GuildEmbedResponse>>
 }

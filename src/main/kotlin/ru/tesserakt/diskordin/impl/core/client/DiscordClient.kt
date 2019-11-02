@@ -1,10 +1,15 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import arrow.core.Id
 import arrow.core.ListK
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.core.handleLeftWith
 import arrow.fx.ForIO
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,10 +20,13 @@ import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.event.UserUpdateEvent
 import ru.tesserakt.diskordin.core.data.event.guild.GuildCreateEvent
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
-import ru.tesserakt.diskordin.core.entity.*
+import ru.tesserakt.diskordin.core.entity.IChannel
+import ru.tesserakt.diskordin.core.entity.IGuild
+import ru.tesserakt.diskordin.core.entity.ISelf
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
@@ -42,8 +50,10 @@ data class DiscordClient(
 
     init {
         TokenVerification(token, tokenType).verify().map { id ->
-            self = Identified(id) {
-                userService.getCurrentUser().unwrap()
+            self = id combine {
+                rest.call(Id.functor()) {
+                    userService.getCurrentUser()
+                }.fix().suspended().extract()
             }
             logger.info("Token verified")
         }.handleLeftWith {
@@ -74,11 +84,11 @@ data class DiscordClient(
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override suspend fun login() {
-        val gatewayStats = gatewayService.getGatewayBot().unwrap()
+    override suspend fun login() = IO.fx {
+        val gatewayStats = rest.call(Id.functor()) { gatewayService.getGatewayBot() }.bind().extract()
         val gatewayURL = gatewayStats.url
         val metadata = gatewayStats.session
-        this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
+        this@DiscordClient.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
 
@@ -87,8 +97,9 @@ data class DiscordClient(
         users = eventDispatcher.subscribeOn<UserUpdateEvent>()
             .map { it.user() }
 
-        this.gateway.run()
-    }
+        this@DiscordClient.gateway.run()
+        Unit
+    }.unsafeRunSync()
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
@@ -107,26 +118,29 @@ data class DiscordClient(
         exitProcess(0)
     }
 
-    override suspend fun findUser(id: Snowflake) = runCatching {
-        userService.getUser(id).unwrap()
-    }.getOrNull()
+    override suspend fun findUser(id: Snowflake) = rest.call(Id.functor()) {
+        userService.getUser(id)
+    }.fix().attempt().suspended().toOption().orNull()?.extract()
 
-    override suspend fun findGuild(id: Snowflake) = runCatching {
-        guildService.getGuild(id).unwrap()
-    }.getOrNull()
+    override suspend fun findGuild(id: Snowflake) = rest.call(Id.functor()) {
+        guildService.getGuild(id)
+    }.fix().attempt().suspended().toOption().orNull()?.extract()
 
-    override suspend fun findChannel(id: Snowflake) = runCatching {
-        channelService.getChannel<IChannel>(id).unwrap()
-    }.getOrNull()
+    override suspend fun findChannel(id: Snowflake) = rest.call(Id.functor()) {
+        channelService.getChannel<IChannel>(id)
+    }.fix().attempt().suspended().toOption().orNull()?.extract()
 
-    override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild =
-        guildService.createGuild(request.build()).unwrap()
+    override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit) = rest.call(Id.functor()) {
+        guildService.createGuild(request.build())
+    }.fix().suspended().extract()
 
-    override suspend fun getInvite(code: String): IInvite =
-        inviteService.getInvite(code).unwrap()
+    override suspend fun getInvite(code: String): IInvite = rest.call(Id.functor()) {
+        inviteService.getInvite(code)
+    }.fix().suspended().extract()
 
-    override suspend fun deleteInvite(code: String, reason: String?) =
+    override suspend fun deleteInvite(code: String, reason: String?) = rest.effect {
         inviteService.deleteInvite(code)
+    }.fix().suspended()
 
     override suspend fun getRegions(): List<IRegion> = rest.call(ListK.functor()) {
         voiceService.getVoiceRegions()

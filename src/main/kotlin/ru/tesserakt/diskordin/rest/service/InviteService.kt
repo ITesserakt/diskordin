@@ -1,5 +1,7 @@
 package ru.tesserakt.diskordin.rest.service
 
+import arrow.core.Id
+import arrow.integrations.retrofit.adapter.CallK
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -9,11 +11,11 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 
 interface InviteService {
     @GET("/api/v6/invites/{code}")
-    suspend fun getInvite(@Path("code") code: String): InviteResponse<IInvite>
+    fun getInvite(@Path("code") code: String): CallK<Id<InviteResponse<IInvite>>>
 
     @DELETE("/api/v6/invites/{code}")
-    suspend fun deleteInvite(@Path("code") code: String)
+    fun deleteInvite(@Path("code") code: String): CallK<Unit>
 
     @POST("/api/v6/invites/{code}")
-    suspend fun acceptInvite(@Path("code") code: String)
+    fun acceptInvite(@Path("code") code: String): CallK<Unit>
 }

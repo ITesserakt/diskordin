@@ -2,6 +2,9 @@
 
 package ru.tesserakt.diskordin.rest.service
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.integrations.retrofit.adapter.CallK
 import retrofit2.http.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.EmojiCreateRequest
@@ -11,30 +14,30 @@ import ru.tesserakt.diskordin.core.entity.ICustomEmoji
 
 interface EmojiService {
     @GET("/api/v6/guilds/{id}/emojis")
-    suspend fun getGuildEmojis(@Path("id") id: Snowflake): Array<EmojiResponse<ICustomEmoji>>
+    fun getGuildEmojis(@Path("id") id: Snowflake): CallK<ListK<EmojiResponse<ICustomEmoji>>>
 
     @GET("/api/v6/guilds/{guildId}/emojis/{emojiId}")
-    suspend fun getGuildEmoji(
+    fun getGuildEmoji(
         @Path("guildId") guildId: Snowflake,
         @Path("emojiId") emojiId: Snowflake
-    ): EmojiResponse<ICustomEmoji>
+    ): CallK<Id<EmojiResponse<ICustomEmoji>>>
 
     @POST("/api/v6/guilds/{id}/emojis/")
-    suspend fun createGuildEmoji(
+    fun createGuildEmoji(
         @Path("id") id: Snowflake,
         @Body request: EmojiCreateRequest
-    ): EmojiResponse<ICustomEmoji>
+    ): CallK<Id<EmojiResponse<ICustomEmoji>>>
 
     @PATCH("/api/v6/guilds/{guildId}/emojis/{emojiId}")
-    suspend fun editGuildEmoji(
+    fun editGuildEmoji(
         @Path("guildId") guildId: Snowflake,
         @Path("emojiId") emojiId: Snowflake,
         @Body request: EmojiEditRequest
-    ): EmojiResponse<ICustomEmoji>
+    ): CallK<Id<EmojiResponse<ICustomEmoji>>>
 
     @DELETE("/api/v6/guilds/{guildId}/emojis/{emojiId}")
-    suspend fun deleteGuildEmoji(
+    fun deleteGuildEmoji(
         @Path("guildId") guildId: Snowflake,
         @Path("emojiId") emojiId: Snowflake
-    )
+    ): CallK<Unit>
 }

@@ -1,18 +1,24 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
+import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
+import ru.tesserakt.diskordin.rest.call
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
 
@@ -50,29 +56,37 @@ open class User(raw: UserResponse<IUser>) : IUser {
 }
 
 class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
-    override val guilds: Flow<UserGuildResponse> = flow {
-        userService.getCurrentUserGuilds(UserGuildsQuery().apply {
-            this.limit = 1000
-        }.create()).forEach { emit(it) }
+    override val guilds: Flow<IGuild> = flow {
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserGuilds(UserGuildsQuery().create())
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val privateChannels: Flow<IPrivateChannel> = flow {
-        userService.getUserDMs().map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            userService.getUserDMs()
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val connections: Flow<IConnection> = flow {
-        userService.getCurrentUserConnections().map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserConnections()
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override suspend fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
 
-    override suspend fun leaveGuild(guildId: Snowflake) = userService.leaveGuild(guildId)
+    override suspend fun leaveGuild(guildId: Snowflake) = rest.effect {
+        userService.leaveGuild(guildId)
+    }.fix().suspended()
 
-    override suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IChannel =
-        userService.joinToDM(builder.build()).unwrap()
+    override suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IChannel = rest.call(Id.functor()) {
+        userService.joinToDM(builder.build())
+    }.fix().suspended().extract()
 
-    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf =
-        userService.editCurrentUser(builder.build()).unwrap()
+    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf = rest.call(Id.functor()) {
+        userService.editCurrentUser(builder.build())
+    }.fix().suspended().extract()
 
     override fun toString(): String {
         return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) ${super.toString()}"

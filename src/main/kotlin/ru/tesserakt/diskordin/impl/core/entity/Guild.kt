@@ -1,7 +1,20 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
 import arrow.core.some
+import arrow.fx.IO
+import arrow.fx.extensions.io.applicativeError.applicativeError
+import arrow.fx.extensions.io.applicativeError.attempt
+import arrow.fx.extensions.io.async.async
+import arrow.fx.extensions.io.monad.flatMap
+import arrow.fx.fix
+import arrow.integrations.retrofit.adapter.unwrapBody
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
@@ -11,7 +24,6 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.combine
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -22,6 +34,7 @@ import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Region
+import ru.tesserakt.diskordin.rest.call
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -81,14 +94,19 @@ class Guild(raw: GuildResponse) : IGuild {
     override suspend fun getRole(id: Snowflake): IRole =
         roles.first { it.id == id }
 
-    override suspend fun getEmoji(emojiId: Snowflake) =
-        emojiService.getGuildEmoji(id, emojiId).unwrap(id.some())
+    override suspend fun getEmoji(emojiId: Snowflake) = rest.call(id.some(), Id.functor()) {
+        emojiService.getGuildEmoji(id, emojiId)
+    }.fix().suspended().extract()
 
-    override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji =
-        emojiService.createGuildEmoji(id, builder.build()).unwrap(id.some())
+    override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit) = rest.call(id.some(), Id.functor()) {
+        emojiService.createGuildEmoji(id, builder.build())
+    }.fix().suspended().extract()
 
-    override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) =
-        guildService.editCurrentNickname(id, builder.build())
+    override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) = rest.guildService
+        .editCurrentNickname(id, builder.build())
+        .async(IO.async())
+        .flatMap { it.unwrapBody(IO.applicativeError()) }
+        .suspended().extract()
 
     override suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
         addChannelJ(builder)
@@ -98,39 +116,58 @@ class Guild(raw: GuildResponse) : IGuild {
 
     private suspend inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
         noinline builder: B.() -> Unit
-    ): C = guildService.createGuildChannel(id, builder.build(), null).unwrap() as C
+    ): C = rest.call(Id.functor()) {
+        val inst = builder.instance()
+        guildService.createGuildChannel(id, inst.create(), inst.reason)
+    }.fix().suspended().extract() as C
 
-    override suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) =
+    override suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = rest.effect {
         guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
+    }.fix().suspended()
 
-    override suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember =
-        guildService.newMember(id, userId, builder.build()).unwrap(id)
+    override suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit) =
+        rest.call(id, Id.functor()) {
+            guildService.newMember(id, userId, builder.build())
+        }.fix().suspended().extract()
 
     override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
 
-    override suspend fun kick(memberId: Snowflake, reason: String?) = guildService.removeMember(id, memberId, reason)
+    override suspend fun kick(memberId: Snowflake, reason: String?) = rest.effect {
+        guildService.removeMember(id, memberId, reason)
+    }.fix().suspended()
 
-    override suspend fun addRole(builder: RoleCreateBuilder.() -> Unit): IRole =
-        guildService.createRole(id, builder.build(), null).unwrap(id)
+    override suspend fun addRole(builder: RoleCreateBuilder.() -> Unit) = rest.call(id, Id.functor()) {
+        val inst = builder.instance()
+        guildService.createRole(id, inst.create(), inst.reason)
+    }.fix().suspended().extract()
 
-    override suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): List<IRole> =
+    override suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit) = rest.call(id, ListK.functor()) {
         guildService.editRolePositions(id, builder.map { it.build() }.toTypedArray())
-            .map { it.unwrap(id) }
+    }.fix().suspended().fix()
 
-    override suspend fun findBan(userId: Snowflake): IBan? = guildService.getBan(id, userId).unwrap()
+    override suspend fun findBan(userId: Snowflake): IBan? = rest.call(Id.functor()) {
+        guildService.getBan(id, userId)
+    }.attempt().suspended().toOption().orNull()?.extract()
 
     override suspend fun ban(member: IMember, builder: BanQuery.() -> Unit) = ban(member.id, builder)
 
-    override suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) =
+    override suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = rest.effect {
         guildService.ban(id, memberId, builder.query())
+    }.fix().suspended()
 
-    override suspend fun pardon(userId: Snowflake, reason: String?) = guildService.removeBan(id, userId, reason)
+    override suspend fun pardon(userId: Snowflake, reason: String?) = rest.effect {
+        guildService.removeBan(id, userId, reason)
+    }.fix().suspended()
 
     override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int =
-        guildService.getPruneCount(id, builder.query())
+        rest.guildService.getPruneCount(id, builder.query())
+            .async(IO.async())
+            .flatMap { it.unwrapBody(IO.applicativeError()) }
+            .suspended().extract()
 
-    override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) =
+    override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) = rest.effect {
         guildService.createIntegration(id, builder.build())
+    }.fix().suspended()
 
     override suspend fun getEveryoneRole(): IRole = getRole(id) //everyone role id == guild id
 
@@ -138,23 +175,32 @@ class Guild(raw: GuildResponse) : IGuild {
         channels.first { it.id == id } as C
 
     override val invites: Flow<IGuildInvite> = flow {
-        guildService.getInvites(id).map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            guildService.getInvites(id)
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val emojis: Flow<ICustomEmoji> = flow {
-        emojiService.getGuildEmojis(id).map { it.unwrap(id.some()) }.forEach { emit(it) }
+        rest.call(id.some(), ListK.functor()) {
+            emojiService.getGuildEmojis(id)
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val bans: Flow<IBan> = flow {
-        guildService.getBans(id).map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            guildService.getBans(id)
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val integrations: Flow<IIntegration> = flow {
-        guildService.getIntegrations(id).map { it.unwrap(id) }.forEach { emit(it) }
+        rest.call(id, ListK.functor()) {
+            guildService.getIntegrations(id)
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
-    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild =
-        guildService.editGuild(id, builder.build()).unwrap()
+    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = rest.call(Id.functor()) {
+        guildService.editGuild(id, builder.build())
+    }.fix().suspended().extract()
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
@@ -180,13 +226,17 @@ class Guild(raw: GuildResponse) : IGuild {
             .asFlow()
 
     override val members: Flow<IMember> = flow {
-        guildService.getMembers(id, MemberQuery().apply {
-            limit = 1000
-        }.create()).map { it.unwrap(id) }.forEach { emit(it) }
+        rest.call(id, ListK.functor()) {
+            guildService.getMembers(id, MemberQuery().apply {
+                this.limit = 1000
+            }.create())
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val channels: Flow<IGuildChannel> = flow {
-        guildService.getGuildChannels(id).map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            guildService.getGuildChannels(id)
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val name: String = raw.name
@@ -196,7 +246,9 @@ class Guild(raw: GuildResponse) : IGuild {
         "Bots can use this only 10 times!",
         ReplaceWith("guildService.deleteGuild(id)", "ru.tesserakt.diskordin.core.entity.guildService")
     )
-    override suspend fun delete(reason: String?) = guildService.deleteGuild(id)
+    override suspend fun delete(reason: String?) = rest.effect {
+        guildService.deleteGuild(id)
+    }.fix().suspended()
 
     @UseExperimental(ExperimentalTime::class)
     override fun toString(): String {

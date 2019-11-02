@@ -1,6 +1,9 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.fx.IO
+import arrow.fx.extensions.io.monad.flatMap
+import arrow.fx.fix
 import kotlinx.coroutines.flow.first
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
@@ -17,16 +20,19 @@ class Integration(
     raw: GuildIntegrationResponse,
     guildId: Snowflake
 ) : IIntegration {
-    override suspend fun sync() = guildService.syncIntegration(guild.id, id)
+    override suspend fun sync() = rest.effect {
+        guildService.syncIntegration(guild.id, id)
+    }.fix().suspended()
 
     override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
 
-    override suspend fun delete(reason: String?) = guildService.deleteIntegration(guild.id, id)
+    override suspend fun delete(reason: String?) = rest.effect {
+        guildService.deleteIntegration(guild.id, id)
+    }.fix().suspended()
 
-    override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration =
-        guildService.editIntegration(guild.id, id, builder.build()).run {
-            guild().integrations.first { it.id == id }
-        }
+    override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration = rest.effect {
+        guildService.editIntegration(guild.id, id, builder.build())
+    }.flatMap { IO { guild().integrations.first { it.id == id } } }.suspended()
 
     override fun toString(): String {
         return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"

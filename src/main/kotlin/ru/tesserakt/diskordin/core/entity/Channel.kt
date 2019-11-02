@@ -3,12 +3,15 @@
 
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.core.Id
 import arrow.core.NonEmptyList
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IImage
@@ -16,6 +19,7 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.impl.core.entity.*
+import ru.tesserakt.diskordin.rest.call
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
@@ -92,19 +96,25 @@ interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel
 interface IMessageChannel : IChannel {
     val messages: Flow<IMessage>
 
-    suspend fun typing()
+    suspend fun typing() = rest.effect {
+        channelService.triggerTyping(id)
+    }.fix().suspended()
+
     suspend fun createMessage(content: String): IMessage = createMessage {
         this.content = content
     }
 
-    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
+    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage = rest.call(Id.functor()) {
+        channelService.createMessage(id, builder.build())
+    }.fix().suspended().extract()
 
     suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
         embed = builder
     }
 
-    suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit)
+    suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) = rest.effect {
+        channelService.bulkDeleteMessages(id, builder.build())
+    }.fix().suspended()
 }
 
 interface IAudioChannel : IChannel

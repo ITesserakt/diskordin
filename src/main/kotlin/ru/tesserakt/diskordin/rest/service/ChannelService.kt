@@ -1,5 +1,8 @@
 package ru.tesserakt.diskordin.rest.service
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.integrations.retrofit.adapter.CallK
 import retrofit2.http.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.*
@@ -15,149 +18,149 @@ import ru.tesserakt.diskordin.core.entity.query.Query
 @Suppress("unused")
 interface ChannelService {
     @GET("/api/v6/channels/{id}")
-    suspend fun <C : IChannel> getChannel(@Path("id") id: Snowflake): ChannelResponse<C>
+    fun <C : IChannel> getChannel(@Path("id") id: Snowflake): CallK<Id<ChannelResponse<C>>>
 
     @PATCH("/api/v6/channels/{id}")
-    suspend fun <C : IChannel> editChannel(
+    fun <C : IChannel> editChannel(
         @Path("id") id: Snowflake,
         @Body request: ChannelEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse<C>
+    ): CallK<Id<ChannelResponse<C>>>
 
     @DELETE("/api/v6/channels/{id}")
-    suspend fun <C : IChannel> deleteChannel(
+    fun <C : IChannel> deleteChannel(
         @Path("id") id: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): ChannelResponse<C>
+    ): CallK<Id<ChannelResponse<C>>>
 
     @POST("/api/v6/channels/{id}/typing")
-    suspend fun triggerTyping(@Path("id") id: Snowflake)
+    fun triggerTyping(@Path("id") id: Snowflake): CallK<Unit>
 
     @GET("/api/v6/channels/{id}/messages")
-    suspend fun getMessages(
+    fun getMessages(
         @Path("id") id: Snowflake,
         @QueryMap query: Query
-    ): Array<MessageResponse>
+    ): CallK<ListK<MessageResponse>>
 
     @GET("/api/v6/channels/{channelId}/messages/{messageId}")
-    suspend fun getMessage(
+    fun getMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
-    ): MessageResponse
+    ): CallK<Id<MessageResponse>>
 
     @Multipart
     @POST("/api/v6/channels/{id}/messages")
-    suspend fun createMessage(
+    fun createMessage(
         @Path("id") id: Snowflake,
         @Part("payload_json") request: MessageCreateRequest
-    ): MessageResponse
+    ): CallK<Id<MessageResponse>>
 
     @PATCH("/api/v6/channels/{channelId}/messages/{messageId}")
-    suspend fun editMessage(
+    fun editMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Body request: MessageEditRequest
-    ): MessageResponse
+    ): CallK<Id<MessageResponse>>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}")
-    suspend fun deleteMessage(
+    fun deleteMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @POST("/api/v6/channels/{id}/messages/bulk-delete")
-    suspend fun bulkDeleteMessages(
+    fun bulkDeleteMessages(
         @Path("id") channelId: Snowflake,
         @Body request: BulkDeleteRequest
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/channels/{id}/pins")
-    suspend fun getPinnedMessages(@Path("id") id: Snowflake): Array<MessageResponse>
+    fun getPinnedMessages(@Path("id") id: Snowflake): CallK<ListK<MessageResponse>>
 
     @PUT("/api/v6/channels/{id}/pins/{messageId}")
-    suspend fun pinMessage(
+    fun pinMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
-    )
+    ): CallK<Unit>
 
-    @DELETE("/api/v6/channels/{id}/pins/{messageId}")
-    suspend fun unpinMessage(
+    @DELETE("/api/v6/channels/{channelId}/pins/{messageId}")
+    fun unpinMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
-    )
+    ): CallK<Unit>
 
     @PUT("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}/@me")
-    suspend fun addReaction(
+    fun addReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Path("emoji") emoji: String
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}/@me")
-    suspend fun removeOwnReaction(
+    fun removeOwnReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Path("emoji") emoji: String
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}/{userId}")
-    suspend fun removeReaction(
+    fun removeReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Path("emoji") emoji: String,
         @Path("userId") userId: Snowflake
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}")
-    suspend fun getReactions(
+    fun getReactions(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
         @Path("emoji") emoji: String,
         @QueryMap query: Query
-    ): Array<UserResponse<IUser>>
+    ): CallK<ListK<UserResponse<IUser>>>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions")
-    suspend fun removeAllReactions(
+    fun removeAllReactions(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
-    )
+    ): CallK<Unit>
 
     @GET("/api/v6/channels/{id}/invites")
-    suspend fun getChannelInvites(@Path("id") id: Snowflake): Array<InviteResponse<IInvite>>
+    fun getChannelInvites(@Path("id") id: Snowflake): CallK<ListK<InviteResponse<IInvite>>>
 
     @POST("/api/v6/channels/{id}/invites")
-    suspend fun createChannelInvite(
+    fun createChannelInvite(
         @Path("id") id: Snowflake,
         @Body request: InviteCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): InviteResponse<IInvite>
+    ): CallK<Id<InviteResponse<IInvite>>>
 
     @DELETE("/api/v6/channels/{channelId}/permissions/{overwriteId}")
-    suspend fun deleteChannelPermissions(
+    fun deleteChannelPermissions(
         @Path("channelId") channelId: Snowflake,
         @Path("overwriteId") overwriteId: Long,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @PUT("/api/v6/channels/{channelId}/permissions/{overwriteId}")
-    suspend fun editChannelPermissions(
+    fun editChannelPermissions(
         @Path("channelId") channelId: Snowflake,
         @Path("overwriteId") overwriteId: Long,
         @Body request: PermissionsEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    )
+    ): CallK<Unit>
 
     @PUT("/api/v6/channels/{channelId}/recipients/{userId}")
-    suspend fun addDMRecipient(
+    fun addDMRecipient(
         @Path("channelId") channelId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Body request: GroupRecipientAddRequest
-    )
+    ): CallK<Unit>
 
     @DELETE("/api/v6/channels/{channelId}/recipients/{userId}")
-    suspend fun removeDMRecipient(
+    fun removeDMRecipient(
         @Path("channelId") channelId: Snowflake,
         @Path("userId") userId: Snowflake
-    )
+    ): CallK<Unit>
 }

@@ -1,17 +1,21 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.Id
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.fx.fix
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
-import ru.tesserakt.diskordin.core.entity.builder.build
+import ru.tesserakt.diskordin.core.entity.builder.instance
 import ru.tesserakt.diskordin.core.entity.client
-import ru.tesserakt.diskordin.core.entity.guildService
+import ru.tesserakt.diskordin.core.entity.rest
+import ru.tesserakt.diskordin.rest.call
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
 import java.awt.Color
@@ -20,8 +24,10 @@ class Role constructor(
     raw: RoleResponse,
     guildId: Snowflake
 ) : IRole {
-    override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole =
-        guildService.editRole(guild.id, id, builder.build(), null).unwrap(guild.id)
+    override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole = rest.call(guild.id, Id.functor()) {
+        val inst = builder.instance()
+        guildService.editRole(guild.id, id, inst.create(), inst.reason)
+    }.fix().suspended().extract()
 
     @ExperimentalUnsignedTypes
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
@@ -45,8 +51,9 @@ class Role constructor(
 
     override val name: String = raw.name
 
-    override suspend fun delete(reason: String?) =
+    override suspend fun delete(reason: String?) = rest.effect {
         guildService.deleteRole(guild.id, id, reason)
+    }.fix().suspended()
 
     override fun toString(): String {
         return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
