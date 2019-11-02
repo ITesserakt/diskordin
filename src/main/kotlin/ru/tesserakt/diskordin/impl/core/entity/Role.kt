@@ -23,7 +23,6 @@ class Role constructor(
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole =
         guildService.editRole(guild.id, id, builder.build(), null).unwrap(guild.id)
 
-    @ExperimentalUnsignedTypes
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
 
     override val color: Color = Color(raw.color)
