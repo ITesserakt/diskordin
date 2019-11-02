@@ -8,13 +8,8 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.core.some
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicativeError.applicativeError
 import arrow.fx.extensions.io.applicativeError.attempt
-import arrow.fx.extensions.io.async.async
-import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
-import arrow.integrations.retrofit.adapter.unwrapBody
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
@@ -102,11 +97,9 @@ class Guild(raw: GuildResponse) : IGuild {
         emojiService.createGuildEmoji(id, builder.build())
     }.fix().suspended().extract()
 
-    override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) = rest.guildService
-        .editCurrentNickname(id, builder.build())
-        .async(IO.async())
-        .flatMap { it.unwrapBody(IO.applicativeError()) }
-        .suspended().extract()
+    override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) = rest.callRaw {
+        guildService.editCurrentNickname(id, builder.build())
+    }.fix().suspended().extract()
 
     override suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
         addChannelJ(builder)
@@ -159,11 +152,9 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.removeBan(id, userId, reason)
     }.fix().suspended()
 
-    override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int =
-        rest.guildService.getPruneCount(id, builder.query())
-            .async(IO.async())
-            .flatMap { it.unwrapBody(IO.applicativeError()) }
-            .suspended().extract()
+    override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int = rest.callRaw {
+        guildService.getPruneCount(id, builder.query())
+    }.fix().suspended().extract()
 
     override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) = rest.effect {
         guildService.createIntegration(id, builder.build())

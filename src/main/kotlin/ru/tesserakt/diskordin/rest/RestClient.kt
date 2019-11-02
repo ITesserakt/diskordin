@@ -5,7 +5,6 @@ import arrow.core.Option
 import arrow.fx.typeclasses.Async
 import arrow.integrations.retrofit.adapter.CallK
 import arrow.integrations.retrofit.adapter.unwrapBody
-import arrow.mtl.Kleisli
 import arrow.typeclasses.Functor
 import retrofit2.Retrofit
 import retrofit2.create
@@ -18,25 +17,46 @@ import ru.tesserakt.diskordin.rest.service.*
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClient, A: Async<F>) : Async<F> by A {
-    val channelService = retrofit.create<ChannelService>()
-    val emojiService = retrofit.create<EmojiService>()
-    val gatewayService = retrofit.create<GatewayService>()
-    val guildService = retrofit.create<GuildService>()
-    val inviteService = retrofit.create<InviteService>()
-    val userService = retrofit.create<UserService>()
-    val voiceService = retrofit.create<VoiceService>()
-    val webhookService = retrofit.create<WebhookService>()
+    private val _channelService = retrofit.create<ChannelService>()
+    private val _emojiService = retrofit.create<EmojiService>()
+    private val _gatewayService = retrofit.create<GatewayService>()
+    private val _guildService = retrofit.create<GuildService>()
+    private val _inviteService = retrofit.create<InviteService>()
+    private val _userService = retrofit.create<UserService>()
+    private val _voiceService = retrofit.create<VoiceService>()
+    private val _webhookService = retrofit.create<WebhookService>()
 
-    inline fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
+    val RestClient<F>.channelService: ChannelService
+        get() = _channelService
+    val RestClient<F>.emojiService: EmojiService
+        get() = _emojiService
+    val RestClient<F>.gatewayService: GatewayService
+        get() = _gatewayService
+    val RestClient<F>.guildService: GuildService
+        get() = _guildService
+    val RestClient<F>.inviteService: InviteService
+        get() = _inviteService
+    val RestClient<F>.userService: UserService
+        get() = _userService
+    val RestClient<F>.voiceService: VoiceService
+        get() = _voiceService
+    val RestClient<F>.webhookService: WebhookService
+        get() = _webhookService
+
+    inline fun <R> callRaw(
+        crossinline f: RestClient<F>.() -> CallK<out R>
+    ) = fx.async {
+        val call = f().async(this).bind()
+        call.unwrapBody(this).bind()
+    }
+
+    fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
         ctx: C,
-        crossinline f: RestClient<F>.() -> CallK<out Kind<G, R>>
-    ) = Kleisli<F, C, Kind<G, E>> { c ->
-        fx.async {
-            val call = f().async(this).bind()
-            val response = call.unwrapBody(this).bind()
-            response.map { it.unwrap(c) }
-        }
-    }.run(ctx)
+        f: RestClient<F>.() -> CallK<out Kind<G, R>>
+    ) = fx.monad {
+        val call = callRaw(f).bind()
+        call.map { it.unwrap(ctx) }
+    }
 
     inline fun effect(
         crossinline f: suspend RestClient<F>.() -> CallK<Unit>
@@ -45,19 +65,19 @@ class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClien
     }.map { Unit }
 }
 
-inline fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient<F>.call(
+fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient<F>.call(
     FN: Functor<G>,
-    crossinline f: RestClient<F>.() -> CallK<out Kind<G, R>>
+    f: RestClient<F>.() -> CallK<out Kind<G, R>>
 ) = FN.call(UnwrapContext.EmptyContext, f)
 
-inline fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient<F>.call(
+fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient<F>.call(
     guildId: Snowflake,
     FN: Functor<G>,
-    crossinline f: RestClient<F>.() -> CallK<out Kind<G, R>>
+    f: RestClient<F>.() -> CallK<out Kind<G, R>>
 ) = FN.call(UnwrapContext.GuildContext(guildId), f)
 
-inline fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient<F>.call(
+fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient<F>.call(
     guildId: Option<Snowflake>,
     FN: Functor<G>,
-    crossinline f: RestClient<F>.() -> CallK<out Kind<G, R>>
+    f: RestClient<F>.() -> CallK<out Kind<G, R>>
 ) = FN.call(UnwrapContext.PartialGuildContext(guildId.orNull()), f)
