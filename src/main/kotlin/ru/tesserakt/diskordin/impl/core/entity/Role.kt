@@ -4,12 +4,13 @@ package ru.tesserakt.diskordin.impl.core.entity
 import arrow.core.Id
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
+import arrow.fx.IO
+import arrow.fx.extensions.io.applicative.map
 import arrow.fx.fix
-import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Permission
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.RoleResponse
-import ru.tesserakt.diskordin.core.entity.IGuild
 import ru.tesserakt.diskordin.core.entity.IRole
 import ru.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.instance
@@ -24,10 +25,10 @@ class Role constructor(
     raw: RoleResponse,
     guildId: Snowflake
 ) : IRole {
-    override suspend fun edit(builder: RoleEditBuilder.() -> Unit): IRole = rest.call(guild.id, Id.functor()) {
+    override fun edit(builder: RoleEditBuilder.() -> Unit): IO<IRole> = rest.call(guild.id, Id.functor()) {
         val inst = builder.instance()
         guildService.editRole(guild.id, id, inst.create(), inst.reason)
-    }.fix().suspended().extract()
+    }.map { it.extract() }
 
     @ExperimentalUnsignedTypes
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
@@ -42,19 +43,19 @@ class Role constructor(
 
     override val isEveryone: Boolean = id == guildId
 
-    override val guild: Identified<IGuild> =
-        Identified(guildId) {
-            client.findGuild(it) ?: throw NoSuchElementException("Guild id is not right")
-        }
+    override val guild = guildId identify {
+        client.getGuild(it).bind()
+    }
 
     override val mention: String = "<@&$id>"
 
     override val name: String = raw.name
 
-    override suspend fun delete(reason: String?) = rest.effect {
+    override fun delete(reason: String?) = rest.effect {
         guildService.deleteRole(guild.id, id, reason)
-    }.fix().suspended()
+    }.fix()
 
+    @ExperimentalUnsignedTypes
     override fun toString(): String {
         return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
     }

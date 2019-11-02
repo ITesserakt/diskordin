@@ -80,7 +80,7 @@ internal class EventDispatcherImpl(private val gateway: Gateway, private val api
         "MESSAGE_REACTION_REMOVE" -> ReactionRemoveEvent(rawEvent.unwrap())
         "MESSAGE_REACTION_REMOVE_ALL" -> AllReactionsRemoveEvent(rawEvent.unwrap())
         "PRESENCE_UPDATE" -> PresenceUpdateEvent(rawEvent.unwrap())
-        "PRESENCES_REPLACE" -> PresenceReplaceEvent(rawEvent.unwrap())
+        "PRESENCES_REPLACE" -> TODO("I don`t know what is this")
         "TYPING_START" -> TypingEvent(rawEvent.unwrap())
         "USER_UPDATE" -> UserUpdateEvent(rawEvent.unwrapAsResponse())
         "VOICE_STATE_UPDATE" -> VoiceStateUpdateEvent(rawEvent.unwrapAsResponse())

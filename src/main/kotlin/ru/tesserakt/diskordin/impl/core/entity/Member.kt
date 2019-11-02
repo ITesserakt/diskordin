@@ -1,15 +1,14 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.k
 import arrow.fx.IO
+import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.combine
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.MemberResponse
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
@@ -20,29 +19,29 @@ class Member constructor(
     raw: MemberResponse<*>,
     guildId: Snowflake
 ) : User(raw.user), IMember {
-    override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
+    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it).bind() }
 
-    override suspend fun asMember(guildId: Snowflake): IMember = this
+    override fun asMember(guildId: Snowflake): IO<IMember> = IO.just(this)
 
-    override suspend fun addRole(role: IRole, reason: String?) = rest.effect {
+    override fun addRole(role: IRole, reason: String?) = rest.effect {
         guildService.addMemberRole(guild.id, id, role.id, reason)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun addRole(roleId: Snowflake, reason: String?) = rest.effect {
+    override fun addRole(roleId: Snowflake, reason: String?) = rest.effect {
         guildService.addMemberRole(guild.id, id, roleId, reason)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun removeRole(role: IRole, reason: String?) = rest.effect {
+    override fun removeRole(role: IRole, reason: String?) = rest.effect {
         guildService.deleteMemberRole(guild.id, id, role.id, reason)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun removeRole(roleId: Snowflake, reason: String?) = rest.effect {
+    override fun removeRole(roleId: Snowflake, reason: String?) = rest.effect {
         guildService.deleteMemberRole(guild.id, id, roleId, reason)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun edit(builder: MemberEditBuilder.() -> Unit) = rest.effect {
+    override fun edit(builder: MemberEditBuilder.() -> Unit) = rest.effect {
         guildService.editMember(guild.id, id, builder.build(), null)
-    }.flatMap { IO { guild().members.first { it.id == id } } }.suspended()
+    }.flatMap { IO.fx { guild().bind().members.bind().first { it.id == id } } }
 
     override fun toString(): String {
         return "Member(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime, mention='$mention') ${super.toString()}"
@@ -50,12 +49,10 @@ class Member constructor(
 
     override val nickname: String? = raw.nick
 
-    override val roles: Flow<IRole> = flow {
-        raw.roles
-            .map(Snowflake.Companion::of)
-            .map {
-                guild().getRole(it)
-            }.forEach { emit(it) }
+    override val roles = IO.fx {
+        raw.roles.map { roleId ->
+            guild().bind().getRole(roleId).bind()
+        }.k()
     }
 
     override val joinTime: Instant = raw.joinedAt

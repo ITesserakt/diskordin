@@ -2,17 +2,21 @@ package ru.tesserakt.diskordin.impl.core.entity
 
 
 import arrow.fx.IO
+import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
-import kotlinx.coroutines.flow.first
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.combine
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.AccountResponse
 import ru.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
-import ru.tesserakt.diskordin.core.entity.*
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
+import ru.tesserakt.diskordin.core.entity.IIntegration
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
+import ru.tesserakt.diskordin.core.entity.client
+import ru.tesserakt.diskordin.core.entity.rest
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -20,19 +24,19 @@ class Integration(
     raw: GuildIntegrationResponse,
     guildId: Snowflake
 ) : IIntegration {
-    override suspend fun sync() = rest.effect {
+    override fun sync() = rest.effect {
         guildService.syncIntegration(guild.id, id)
-    }.fix().suspended()
+    }.fix()
 
-    override val guild: Identified<IGuild> = guildId combine { client.getGuild(it) }
+    override val guild = guildId identify { client.getGuild(it).bind() }
 
-    override suspend fun delete(reason: String?) = rest.effect {
+    override fun delete(reason: String?) = rest.effect {
         guildService.deleteIntegration(guild.id, id)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit): IIntegration = rest.effect {
+    override fun edit(builder: IntegrationEditBuilder.() -> Unit): IO<IIntegration> = rest.effect {
         guildService.editIntegration(guild.id, id, builder.build())
-    }.flatMap { IO { guild().integrations.first { it.id == id } } }.suspended()
+    }.flatMap { IO.fx { guild().bind().integrations.bind().first { it.id == id } } }
 
     override fun toString(): String {
         return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"
@@ -44,14 +48,13 @@ class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role = raw.role_id combine { guild().roles.first { role -> role.id == it } }
+    override val role = raw.role_id identify { guild().bind().roles.bind().first { role -> role.id == it } }
 
     override val expireBehavior: Int = raw.expire_behavior
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: Identified<IUser> =
-        Identified(raw.user.id) { User(raw.user) }
+    override val user: Identified<IUser> = raw.user.id identify { raw.user.unwrap() }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 

@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.flow.Flow
+import arrow.core.ListK
+import arrow.fx.IO
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import java.time.Instant
@@ -10,12 +11,12 @@ interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject {
     override val name: String
         get() = nickname ?: username
 
-    val roles: Flow<IRole>
+    val roles: IO<ListK<IRole>>
 
     val joinTime: Instant
 
-    suspend fun addRole(role: IRole, reason: String?)
-    suspend fun addRole(roleId: Snowflake, reason: String?)
-    suspend fun removeRole(role: IRole, reason: String?)
-    suspend fun removeRole(roleId: Snowflake, reason: String?)
+    fun addRole(role: IRole, reason: String?): IO<Unit>
+    fun addRole(roleId: Snowflake, reason: String?): IO<Unit>
+    fun removeRole(role: IRole, reason: String?): IO<Unit>
+    fun removeRole(roleId: Snowflake, reason: String?): IO<Unit>
 }

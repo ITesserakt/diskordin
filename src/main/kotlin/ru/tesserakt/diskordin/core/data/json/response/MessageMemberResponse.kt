@@ -1,12 +1,13 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
+import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.impl.core.entity.MessageMember
 import java.time.Instant
 
 
 data class MessageMemberResponse(
-    val roles: Array<Long>,
+    val roles: Array<Snowflake>,
     val nick: String? = null,
     val mute: Boolean,
     val deaf: Boolean,

@@ -1,6 +1,7 @@
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.flow.Flow
+import arrow.core.ListK
+import arrow.fx.IO
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.EmojiResponse
@@ -19,7 +20,7 @@ interface IEmoji : INamed {
 }
 
 interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject, IEditable<ICustomEmoji, EmojiEditBuilder> {
-    val roles: Flow<IRole>
+    val roles: IO<ListK<IRole>>
     val creator: Identified<IUser>
     val requireColons: Boolean
     val isManaged: Boolean

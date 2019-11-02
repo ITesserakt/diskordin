@@ -7,9 +7,11 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
+import arrow.fx.IO
+import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
@@ -45,8 +47,9 @@ open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val id: Snowflake = raw.id
 
-    override suspend fun asMember(guildId: Snowflake): IMember =
-        client.getGuild(guildId).members.first { it.id == id }
+    override fun asMember(guildId: Snowflake): IO<IMember> = IO.fx {
+        client.getGuild(guildId).bind().members.bind().first { member -> member.id == id }
+    }
 
     override fun toString(): String {
         return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
@@ -74,19 +77,19 @@ class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
         }.fix().suspended().fix().forEach { emit(it) }
     }
 
-    override suspend fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
+    override fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
 
-    override suspend fun leaveGuild(guildId: Snowflake) = rest.effect {
+    override fun leaveGuild(guildId: Snowflake) = rest.effect {
         userService.leaveGuild(guildId)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IChannel = rest.call(Id.functor()) {
+    override fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IO<IPrivateChannel> = rest.call(Id.functor()) {
         userService.joinToDM(builder.build())
-    }.fix().suspended().extract()
+    }.map { it.extract() }
 
-    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf = rest.call(Id.functor()) {
+    override fun edit(builder: UserEditBuilder.() -> Unit): IO<ISelf> = rest.call(Id.functor()) {
         userService.editCurrentUser(builder.build())
-    }.fix().suspended().extract()
+    }.map { it.extract() }
 
     override fun toString(): String {
         return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) ${super.toString()}"

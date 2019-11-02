@@ -7,12 +7,16 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
+import arrow.fx.IO
+import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.MessageResponse
+import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
@@ -21,43 +25,43 @@ import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.rest.call
 
 class Message(raw: MessageResponse) : IMessage {
-    override suspend fun addReaction(emoji: IEmoji) = rest.effect {
+    override fun addReaction(emoji: IEmoji) = rest.effect {
         channelService.addReaction(channel.id, id, emoji.name)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun deleteOwnReaction(emoji: IEmoji) = rest.effect {
+    override fun deleteOwnReaction(emoji: IEmoji) = rest.effect {
         channelService.removeOwnReaction(channel.id, id, emoji.name)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun deleteReaction(emoji: IEmoji, user: IUser) = rest.effect {
+    override fun deleteReaction(emoji: IEmoji, user: IUser) = rest.effect {
         channelService.removeReaction(channel.id, id, emoji.name, user.id)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun deleteReaction(emoji: IEmoji, userId: Snowflake) = rest.effect {
+    override fun deleteReaction(emoji: IEmoji, userId: Snowflake) = rest.effect {
         channelService.removeReaction(channel.id, id, emoji.name, userId)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun reactedUsers(
+    override fun reactedUsers(
         emoji: IEmoji,
         builder: ReactedUsersQuery.() -> Unit
-    ): List<IUser> = rest.call(ListK.functor()) {
+    ): IO<ListK<IUser>> = rest.call(ListK.functor()) {
         channelService.getReactions(channel.id, id, emoji.name, builder.query())
-    }.fix().suspended().fix()
+    }.map { it.fix() }
 
-    override suspend fun deleteAllReactions() = rest.effect {
+    override fun deleteAllReactions() = rest.effect {
         channelService.removeAllReactions(channel.id, id)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun delete(reason: String?) = rest.effect {
+    override fun delete(reason: String?) = rest.effect {
         channelService.deleteMessage(channel.id, id, reason)
-    }.fix().suspended()
+    }.fix()
 
-    override val channel: Identified<IMessageChannel> = Identified(raw.channel_id) {
-        client.getChannel(it) as IMessageChannel
+    override val channel: Identified<IMessageChannel> = raw.channel_id identify {
+        client.getChannel(it).bind() as IMessageChannel
     }
 
-    override val author: Identified<IUser> = Identified(raw.author.id) {
-        User(raw.author)
+    override val author: Identified<IUser> = raw.author.id identify {
+        raw.author.unwrap()
     }
 
     override val content: String = raw.content
@@ -70,17 +74,17 @@ class Message(raw: MessageResponse) : IMessage {
 
     override val id: Snowflake = raw.id
 
-    override suspend fun edit(builder: MessageEditBuilder.() -> Unit) = rest.call(Id.functor()) {
+    override fun edit(builder: MessageEditBuilder.() -> Unit) = rest.call(Id.functor()) {
         channelService.editMessage(channel.id, id, builder.build())
-    }.fix().suspended().extract()
+    }.map { it.extract() }
 
-    override suspend fun pin() = rest.effect {
+    override fun pin() = rest.effect {
         channelService.pinMessage(channel.id, id)
-    }.fix().suspended()
+    }.fix()
 
-    override suspend fun unpin() = rest.effect {
+    override fun unpin() = rest.effect {
         channelService.unpinMessage(channel.id, id)
-    }.fix().suspended()
+    }.fix()
 
     override fun toString(): String {
         return "Message(channel=$channel, author=$author, content='$content', isTTS=$isTTS, attachments=$attachments, isPinned=$isPinned, id=$id)"

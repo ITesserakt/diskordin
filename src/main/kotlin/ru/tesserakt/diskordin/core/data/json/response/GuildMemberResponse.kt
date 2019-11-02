@@ -9,7 +9,7 @@ import java.time.Instant
 sealed class MemberResponse<C : UnwrapContext>(
     val user: UserResponse<IUser>,
     val nick: String? = null,
-    val roles: Array<Long>,
+    val roles: Array<Snowflake>,
     val joinedAt: Instant,
     val deaf: Boolean,
     val mute: Boolean
@@ -18,7 +18,7 @@ sealed class MemberResponse<C : UnwrapContext>(
 class JoinMemberResponse(
     user: UserResponse<IUser>,
     nick: String? = null,
-    roles: Array<Long>,
+    roles: Array<Snowflake>,
     joinedAt: Instant,
     deaf: Boolean,
     mute: Boolean,
@@ -30,7 +30,7 @@ class JoinMemberResponse(
 class GuildMemberResponse(
     user: UserResponse<IUser>,
     nick: String? = null,
-    roles: Array<Long>,
+    roles: Array<Snowflake>,
     joinedAt: Instant,
     deaf: Boolean,
     mute: Boolean

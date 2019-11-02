@@ -4,6 +4,7 @@
 package ru.tesserakt.diskordin.core.entity
 
 import arrow.fx.ForIO
+import arrow.fx.IO
 import org.koin.core.KoinComponent
 import org.koin.core.get
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -36,9 +37,9 @@ interface INamed : IDiscordObject {
 }
 
 interface IDeletable : IEntity {
-    suspend fun delete(reason: String? = null)
+    fun delete(reason: String? = null): IO<Unit>
 }
 
 interface IEditable<E : IEntity, B : BuilderBase<*>> : IEntity {
-    suspend fun edit(builder: B.() -> Unit): E
+    fun edit(builder: B.() -> Unit): IO<E>
 }

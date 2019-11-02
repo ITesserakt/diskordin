@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.impl.core.entity.`object`
 
 
 import ru.tesserakt.diskordin.core.data.Identified
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.BanResponse
 import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IUser
@@ -11,7 +12,7 @@ class Ban(raw: BanResponse) : IBan {
     override val reason: String? = raw.reason
 
     override val user: Identified<IUser> =
-        Identified(raw.user.id) { raw.user.unwrap() }
+        raw.user.id identify { raw.user.unwrap() }
 
     override fun toString(): String {
         return "Ban(reason=$reason, user=$user)"

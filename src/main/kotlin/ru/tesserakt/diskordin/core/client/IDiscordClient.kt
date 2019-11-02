@@ -1,7 +1,9 @@
 package ru.tesserakt.diskordin.core.client
 
+import arrow.core.ListK
 import arrow.fx.ForIO
-import kotlinx.coroutines.flow.Flow
+import arrow.fx.IO
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.*
@@ -17,6 +19,7 @@ interface IDiscordClient : IDiscordObject {
     val tokenType: TokenType
     val self: Identified<ISelf>
     val isConnected: Boolean
+    @ExperimentalCoroutinesApi
     val gateway: Gateway
     val rest: RestClient<ForIO>
 
@@ -31,19 +34,16 @@ interface IDiscordClient : IDiscordObject {
     suspend fun use(block: suspend IDiscordClient.() -> Unit)
 
     fun logout()
-    suspend fun findUser(id: Snowflake): IUser?
-    suspend fun findGuild(id: Snowflake): IGuild?
-    suspend fun findChannel(id: Snowflake): IChannel?
-    suspend fun getUser(id: Snowflake): IUser
-    suspend fun getGuild(id: Snowflake): IGuild
-    suspend fun getChannel(id: Snowflake): IChannel
-    suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild
-    suspend fun getInvite(code: String): IInvite?
-    suspend fun deleteInvite(code: String, reason: String?)
-    suspend fun getRegions(): List<IRegion>
+    fun getUser(id: Snowflake): IO<IUser>
+    fun getGuild(id: Snowflake): IO<IGuild>
+    fun getChannel(id: Snowflake): IO<IChannel>
+    fun createGuild(request: GuildCreateBuilder.() -> Unit): IO<IGuild>
+    fun getInvite(code: String): IO<IInvite>
+    fun deleteInvite(code: String, reason: String?): IO<Unit>
+    fun getRegions(): IO<ListK<IRegion>>
 
-    val users: Flow<IUser>
-    val guilds: Flow<IGuild>
+    val users: IO<ListK<IUser>>
+    val guilds: IO<ListK<IGuild>>
 }
 
 enum class TokenType {

@@ -1,7 +1,8 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import arrow.fx.IO
+import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.just
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.MessageUserResponse
 import ru.tesserakt.diskordin.core.data.json.response.unwrap
@@ -11,7 +12,7 @@ import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 
 class MessageUser(private val raw: MessageUserResponse) : IUser {
-    private val delegate by lazy { runBlocking { client.getUser(raw.id) } }
+    private val delegate by lazy { client.getUser(raw.id).unsafeRunSync() }
 
     override val avatar: String? = raw.avatar
     override val mfaEnabled: Boolean by lazy { delegate.mfaEnabled }
@@ -24,8 +25,10 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
     override val discriminator: Short = raw.discriminator
     override val isBot: Boolean = raw.bot ?: false
 
-    override suspend fun asMember(guildId: Snowflake): IMember = raw.member?.unwrap(guildId)
-        ?: client.getGuild(guildId).members.first { it.id == id }
+    override fun asMember(guildId: Snowflake): IO<IMember> = raw.member?.unwrap(guildId)?.just()
+        ?: IO.fx {
+            client.getGuild(guildId).bind().members.bind().first { member -> member.id == id }
+        }
 
     override fun toString(): String {
         return "MessageUser(avatar=$avatar, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"

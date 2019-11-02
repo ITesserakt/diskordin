@@ -18,20 +18,20 @@ import ru.tesserakt.diskordin.core.entity.query.Query
 @Suppress("unused")
 interface ChannelService {
     @GET("/api/v6/channels/{id}")
-    fun <C : IChannel> getChannel(@Path("id") id: Snowflake): CallK<Id<ChannelResponse<C>>>
+    fun getChannel(@Path("id") id: Snowflake): CallK<Id<ChannelResponse<IChannel>>>
 
     @PATCH("/api/v6/channels/{id}")
-    fun <C : IChannel> editChannel(
+    fun editChannel(
         @Path("id") id: Snowflake,
         @Body request: ChannelEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): CallK<Id<ChannelResponse<C>>>
+    ): CallK<Id<ChannelResponse<IChannel>>>
 
     @DELETE("/api/v6/channels/{id}")
-    fun <C : IChannel> deleteChannel(
+    fun deleteChannel(
         @Path("id") id: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): CallK<Id<ChannelResponse<C>>>
+    ): CallK<Id<ChannelResponse<IChannel>>>
 
     @POST("/api/v6/channels/{id}/typing")
     fun triggerTyping(@Path("id") id: Snowflake): CallK<Unit>
