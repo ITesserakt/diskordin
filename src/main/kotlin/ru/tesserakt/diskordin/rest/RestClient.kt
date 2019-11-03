@@ -16,7 +16,7 @@ import ru.tesserakt.diskordin.core.entity.IDiscordObject
 import ru.tesserakt.diskordin.rest.service.*
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClient, A: Async<F>) : Async<F> by A {
+class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClient, private val A: Async<F>) {
     private val _channelService = retrofit.create<ChannelService>()
     private val _emojiService = retrofit.create<EmojiService>()
     private val _gatewayService = retrofit.create<GatewayService>()
@@ -43,9 +43,9 @@ class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClien
     val RestClient<F>.webhookService: WebhookService
         get() = _webhookService
 
-    inline fun <R> callRaw(
-        crossinline f: RestClient<F>.() -> CallK<out R>
-    ) = fx.async {
+    fun <R> callRaw(
+        f: RestClient<F>.() -> CallK<out R>
+    ) = A.fx.async {
         val call = f().async(this).bind()
         call.unwrapBody(this).bind()
     }
@@ -53,16 +53,18 @@ class RestClient<F>(retrofit: Retrofit, private val discordClient: IDiscordClien
     fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
         ctx: C,
         f: RestClient<F>.() -> CallK<out Kind<G, R>>
-    ) = fx.monad {
+    ) = A.fx.monad {
         val call = callRaw(f).bind()
         call.map { it.unwrap(ctx) }
     }
 
-    inline fun effect(
-        crossinline f: suspend RestClient<F>.() -> CallK<Unit>
-    ): Kind<F, Unit> = effect(kotlinx.coroutines.Dispatchers.IO) {
-        f().async(this)
-    }.map { Unit }
+    fun effect(
+        f: RestClient<F>.() -> CallK<Unit>
+    ): Kind<F, Unit> = A.run {
+        callRaw { f() }.handleError {
+            if (it is IllegalStateException) Unit
+        }
+    }
 }
 
 fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient<F>.call(

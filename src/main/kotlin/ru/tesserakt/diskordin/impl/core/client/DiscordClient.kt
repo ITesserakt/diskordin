@@ -80,7 +80,7 @@ data class DiscordClient(
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override suspend fun login() = IO.fx {
+    override fun login() = IO.fx {
         val gatewayStats = rest.call(Id.functor()) { gatewayService.getGatewayBot() }.bind().extract()
         val gatewayURL = gatewayStats.url
         val metadata = gatewayStats.session
@@ -88,9 +88,8 @@ data class DiscordClient(
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
 
-        this@DiscordClient.gateway.run()
-        Unit
-    }.unsafeRunSync()
+        !effect { this@DiscordClient.gateway.run().join() }
+    }
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
