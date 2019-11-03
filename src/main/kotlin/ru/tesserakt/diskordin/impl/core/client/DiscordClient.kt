@@ -9,6 +9,7 @@ import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,10 +62,8 @@ data class DiscordClient(
     override lateinit var gateway: Gateway
         private set
 
-    override lateinit var users: IO<ListK<IUser>>
-        private set
-    override lateinit var guilds: IO<ListK<IGuild>>
-        private set
+    override val users = mutableListOf<IUser>().just()
+    override val guilds = mutableListOf<IGuild>().just()
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime

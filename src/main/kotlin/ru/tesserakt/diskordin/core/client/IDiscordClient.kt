@@ -42,8 +42,8 @@ interface IDiscordClient : IDiscordObject {
     fun deleteInvite(code: String, reason: String?): IO<Unit>
     fun getRegions(): IO<ListK<IRegion>>
 
-    val users: IO<ListK<IUser>>
-    val guilds: IO<ListK<IGuild>>
+    val users: IO<List<IUser>>
+    val guilds: IO<List<IGuild>>
 }
 
 enum class TokenType {

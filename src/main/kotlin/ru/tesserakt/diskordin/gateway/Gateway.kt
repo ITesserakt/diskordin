@@ -35,15 +35,16 @@ class Gateway @ExperimentalTime constructor(
     private val compression = getKoin().getProperty("compression", "")
     private val fullUrl = "$url/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
     private val scarlet by inject<Scarlet> { parametersOf(fullUrl) }
-    private val logger by Loggers("[Gateway]")
-    private val lifecycle by inject<GatewayLifecycle>()
-    private val restartHandler = registerHandler(::RestartHandler)
     private val api = scarlet.create<GatewayAPI>()
 
     @ExperimentalCoroutinesApi
     internal val eventDispatcher: EventDispatcher = EventDispatcherImpl(this, api)
     internal val scope: CoroutineScope = getKoin().getProperty("gatewayScope")!!
     internal var lastSequenceId: Int? = null
+
+    private val logger by Loggers("[Gateway]")
+    private val lifecycle by inject<GatewayLifecycle>()
+    private val restartHandler = registerHandler(::RestartHandler)
 
     init {
         registerHandler(::HelloHandler)
