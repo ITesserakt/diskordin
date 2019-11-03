@@ -1,14 +1,10 @@
-package ru.tesserakt.diskordin.util
+package ru.tesserakt.diskordin.core.data
 
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import org.amshove.kluent.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
-import ru.tesserakt.diskordin.core.data.Identified
-import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.asSnowflake
-import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.entity.IMentioned
 import kotlin.random.Random
 

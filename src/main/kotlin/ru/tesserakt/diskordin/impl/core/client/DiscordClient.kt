@@ -1,33 +1,34 @@
 package ru.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Either
+import arrow.core.*
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.extensions.either.monadError.monadError
-import arrow.core.getOrHandle
-import arrow.core.right
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.io.applicativeError.applicativeError
-import arrow.fx.extensions.io.async.async
-import arrow.fx.extensions.io.monad.flatMap
-import arrow.integrations.retrofit.adapter.unwrapBody
+import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.monad.map
+import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import org.koin.core.inject
 import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.combine
-import ru.tesserakt.diskordin.core.data.event.UserUpdateEvent
-import ru.tesserakt.diskordin.core.data.event.guild.GuildCreateEvent
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
-import ru.tesserakt.diskordin.core.entity.*
+import ru.tesserakt.diskordin.core.data.identify
+import ru.tesserakt.diskordin.core.entity.IGuild
+import ru.tesserakt.diskordin.core.entity.ISelf
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
+import ru.tesserakt.diskordin.rest.RestClient
+import ru.tesserakt.diskordin.rest.call
 import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
@@ -40,6 +41,7 @@ data class DiscordClient(
     private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
+    override val rest: RestClient<ForIO> by inject()
 
     init {
         self = TokenVerification(token, tokenType, Either.monadError())
@@ -47,7 +49,9 @@ data class DiscordClient(
             .flatTap { logger.info("Token verified").right() }
             .getOrHandle {
                 throw error(it.message)
-            } combine { userService.getCurrentUser().unwrap() }
+            } identify {
+            rest.call(Id.functor()) { userService.getCurrentUser() }.bind().extract()
+        }
     }
 
     override var isConnected: Boolean = false
@@ -57,27 +61,24 @@ data class DiscordClient(
     override lateinit var gateway: Gateway
         private set
 
-    override lateinit var users: Flow<IUser>
+    override lateinit var users: IO<ListK<IUser>>
         private set
-    override lateinit var guilds: Flow<IGuild>
+    override lateinit var guilds: IO<ListK<IGuild>>
         private set
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override suspend fun login() {
-        val gatewayStats = gatewayService.getGatewayBot().unwrap()
+    override fun login(): IO<Unit> = IO.fx {
+        val gatewayStats = rest.call(Id.functor()) {
+            gatewayService.getGatewayBot()
+        }.bind().extract()
         val gatewayURL = gatewayStats.url
         val metadata = gatewayStats.session
-        this.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
+        this@DiscordClient.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
 
-        guilds = eventDispatcher.subscribeOn<GuildCreateEvent>()
-            .map { it.guild }
-        users = eventDispatcher.subscribeOn<UserUpdateEvent>()
-            .map { it.user() }
-
-        this.gateway.run()
+        !effect { this@DiscordClient.gateway.run().join() }
     }
 
     @ExperimentalCoroutinesApi
@@ -97,35 +98,31 @@ data class DiscordClient(
         exitProcess(0)
     }
 
-    override suspend fun findUser(id: Snowflake) = runCatching {
-        userService.getUser(id).unwrap()
-    }.getOrNull()
+    override fun createGuild(request: GuildCreateBuilder.() -> Unit): IO<IGuild> = rest.call(Id.functor()) {
+        guildService.createGuild(request.build())
+    }.map { it.extract() }
 
-    override suspend fun findGuild(id: Snowflake) = runCatching {
-        guildService.getGuild(id).unwrap()
-    }.getOrNull()
+    override fun getInvite(code: String): IO<IInvite> = rest.call(Id.functor()) {
+        inviteService.getInvite(code)
+    }.map { it.extract() }
 
-    override suspend fun findChannel(id: Snowflake) = runCatching {
-        channelService.getChannel<IChannel>(id).unwrap()
-    }.getOrNull()
-
-    override suspend fun createGuild(request: GuildCreateBuilder.() -> Unit): IGuild =
-        guildService.createGuild(request.build()).unwrap()
-
-    override suspend fun getInvite(code: String): IInvite =
-        inviteService.getInvite(code).unwrap()
-
-    override suspend fun deleteInvite(code: String, reason: String?) =
+    override fun deleteInvite(code: String, reason: String?) = rest.effect {
         inviteService.deleteInvite(code)
+    }.fix()
 
-    override suspend fun getRegions(): List<IRegion> = voiceService.getVoiceRegions().async(IO.async())
-        .flatMap { it.unwrapBody(IO.applicativeError()) }
-        .suspended()
-        .map { it.unwrap() }
+    override fun getRegions(): IO<ListK<IRegion>> = rest.call(ListK.functor()) {
+        voiceService.getVoiceRegions()
+    }.map { it.fix() }
 
-    override suspend fun getChannel(id: Snowflake): IChannel = findChannel(id)!!
+    override fun getChannel(id: Snowflake) = rest.call(Id.functor()) {
+        channelService.getChannel(id)
+    }.map { it.extract() }
 
-    override suspend fun getGuild(id: Snowflake): IGuild = findGuild(id)!!
+    override fun getGuild(id: Snowflake) = rest.call(Id.functor()) {
+        guildService.getGuild(id)
+    }.map { it.extract() }
 
-    override suspend fun getUser(id: Snowflake): IUser = findUser(id)!!
+    override fun getUser(id: Snowflake) = rest.call(Id.functor()) {
+        userService.getUser(id)
+    }.map { it.extract() }
 }
