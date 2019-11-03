@@ -2,7 +2,8 @@
 
 package ru.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.flow.Flow
+import arrow.core.ListK
+import arrow.fx.IO
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.`object`.IBan
@@ -11,6 +12,8 @@ import ru.tesserakt.diskordin.core.entity.`object`.IRegion
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.core.entity.query.BanQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
+import ru.tesserakt.diskordin.impl.core.entity.TextChannel
+import ru.tesserakt.diskordin.impl.core.entity.VoiceChannel
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -65,34 +68,34 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
         None, Elevated
     }
 
-    suspend fun getRole(id: Snowflake): IRole
-    suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
-    suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji
-    suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit): String?
-    suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
-    suspend fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
-    suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit)
-    suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember
-    suspend fun kick(member: IMember, reason: String?)
-    suspend fun kick(memberId: Snowflake, reason: String?)
-    suspend fun addRole(builder: RoleCreateBuilder.() -> Unit): IRole
-    suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): List<IRole>
-    suspend fun findBan(userId: Snowflake): IBan?
-    suspend fun ban(member: IMember, builder: BanQuery.() -> Unit)
-    suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit)
-    suspend fun pardon(userId: Snowflake, reason: String?)
-    suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
-    suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit)
-    suspend fun getEveryoneRole(): IRole
-    suspend fun <C : IGuildChannel> getChannel(id: Snowflake): C
+    fun getRole(id: Snowflake): IO<IRole>
+    fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji>
+    fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): IO<ICustomEmoji>
+    fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit): IO<String?>
+    fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel>
+    fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel>
+    fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit): IO<Unit>
+    fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IO<IMember>
+    fun kick(member: IMember, reason: String?): IO<Unit>
+    fun kick(memberId: Snowflake, reason: String?): IO<Unit>
+    fun addRole(builder: RoleCreateBuilder.() -> Unit): IO<IRole>
+    fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): IO<ListK<IRole>>
+    fun getBan(userId: Snowflake): IO<IBan>
+    fun ban(member: IMember, builder: BanQuery.() -> Unit): IO<Unit>
+    fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit): IO<Unit>
+    fun pardon(userId: Snowflake, reason: String?): IO<Unit>
+    fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int>
+    fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit): IO<Unit>
+    fun getEveryoneRole(): IO<IRole>
+    fun <C : IGuildChannel> getChannel(id: Snowflake): IO<C>
 
-    val members: Flow<IMember>
-    val invites: Flow<IGuildInvite>
-    val emojis: Flow<ICustomEmoji>
-    val bans: Flow<IBan>
-    val integrations: Flow<IIntegration>
-    val roles: Flow<IRole>
-    val channels: Flow<IGuildChannel>
+    val members: IO<ListK<IMember>>
+    val invites: IO<ListK<IGuildInvite>>
+    val emojis: IO<ListK<ICustomEmoji>>
+    val bans: IO<ListK<IBan>>
+    val integrations: IO<ListK<IIntegration>>
+    val roles: IO<ListK<IRole>>
+    val channels: IO<ListK<IGuildChannel>>
 
     enum class VerificationLevel {
         None,

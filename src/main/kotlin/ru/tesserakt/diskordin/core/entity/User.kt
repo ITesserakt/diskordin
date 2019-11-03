@@ -1,8 +1,8 @@
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.fx.IO
 import kotlinx.coroutines.flow.Flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.util.enums.IValued
@@ -41,15 +41,15 @@ interface IUser : IMentioned, INamed {
         TeamUser(1 shl 10)
     }
 
-    suspend infix fun asMember(guildId: Snowflake): IMember
+    infix fun asMember(guildId: Snowflake): IO<IMember>
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
-    val guilds: Flow<UserGuildResponse>
+    val guilds: Flow<IGuild>
     val privateChannels: Flow<IPrivateChannel>
     val connections: Flow<IConnection>
 
-    suspend fun leaveGuild(guild: IGuild)
-    suspend fun leaveGuild(guildId: Snowflake)
-    suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IChannel
+    fun leaveGuild(guild: IGuild): IO<Unit>
+    fun leaveGuild(guildId: Snowflake): IO<Unit>
+    fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IO<IPrivateChannel>
 }

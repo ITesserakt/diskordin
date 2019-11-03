@@ -3,13 +3,15 @@
 
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.fx.ForIO
+import arrow.fx.IO
 import org.koin.core.KoinComponent
 import org.koin.core.get
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
-import ru.tesserakt.diskordin.rest.service.*
+import ru.tesserakt.diskordin.rest.RestClient
 
 interface IEntity : IDiscordObject {
     val id: Snowflake
@@ -18,23 +20,9 @@ interface IEntity : IDiscordObject {
 interface IDiscordObject : KoinComponent
 
 val IDiscordObject.client: IDiscordClient
-    get() = get()
-val IDiscordObject.userService
-    get() = get<UserService>()
-val IDiscordObject.channelService
-    get() = get<ChannelService>()
-val IDiscordObject.emojiService
-    get() = get<EmojiService>()
-val IDiscordObject.gatewayService
-    get() = get<GatewayService>()
-val IDiscordObject.guildService
-    get() = get<GuildService>()
-val IDiscordObject.inviteService
-    get() = get<InviteService>()
-val IDiscordObject.voiceService
-    get() = get<VoiceService>()
-val IDiscordObject.webhookService
-    get() = get<WebhookService>()
+    inline get() = get()
+val IDiscordObject.rest: RestClient<ForIO>
+    inline get() = client.rest
 
 interface IGuildObject : IDiscordObject {
     val guild: Identified<IGuild>
@@ -49,9 +37,9 @@ interface INamed : IDiscordObject {
 }
 
 interface IDeletable : IEntity {
-    suspend fun delete(reason: String? = null)
+    fun delete(reason: String? = null): IO<Unit>
 }
 
 interface IEditable<E : IEntity, B : BuilderBase<*>> : IEntity {
-    suspend fun edit(builder: B.() -> Unit): E
+    fun edit(builder: B.() -> Unit): IO<E>
 }

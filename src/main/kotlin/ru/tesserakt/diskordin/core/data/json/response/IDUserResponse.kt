@@ -1,8 +1,6 @@
 package ru.tesserakt.diskordin.core.data.json.response
 
-import kotlinx.coroutines.runBlocking
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.entity.IMember
 import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.client
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
@@ -23,7 +21,7 @@ class IDUserResponse(
 ) : DiscordResponse<IUser, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IUser = object : IUser {
         private val raw = this@IDUserResponse
-        private val delegate by lazy { runBlocking { client.getUser(raw.id) } }
+        private val delegate by lazy { client.getUser(raw.id).unsafeRunSync() }
 
         override val avatar: String? by lazy { raw.avatar ?: delegate.avatar }
         override val mfaEnabled: Boolean by lazy { raw.mfaEnabled ?: delegate.mfaEnabled }
@@ -40,7 +38,7 @@ class IDUserResponse(
         override val discriminator: Short by lazy { raw.discriminator?.toShort() ?: delegate.discriminator }
         override val isBot: Boolean by lazy { raw.bot ?: delegate.isBot }
 
-        override suspend fun asMember(guildId: Snowflake): IMember = delegate.asMember(guildId)
+        override fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
 
         override val id: Snowflake = raw.id
         override val mention: String = "<@${id.asString()}>"

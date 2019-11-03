@@ -2,6 +2,9 @@
 
 package ru.tesserakt.diskordin.rest.service
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.integrations.retrofit.adapter.CallK
 import retrofit2.http.*
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
@@ -10,31 +13,31 @@ import ru.tesserakt.diskordin.core.data.json.response.WebhookResponse
 
 interface WebhookService {
     @POST("/api/v6/channels/{id}/webhooks")
-    suspend fun createChannelWebhook(
+    fun createChannelWebhook(
         @Path("id") id: Snowflake,
         @Body request: WebhookCreateRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): WebhookResponse
+    ): CallK<Id<WebhookResponse>>
 
     @GET("/api/v6/channels/{id}/webhooks")
-    suspend fun getChannelWebhooks(@Path("id") id: Snowflake): Array<WebhookResponse>
+    fun getChannelWebhooks(@Path("id") id: Snowflake): CallK<ListK<WebhookResponse>>
 
     @GET("/api/v6/guilds/{id}/webhooks")
-    suspend fun getGuildWebhooks(@Path("id") id: Snowflake): Array<WebhookResponse>
+    fun getGuildWebhooks(@Path("id") id: Snowflake): CallK<ListK<WebhookResponse>>
 
     @GET("/api/v6/webhooks/{id}")
-    suspend fun getWebhook(@Path("id") id: Snowflake): WebhookResponse
+    fun getWebhook(@Path("id") id: Snowflake): CallK<Id<WebhookResponse>>
 
     @PATCH("/api/v6/webhooks/{id}")
-    suspend fun editWebhook(
+    fun editWebhook(
         @Path("id") id: Snowflake,
         @Body request: WebhookEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): WebhookResponse
+    ): CallK<Id<WebhookResponse>>
 
     @DELETE("/api/v6/webhooks/{id}")
-    suspend fun deleteWebhook(@Path("id") id: Snowflake)
+    fun deleteWebhook(@Path("id") id: Snowflake): CallK<Unit>
 
     @POST("/api/v6/webhooks/{id}")
-    suspend fun executeWebhook(@Path("id") id: Snowflake)
+    fun executeWebhook(@Path("id") id: Snowflake): CallK<Unit>
 }

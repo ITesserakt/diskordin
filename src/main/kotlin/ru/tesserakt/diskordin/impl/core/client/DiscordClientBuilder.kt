@@ -1,17 +1,17 @@
 package ru.tesserakt.diskordin.impl.core.client
 
+import arrow.fx.IO
+import arrow.fx.extensions.io.async.async
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import retrofit2.Retrofit
-import retrofit2.create
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.gateway.GatewayLifecycle
-import ru.tesserakt.diskordin.rest.service.*
+import ru.tesserakt.diskordin.rest.RestClient
 import java.util.concurrent.atomic.AtomicBoolean
 
 class DiscordClientBuilder private constructor() {
@@ -44,14 +44,7 @@ class DiscordClientBuilder private constructor() {
                     }
                     single { setupLifecycle() } bind GatewayLifecycle::class
                     single { (path: String) -> setupScarlet(path, get(), get()) }
-                    single { get<Retrofit>().create<ChannelService>() }
-                    single { get<Retrofit>().create<EmojiService>() }
-                    single { get<Retrofit>().create<GatewayService>() }
-                    single { get<Retrofit>().create<GuildService>() }
-                    single { get<Retrofit>().create<InviteService>() }
-                    single { get<Retrofit>().create<UserService>() }
-                    single { get<Retrofit>().create<VoiceService>() }
-                    single { get<Retrofit>().create<WebhookService>() }
+                    single { RestClient(get(), get(), IO.async()) }
                 })
             }
         }

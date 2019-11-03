@@ -3,23 +3,32 @@
 
 package ru.tesserakt.diskordin.core.entity
 
+import arrow.core.Id
+import arrow.core.ListK
 import arrow.core.NonEmptyList
-import kotlinx.coroutines.flow.Flow
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
+import arrow.fx.IO
+import arrow.fx.extensions.io.monad.map
+import arrow.fx.fix
 import ru.tesserakt.diskordin.core.data.Identified
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.IChannel.Type.*
 import ru.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IImage
 import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
+import ru.tesserakt.diskordin.core.entity.query.MessagesQuery
 import ru.tesserakt.diskordin.impl.core.entity.*
+import ru.tesserakt.diskordin.rest.call
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
-    val invites: Flow<IInvite>
+    val invites: IO<ListK<IInvite>>
 
     enum class Type {
         GuildText,
@@ -43,18 +52,18 @@ interface IChannel : IMentioned, IDeletable {
         } as T
     }
 
-    suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IInvite
+    fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IInvite>
 }
 
 interface IGuildChannel : IChannel, IGuildObject, INamed {
     val position: Int
-    val permissionOverwrites: Flow<IPermissionOverwrite>
+    val permissionOverwrites: IO<ListK<IPermissionOverwrite>>
     val parentCategory: Snowflake?
-    override val invites: Flow<IGuildInvite>
+    override val invites: IO<ListK<IGuildInvite>>
 
-    override suspend fun invite(builder: InviteCreateBuilder.() -> Unit): IGuildInvite
-    suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?)
-    suspend fun editPermissions(overwrite: IPermissionOverwrite, builder: PermissionEditBuilder.() -> Unit)
+    override fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IGuildInvite>
+    fun removePermissions(toRemove: IPermissionOverwrite, reason: String?): IO<Unit>
+    fun editPermissions(overwrite: IPermissionOverwrite, builder: PermissionEditBuilder.() -> Unit): IO<Unit>
 }
 
 interface IVoiceChannel : IGuildChannel, IAudioChannel,
@@ -71,7 +80,7 @@ interface ITextChannel : IGuildChannel, IMessageChannel,
     @ExperimentalUnsignedTypes
     val rateLimit: UShort
 
-    suspend fun getPinnedMessages(): List<IMessage>
+    fun getPinnedMessages(): IO<ListK<IMessage>>
 }
 
 interface IGuildCategory : IGuildChannel {
@@ -90,21 +99,32 @@ interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel
 }
 
 interface IMessageChannel : IChannel {
-    val messages: Flow<IMessage>
+    val messages
+        get() = rest.call(ListK.functor()) {
+            channelService.getMessages(id, MessagesQuery().apply {
+                limit = 100
+            }.create())
+        }.map { it.fix() }
 
-    suspend fun typing()
-    suspend fun createMessage(content: String): IMessage = createMessage {
+    fun typing() = rest.effect {
+        channelService.triggerTyping(id)
+    }.fix()
+
+    fun createMessage(content: String) = createMessage {
         this.content = content
     }
 
-    suspend fun createMessage(builder: MessageCreateBuilder.() -> Unit): IMessage =
-        channelService.createMessage(id, builder.build()).unwrap()
+    fun createMessage(builder: MessageCreateBuilder.() -> Unit): IO<IMessage> = rest.call(Id.functor()) {
+        channelService.createMessage(id, builder.build())
+    }.map { it.extract() }
 
-    suspend fun createEmbed(builder: EmbedCreateBuilder.() -> Unit): IMessage = createMessage {
+    fun createEmbed(builder: EmbedCreateBuilder.() -> Unit) = createMessage {
         embed = builder
     }
 
-    suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit)
+    fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) = rest.effect {
+        channelService.bulkDeleteMessages(id, builder.build())
+    }.fix()
 }
 
 interface IAudioChannel : IChannel

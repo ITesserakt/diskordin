@@ -1,14 +1,17 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
-import arrow.core.some
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import ru.tesserakt.diskordin.core.data.Identified
+import arrow.core.*
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.fx.IO
+import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.just
+import arrow.fx.extensions.io.monad.map
+import arrow.fx.fix
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.combine
+import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.GuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
 import ru.tesserakt.diskordin.core.data.json.response.unwrap
@@ -22,6 +25,7 @@ import ru.tesserakt.diskordin.core.entity.query.MemberQuery
 import ru.tesserakt.diskordin.core.entity.query.PruneQuery
 import ru.tesserakt.diskordin.core.entity.query.query
 import ru.tesserakt.diskordin.impl.core.entity.`object`.Region
+import ru.tesserakt.diskordin.rest.call
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -53,11 +57,13 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val isWidgetEnabled: Boolean = raw.widget_enabled ?: false
 
-    override val widgetChannel: Identified<IGuildChannel>? =
-        raw.widget_channel_id?.combine { getChannel<IGuildChannel>(it) }
+    override val widgetChannel = raw.widget_channel_id?.identify {
+        getChannel<IGuildChannel>(it).bind()
+    }
 
-    override val systemChannel: Identified<IGuildChannel>? =
-        raw.system_channel_id?.combine { getChannel<IGuildChannel>(it) }
+    override val systemChannel = raw.system_channel_id?.identify {
+        getChannel<IGuildChannel>(it).bind()
+    }
 
     override val maxMembers: Long? = raw.max_members
 
@@ -78,94 +84,118 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val id: Snowflake = raw.id
 
-    override suspend fun getRole(id: Snowflake): IRole =
-        roles.first { it.id == id }
+    override fun getRole(id: Snowflake) = IO.fx {
+        val r = roles.bind()
+        r.first { it.id == id }
+    }
 
-    override suspend fun getEmoji(emojiId: Snowflake) =
-        emojiService.getGuildEmoji(id, emojiId).unwrap(id.some())
+    override fun getEmoji(emojiId: Snowflake) = rest.call(id.some(), Id.functor()) {
+        emojiService.getGuildEmoji(id, emojiId)
+    }.map { it.extract() }
 
-    override suspend fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): ICustomEmoji =
-        emojiService.createGuildEmoji(id, builder.build()).unwrap(id.some())
+    override fun createEmoji(builder: EmojiCreateBuilder.() -> Unit) = rest.call(id.some(), Id.functor()) {
+        emojiService.createGuildEmoji(id, builder.build())
+    }.map { it.extract() }
 
-    override suspend fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) =
+    override fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) = rest.callRaw {
         guildService.editCurrentNickname(id, builder.build())
+    }.map { it.extract() }
 
-    override suspend fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
+    override fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel> =
         addChannelJ(builder)
 
-    override suspend fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel =
+    override fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel> =
         addChannelJ(builder)
 
-    private suspend inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
+    private inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
         noinline builder: B.() -> Unit
-    ): C = guildService.createGuildChannel(id, builder.build(), null).unwrap() as C
+    ): IO<C> = rest.call(Id.functor()) {
+        val inst = builder.instance()
+        guildService.createGuildChannel(id, inst.create(), inst.reason)
+    }.map { it.extract() as C }
 
-    override suspend fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) =
+    override fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = rest.effect {
         guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
+    }.fix()
 
-    override suspend fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IMember =
-        guildService.newMember(id, userId, builder.build()).unwrap(id)
+    override fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit) =
+        rest.call(id, Id.functor()) {
+            guildService.newMember(id, userId, builder.build())
+        }.map { it.extract() }
 
-    override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
+    override fun kick(member: IMember, reason: String?) = kick(member.id, reason)
 
-    override suspend fun kick(memberId: Snowflake, reason: String?) = guildService.removeMember(id, memberId, reason)
+    override fun kick(memberId: Snowflake, reason: String?) = rest.effect {
+        guildService.removeMember(id, memberId, reason)
+    }.fix()
 
-    override suspend fun addRole(builder: RoleCreateBuilder.() -> Unit): IRole =
-        guildService.createRole(id, builder.build(), null).unwrap(id)
+    override fun addRole(builder: RoleCreateBuilder.() -> Unit) = rest.call(id, Id.functor()) {
+        val inst = builder.instance()
+        guildService.createRole(id, inst.create(), inst.reason)
+    }.map { it.extract() }
 
-    override suspend fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): List<IRole> =
+    override fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit) = rest.call(id, ListK.functor()) {
         guildService.editRolePositions(id, builder.map { it.build() }.toTypedArray())
-            .map { it.unwrap(id) }
+    }.map { it.fix() }
 
-    override suspend fun findBan(userId: Snowflake): IBan? = guildService.getBan(id, userId).unwrap()
+    override fun getBan(userId: Snowflake): IO<IBan> = rest.call(Id.functor()) {
+        guildService.getBan(id, userId)
+    }.map { it.extract() }
 
-    override suspend fun ban(member: IMember, builder: BanQuery.() -> Unit) = ban(member.id, builder)
+    override fun ban(member: IMember, builder: BanQuery.() -> Unit) = ban(member.id, builder)
 
-    override suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) =
+    override fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = rest.effect {
         guildService.ban(id, memberId, builder.query())
+    }.fix()
 
-    override suspend fun pardon(userId: Snowflake, reason: String?) = guildService.removeBan(id, userId, reason)
+    override fun pardon(userId: Snowflake, reason: String?) = rest.effect {
+        guildService.removeBan(id, userId, reason)
+    }.fix()
 
-    override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int =
+    override fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int> = rest.callRaw {
         guildService.getPruneCount(id, builder.query())
+    }.map { it.extract() }
 
-    override suspend fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) =
+    override fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) = rest.effect {
         guildService.createIntegration(id, builder.build())
+    }.fix()
 
-    override suspend fun getEveryoneRole(): IRole = getRole(id) //everyone role id == guild id
+    override fun getEveryoneRole(): IO<IRole> = getRole(id) //everyone role id == guild id
 
-    override suspend fun <C : IGuildChannel> getChannel(id: Snowflake): C =
-        channels.first { it.id == id } as C
+    override fun <C : IGuildChannel> getChannel(id: Snowflake): IO<C> = rest.call(Id.functor()) {
+        channelService.getChannel(id)
+    }.map { it.extract() as C }
 
-    override val invites: Flow<IGuildInvite> = flow {
-        guildService.getInvites(id).map { it.unwrap() }.forEach { emit(it) }
-    }
+    override val invites: IO<ListK<IGuildInvite>> = rest.call(ListK.functor()) {
+        guildService.getInvites(id)
+    }.map { it.fix() }
 
-    override val emojis: Flow<ICustomEmoji> = flow {
-        emojiService.getGuildEmojis(id).map { it.unwrap(id.some()) }.forEach { emit(it) }
-    }
+    override val emojis: IO<ListK<ICustomEmoji>> = rest.call(id.some(), ListK.functor()) {
+        emojiService.getGuildEmojis(id)
+    }.map { it.fix() }
 
-    override val bans: Flow<IBan> = flow {
-        guildService.getBans(id).map { it.unwrap() }.forEach { emit(it) }
-    }
+    override val bans: IO<ListK<IBan>> = rest.call(ListK.functor()) {
+        guildService.getBans(id)
+    }.map { it.fix() }
 
-    override val integrations: Flow<IIntegration> = flow {
-        guildService.getIntegrations(id).map { it.unwrap(id) }.forEach { emit(it) }
-    }
+    override val integrations: IO<ListK<IIntegration>> = rest.call(id, ListK.functor()) {
+        guildService.getIntegrations(id)
+    }.map { it.fix() }
 
-    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild =
-        guildService.editGuild(id, builder.build()).unwrap()
+    override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = rest.call(Id.functor()) {
+        guildService.editGuild(id, builder.build())
+    }.map { it.extract() }
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
-    override val owner: Identified<IMember> =
-        Identified(raw.owner_id) { id ->
-            members.first { it.id == id }
-        }
+    override val owner = raw.owner_id identify {
+        val m = !members
+        m.first { member -> member.id == it }
+    }
 
-    override val afkChannel: Identified<IVoiceChannel>? = raw.afk_channel_id?.combine { id ->
-        channels.first { channel -> channel.id == id } as VoiceChannel
+    override val afkChannel = raw.afk_channel_id?.identify { id ->
+        channels.bind().first { it.id == id } as IVoiceChannel
     }
 
     @ExperimentalTime
@@ -174,20 +204,19 @@ class Guild(raw: GuildResponse) : IGuild {
     override val verificationLevel =
         IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }
 
-    override val roles: Flow<IRole> =
-        raw.roles
-            .map { Role(it, id) }
-            .asFlow()
+    override val roles = raw.roles
+        .map { it.unwrap(id) }
+        .k().just()
 
-    override val members: Flow<IMember> = flow {
+    override val members: IO<ListK<IMember>> = rest.call(id, ListK.functor()) {
         guildService.getMembers(id, MemberQuery().apply {
-            limit = 1000
-        }.create()).map { it.unwrap(id) }.forEach { emit(it) }
-    }
+            this.limit = 1000
+        }.create())
+    }.map { it.fix() }
 
-    override val channels: Flow<IGuildChannel> = flow {
-        guildService.getGuildChannels(id).map { it.unwrap() }.forEach { emit(it) }
-    }
+    override val channels: IO<ListK<IGuildChannel>> = rest.call(ListK.functor()) {
+        guildService.getGuildChannels(id)
+    }.map { it.fix() }
 
     override val name: String = raw.name
 
@@ -196,9 +225,11 @@ class Guild(raw: GuildResponse) : IGuild {
         "Bots can use this only 10 times!",
         ReplaceWith("guildService.deleteGuild(id)", "ru.tesserakt.diskordin.core.entity.guildService")
     )
-    override suspend fun delete(reason: String?) = guildService.deleteGuild(id)
+    override fun delete(reason: String?): IO<Unit> = rest.effect {
+        guildService.deleteGuild(id)
+    }.fix()
 
-    @UseExperimental(ExperimentalTime::class)
+    @ExperimentalTime
     override fun toString(): String {
         return "Guild(region=$region, isEmbedEnabled=$isEmbedEnabled, defaultMessageNotificationLevel=$defaultMessageNotificationLevel, explicitContentFilter=$explicitContentFilter, mfaLevel=$mfaLevel, isWidgetEnabled=$isWidgetEnabled, widgetChannel=$widgetChannel, systemChannel=$systemChannel, maxMembers=$maxMembers, maxPresences=$maxPresences, description=$description, bannerHash=$bannerHash, premiumTier=$premiumTier, premiumSubscriptions=$premiumSubscriptions, features=$features, id=$id, invites=$invites, emojis=$emojis, bans=$bans, integrations=$integrations, iconHash=$iconHash, splashHash=$splashHash, owner=$owner, afkChannel=$afkChannel, afkChannelTimeout=$afkChannelTimeout, verificationLevel=$verificationLevel, roles=$roles, members=$members, channels=$channels, name='$name')"
     }

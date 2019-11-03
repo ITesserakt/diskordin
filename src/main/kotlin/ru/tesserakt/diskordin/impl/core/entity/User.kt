@@ -1,18 +1,26 @@
 package ru.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.core.extensions.id.comonad.extract
+import arrow.core.extensions.id.functor.functor
+import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
+import arrow.fx.IO
+import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.monad.map
+import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.tesserakt.diskordin.core.data.Snowflake
-import ru.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import ru.tesserakt.diskordin.core.data.json.response.UserResponse
-import ru.tesserakt.diskordin.core.data.json.response.unwrap
 import ru.tesserakt.diskordin.core.entity.*
 import ru.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import ru.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.core.entity.query.UserGuildsQuery
+import ru.tesserakt.diskordin.rest.call
 import ru.tesserakt.diskordin.util.enums.ValuedEnum
 import ru.tesserakt.diskordin.util.typeclass.integral
 
@@ -39,8 +47,9 @@ open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val id: Snowflake = raw.id
 
-    override suspend fun asMember(guildId: Snowflake): IMember =
-        client.getGuild(guildId).members.first { it.id == id }
+    override fun asMember(guildId: Snowflake): IO<IMember> = IO.fx {
+        client.getGuild(guildId).bind().members.bind().first { member -> member.id == id }
+    }
 
     override fun toString(): String {
         return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
@@ -50,29 +59,37 @@ open class User(raw: UserResponse<IUser>) : IUser {
 }
 
 class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
-    override val guilds: Flow<UserGuildResponse> = flow {
-        userService.getCurrentUserGuilds(UserGuildsQuery().apply {
-            this.limit = 1000
-        }.create()).forEach { emit(it) }
+    override val guilds: Flow<IGuild> = flow {
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserGuilds(UserGuildsQuery().create())
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val privateChannels: Flow<IPrivateChannel> = flow {
-        userService.getUserDMs().map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            userService.getUserDMs()
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
     override val connections: Flow<IConnection> = flow {
-        userService.getCurrentUserConnections().map { it.unwrap() }.forEach { emit(it) }
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserConnections()
+        }.fix().suspended().fix().forEach { emit(it) }
     }
 
-    override suspend fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
+    override fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
 
-    override suspend fun leaveGuild(guildId: Snowflake) = userService.leaveGuild(guildId)
+    override fun leaveGuild(guildId: Snowflake) = rest.effect {
+        userService.leaveGuild(guildId)
+    }.fix()
 
-    override suspend fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IChannel =
-        userService.joinToDM(builder.build()).unwrap()
+    override fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IO<IPrivateChannel> = rest.call(Id.functor()) {
+        userService.joinToDM(builder.build())
+    }.map { it.extract() }
 
-    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf =
-        userService.editCurrentUser(builder.build()).unwrap()
+    override fun edit(builder: UserEditBuilder.() -> Unit): IO<ISelf> = rest.call(Id.functor()) {
+        userService.editCurrentUser(builder.build())
+    }.map { it.extract() }
 
     override fun toString(): String {
         return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) ${super.toString()}"
