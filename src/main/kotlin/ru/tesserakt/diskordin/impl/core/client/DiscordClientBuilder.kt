@@ -44,7 +44,7 @@ class DiscordClientBuilder private constructor() {
                     }
                     single { setupLifecycle() } bind GatewayLifecycle::class
                     single { (path: String) -> setupScarlet(path, get(), get()) }
-                    single { RestClient(get(), get(), IO.async()) }
+                    single { RestClient(get(), IO.async()) }
                 })
             }
         }

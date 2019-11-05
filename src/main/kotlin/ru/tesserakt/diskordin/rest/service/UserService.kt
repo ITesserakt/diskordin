@@ -17,6 +17,7 @@ import ru.tesserakt.diskordin.core.data.json.response.UserResponse
 import ru.tesserakt.diskordin.core.entity.IGroupPrivateChannel
 import ru.tesserakt.diskordin.core.entity.IPrivateChannel
 import ru.tesserakt.diskordin.core.entity.ISelf
+import ru.tesserakt.diskordin.core.entity.IUser
 import ru.tesserakt.diskordin.core.entity.query.Query
 
 interface UserService {
@@ -24,7 +25,7 @@ interface UserService {
     fun getCurrentUser(): CallK<Id<UserResponse<ISelf>>>
 
     @GET("/api/v6/users/{id}")
-    fun getUser(@Path("id") id: Snowflake): CallK<Id<UserResponse<*>>>
+    fun getUser(@Path("id") id: Snowflake): CallK<Id<UserResponse<IUser>>>
 
     @PATCH("/api/v6/users/@me")
     fun editCurrentUser(@Body request: UserEditRequest): CallK<Id<UserResponse<ISelf>>>

@@ -10,7 +10,7 @@ import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
-import arrow.fx.extensions.io.monad.map
+import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.core.inject
@@ -121,7 +121,7 @@ data class DiscordClient(
         guildService.getGuild(id)
     }.map { it.extract() }
 
-    override fun getUser(id: Snowflake) = rest.call(Id.functor()) {
+    override fun getUser(id: Snowflake) = rest.call {
         userService.getUser(id)
-    }.map { it.extract() }
+    }.fix()
 }
