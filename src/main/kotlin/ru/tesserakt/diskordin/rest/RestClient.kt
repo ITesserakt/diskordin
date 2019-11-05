@@ -10,8 +10,10 @@ import arrow.integrations.retrofit.adapter.CallK
 import arrow.integrations.retrofit.adapter.unwrapBody
 import arrow.typeclasses.Functor
 import arrow.typeclasses.MonadSyntax
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.create
+import ru.tesserakt.diskordin.core.data.RateLimitException
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import ru.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -51,9 +53,14 @@ class RestClient<F> internal constructor(
 
     fun <R> callRaw(
         f: RestClient<F>.() -> CallK<out R>
-    ) = A.fx.async {
-        val call = f().async(this).bind()
-        call.unwrapBody(this).bind()
+    ) = A.run {
+        f().async(this).flatMap {
+            it.unwrapBody(this)
+        }.handleErrorWith {
+            if (it is HttpException && it.code() == 429)
+                raiseError<R>(RateLimitException(it.message()))
+            raiseError(it)
+        }
     }
 
     fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(

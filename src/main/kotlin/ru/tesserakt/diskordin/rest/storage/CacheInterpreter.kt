@@ -8,9 +8,9 @@ import ru.tesserakt.diskordin.core.entity.IEntity
 
 private val cache = mutableMapOf<Snowflake, IEntity>()
 
-val idInterpreter = object : FunctionK<ForCache, ForId> {
+val idInterpreter = object : FunctionK<ForCacheF, ForId> {
     @Suppress("UNCHECKED_CAST")
-    override fun <A> invoke(fa: Kind<ForCache, A>): Id<A> {
+    override fun <A> invoke(fa: Kind<ForCacheF, A>): Id<A> {
         return when (val op = fa.fix()) {
             is CacheF.Put<*> -> {
                 cache[op.value.id] = op.value

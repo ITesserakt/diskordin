@@ -11,15 +11,15 @@ import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.entity.IEntity
 
 @higherkind
-sealed class CacheF<out R> : CacheOf<R> {
+sealed class CacheF<out R> : CacheFOf<R> {
     data class Put<A : IEntity>(val value: A) : CacheF<Unit>()
     data class Get<A : IEntity>(val id: Snowflake) : CacheF<Option<A>>()
     data class Delete<A : IEntity>(val id: Snowflake) : CacheF<Option<A>>()
     object Invalidate : CacheF<Unit>()
-    companion object : FreeMonad<ForCache>
+    companion object : FreeMonad<ForCacheF>
 }
 
-typealias Cache<A> = Free<ForCache, A>
+typealias Cache<A> = Free<ForCacheF, A>
 
 fun <A : IEntity> put(value: A): Cache<Unit> = Free.liftF(CacheF.Put(value))
 
@@ -41,4 +41,4 @@ fun <A : IEntity> delete(id: Snowflake): Cache<Option<A>> = Free.liftF(CacheF.De
 
 fun invalidate(): Cache<Unit> = Free.liftF(CacheF.Invalidate)
 
-fun <A, F> Cache<A>.run(interpreter: FunctionK<ForCache, F>, M: Monad<F>) = this.foldMap(interpreter, M)
+fun <A, F> Cache<A>.run(interpreter: FunctionK<ForCacheF, F>, M: Monad<F>) = this.foldMap(interpreter, M)
