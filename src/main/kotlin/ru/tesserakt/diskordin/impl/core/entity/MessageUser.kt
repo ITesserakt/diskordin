@@ -31,7 +31,15 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
         }
 
     override fun toString(): String {
-        return "MessageUser(avatar=$avatar, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
+        return StringBuilder("MessageUser(")
+            .appendln("avatar=$avatar, ")
+            .appendln("username='$username', ")
+            .appendln("discriminator=$discriminator, ")
+            .appendln("isBot=$isBot, ")
+            .appendln("id=$id, ")
+            .appendln("mention='$mention'")
+            .appendln(")")
+            .toString()
     }
 
     override val id: Snowflake = raw.id

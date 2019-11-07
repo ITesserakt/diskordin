@@ -18,13 +18,23 @@ class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
         @ExperimentalTime
         override val resetAfter: Duration = raw.resetAfter.milliseconds
 
-        @UseExperimental(ExperimentalTime::class)
+        @ExperimentalTime
         override fun toString(): String {
-            return "Session(total=$total, remaining=$remaining, resetAfter=$resetAfter)"
+            return StringBuilder("Session(")
+                .appendln("total=$total, ")
+                .appendln("remaining=$remaining, ")
+                .appendln("resetAfter=$resetAfter")
+                .appendln(")")
+                .toString()
         }
     }
 
     override fun toString(): String {
-        return "GatewayStats(url='$url', shards=$shards, session=$session)"
+        return StringBuilder("GatewayStats(")
+            .appendln("url='$url', ")
+            .appendln("shards=$shards, ")
+            .appendln("session=$session")
+            .appendln(")")
+            .toString()
     }
 }

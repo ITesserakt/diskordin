@@ -51,7 +51,12 @@ class Activity(raw: ActivityResponse) : IActivity {
         override val currentSize: Int? = raw.size.getOrNull(0)
         override val maxSize: Int? = raw.size.getOrNull(1)
         override fun toString(): String {
-            return "Party(id=$id, currentSize=$currentSize, maxSize=$maxSize)"
+            return StringBuilder("Party(")
+                .appendln("id=$id, ")
+                .appendln("currentSize=$currentSize, ")
+                .appendln("maxSize=$maxSize")
+                .appendln(")")
+                .toString()
         }
     }
 
@@ -61,7 +66,13 @@ class Activity(raw: ActivityResponse) : IActivity {
         override val smallImageHash: String? = raw.smallImage
         override val smallText: String? = raw.smallText
         override fun toString(): String {
-            return "Assets(largeImageHash=$largeImageHash, largeText=$largeText, smallImageHash=$smallImageHash, smallText=$smallText)"
+            return StringBuilder("Assets(")
+                .appendln("largeImageHash=$largeImageHash, ")
+                .appendln("largeText=$largeText, ")
+                .appendln("smallImageHash=$smallImageHash, ")
+                .appendln("smallText=$smallText")
+                .appendln(")")
+                .toString()
         }
     }
 
@@ -70,11 +81,32 @@ class Activity(raw: ActivityResponse) : IActivity {
         override val spectate: String? = raw.spectate
         override val match: String? = raw.match
         override fun toString(): String {
-            return "Secrets(join=$join, spectate=$spectate, match=$match)"
+            return StringBuilder("Secrets(")
+                .appendln("join=$join, ")
+                .appendln("spectate=$spectate, ")
+                .appendln("match=$match")
+                .appendln(")")
+                .toString()
         }
     }
 
     override fun toString(): String {
-        return "Activity(startPlaying=$startPlaying, duration=$duration, endPlaying=$endPlaying, name='$name', type=$type, streamUrl=$streamUrl, applicationId=$applicationId, details=$details, state=$state, party=$party, assets=$assets, secrets=$secrets, instanceOfGame=$instanceOfGame, flags=$flags)"
+        return StringBuilder("Activity(")
+            .appendln("startPlaying=$startPlaying, ")
+            .appendln("duration=$duration, ")
+            .appendln("endPlaying=$endPlaying, ")
+            .appendln("name='$name', ")
+            .appendln("type=$type, ")
+            .appendln("streamUrl=$streamUrl, ")
+            .appendln("applicationId=$applicationId, ")
+            .appendln("details=$details, ")
+            .appendln("state=$state, ")
+            .appendln("party=$party, ")
+            .appendln("assets=$assets, ")
+            .appendln("secrets=$secrets, ")
+            .appendln("instanceOfGame=$instanceOfGame, ")
+            .appendln("flags=$flags")
+            .appendln(")")
+            .toString()
     }
 }

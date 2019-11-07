@@ -31,7 +31,11 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val text: String = raw.text
         override val iconUrl: String? = raw.icon_url
         override fun toString(): String {
-            return "Footer(text='$text', iconUrl=$iconUrl)"
+            return StringBuilder("Footer(")
+                .appendln("text='$text', ")
+                .appendln("iconUrl=$iconUrl")
+                .appendln(")")
+                .toString()
         }
     }
 
@@ -47,7 +51,11 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val name: String? = raw.name
         override val url: String? = raw.url
         override fun toString(): String {
-            return "Provider(name=$name, url=$url)"
+            return StringBuilder("Provider(")
+                .appendln("name=$name, ")
+                .appendln("url=$url")
+                .appendln(")")
+                .toString()
         }
     }
 
@@ -58,7 +66,12 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val url: String? = raw.url
         override val iconUrl: String? = raw.icon_url
         override fun toString(): String {
-            return "Author(name=$name, url=$url, iconUrl=$iconUrl)"
+            return StringBuilder("Author(")
+                .appendln("name=$name, ")
+                .appendln("url=$url, ")
+                .appendln("iconUrl=$iconUrl")
+                .appendln(")")
+                .toString()
         }
     }
 
@@ -69,11 +82,31 @@ class Embed(raw: EmbedResponse) : IEmbed {
         override val value: String = raw.value
         override val inline: Boolean? = raw.inline
         override fun toString(): String {
-            return "Field(name='$name', value='$value', inline=$inline)"
+            return StringBuilder("Field(")
+                .appendln("name='$name', ")
+                .appendln("value='$value', ")
+                .appendln("inline=$inline")
+                .appendln(")")
+                .toString()
         }
     }
 
     override fun toString(): String {
-        return "Embed(title=$title, type=$type, description=$description, url=$url, timestamp=$timestamp, color=$color, footer=$footer, image=$image, thumbnail=$thumbnail, video=$video, provider=$provider, author=$author, fields=$fields)"
+        return StringBuilder("Embed(")
+            .appendln("title=$title, ")
+            .appendln("type=$type, ")
+            .appendln("description=$description, ")
+            .appendln("url=$url, ")
+            .appendln("timestamp=$timestamp, ")
+            .appendln("color=$color, ")
+            .appendln("footer=$footer, ")
+            .appendln("image=$image, ")
+            .appendln("thumbnail=$thumbnail, ")
+            .appendln("video=$video, ")
+            .appendln("provider=$provider, ")
+            .appendln("author=$author, ")
+            .appendln("fields=$fields")
+            .appendln(")")
+            .toString()
     }
 }

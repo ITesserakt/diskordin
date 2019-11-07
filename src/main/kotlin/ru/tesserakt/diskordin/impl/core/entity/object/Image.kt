@@ -9,6 +9,11 @@ class Image(raw: ImageResponse) : IImage {
     override val height: Int? = raw.height
     override val width: Int? = raw.width
     override fun toString(): String {
-        return "Image(url=$url, height=$height, width=$width)"
+        return StringBuilder("Image(")
+            .appendln("url=$url, ")
+            .appendln("height=$height, ")
+            .appendln("width=$width")
+            .appendln(")")
+            .toString()
     }
 }

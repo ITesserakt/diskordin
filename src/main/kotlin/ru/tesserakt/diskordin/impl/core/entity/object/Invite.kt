@@ -15,7 +15,12 @@ open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val channel: Identified<IChannel> = raw.channel.id identify { raw.channel.unwrap() }
     override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
     override fun toString(): String {
-        return "Invite(code='$code', channel=$channel, channelType=$channelType)"
+        return StringBuilder("Invite(")
+            .appendln("code='$code', ")
+            .appendln("channel=$channel, ")
+            .appendln("channelType=$channelType")
+            .appendln(")")
+            .toString()
     }
 }
 
@@ -25,6 +30,9 @@ class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGuildInvite
     }
 
     override fun toString(): String {
-        return "GuildInvite(guild=$guild) ${super.toString()}"
+        return StringBuilder("GuildInvite(")
+            .appendln("guild=$guild")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }

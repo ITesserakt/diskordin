@@ -16,6 +16,10 @@ class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
     }
 
     override fun toString(): String {
-        return "GuildEmbed(enabled=$enabled, channel=$channel)"
+        return StringBuilder("GuildEmbed(")
+            .appendln("enabled=$enabled, ")
+            .appendln("channel=$channel")
+            .appendln(")")
+            .toString()
     }
 }

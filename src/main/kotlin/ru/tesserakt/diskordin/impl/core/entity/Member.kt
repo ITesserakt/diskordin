@@ -44,7 +44,14 @@ class Member constructor(
     }.flatMap { IO.fx { guild().bind().members.bind().first { it.id == id } } }
 
     override fun toString(): String {
-        return "Member(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime, mention='$mention') ${super.toString()}"
+        return StringBuilder("Member(")
+            .appendln("guild=$guild, ")
+            .appendln("nickname=$nickname, ")
+            .appendln("roles=$roles, ")
+            .appendln("joinTime=$joinTime, ")
+            .appendln("mention='$mention'")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 
     override val nickname: String? = raw.nick

@@ -105,6 +105,11 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = delegate.edit(builder)
 
     override fun toString(): String {
-        return "PartialGuild(iconHash=$iconHash, id=$id, name='$name')"
+        return StringBuilder("PartialGuild(")
+            .appendln("iconHash=$iconHash, ")
+            .appendln("id=$id, ")
+            .appendln("name='$name'")
+            .appendln(")")
+            .toString()
     }
 }

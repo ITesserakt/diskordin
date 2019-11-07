@@ -27,6 +27,14 @@ class IdUser(raw: IDUserResponse) : IUser {
 
     override fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
 
+    override fun toString(): String {
+        return StringBuilder("IdUser(")
+            .appendln("id=$id, ")
+            .appendln("mention='$mention'")
+            .appendln(")")
+            .toString()
+    }
+
     override val id: Snowflake = raw.id
     override val mention: String = "<@${id.asString()}>"
 }

@@ -39,7 +39,21 @@ class Integration(
     }.flatMap { IO.fx { guild().bind().integrations.bind().first { it.id == id } } }
 
     override fun toString(): String {
-        return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"
+        return StringBuilder("Integration(")
+            .appendln("guild=$guild, ")
+            .appendln("type='$type', ")
+            .appendln("enabled=$enabled, ")
+            .appendln("syncing=$syncing, ")
+            .appendln("role=$role, ")
+            .appendln("expireBehavior=$expireBehavior, ")
+            .appendln("expireGracePeriod=$expireGracePeriod, ")
+            .appendln("user=$user, ")
+            .appendln("account=$account, ")
+            .appendln("syncedAt=$syncedAt, ")
+            .appendln("id=$id, ")
+            .appendln("name='$name'")
+            .appendln(")")
+            .toString()
     }
 
     override val type: String = raw.type

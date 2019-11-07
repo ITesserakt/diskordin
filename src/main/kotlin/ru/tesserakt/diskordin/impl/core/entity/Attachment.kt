@@ -13,6 +13,11 @@ class Attachment(raw: AttachmentResponse) : IAttachment {
     override val fileName: String = raw.filename
 
     override fun toString(): String {
-        return "Attachment(url='$url', id=$id, fileName='$fileName')"
+        return StringBuilder("Attachment(")
+            .appendln("url='$url', ")
+            .appendln("id=$id, ")
+            .appendln("fileName='$fileName'")
+            .appendln(")")
+            .toString()
     }
 }

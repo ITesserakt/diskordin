@@ -44,7 +44,13 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     }.map { it.extract() }
 
     override fun toString(): String {
-        return "Channel(type=$type, id=$id, mention='$mention', invites=$invites)"
+        return StringBuilder("Channel(")
+            .appendln("type=$type, ")
+            .appendln("id=$id, ")
+            .appendln("mention='$mention', ")
+            .appendln("invites=$invites")
+            .appendln(")")
+            .toString()
     }
 
     override val invites: IO<ListK<IInvite>> = rest.call(ListK.functor()) {
@@ -92,7 +98,15 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
     }.fix()
 
     override fun toString(): String {
-        return "GuildChannel(position=$position, permissionOverwrites=$permissionOverwrites, parentCategory=$parentCategory, guild=$guild, name='$name', invites=$invites) ${super.toString()}"
+        return StringBuilder("GuildChannel(")
+            .appendln("position=$position, ")
+            .appendln("permissionOverwrites=$permissionOverwrites, ")
+            .appendln("parentCategory=$parentCategory, ")
+            .appendln("guild=$guild, ")
+            .appendln("name='$name', ")
+            .appendln("invites=$invites")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }
 
@@ -115,7 +129,13 @@ class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), IText
 
     @ExperimentalUnsignedTypes
     override fun toString(): String {
-        return "TextChannel(messages=$messages, isNSFW=$isNSFW, topic=$topic, rateLimit=$rateLimit) ${super.toString()}"
+        return StringBuilder("TextChannel(")
+            .appendln("messages=$messages, ")
+            .appendln("isNSFW=$isNSFW, ")
+            .appendln("topic=$topic, ")
+            .appendln("rateLimit=$rateLimit")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }
 
@@ -130,7 +150,11 @@ class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVo
     }.map { it.extract() as IVoiceChannel }
 
     override fun toString(): String {
-        return "VoiceChannel(bitrate=$bitrate, userLimit=$userLimit) ${super.toString()}"
+        return StringBuilder("VoiceChannel(")
+            .appendln("bitrate=$bitrate, ")
+            .appendln("userLimit=$userLimit")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }
 
@@ -140,7 +164,10 @@ class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuild
 
 class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw), IAnnouncementChannel {
     override fun toString(): String {
-        return "AnnouncementChannel(messages=$messages) ${super.toString()}"
+        return StringBuilder("AnnouncementChannel(")
+            .appendln("messages=$messages")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }
 
@@ -148,7 +175,12 @@ open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw),
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override fun toString(): String {
-        return "PrivateChannel(recipient=$recipient, owner=$owner, messages=$messages) ${super.toString()}"
+        return StringBuilder("PrivateChannel(")
+            .appendln("recipient=$recipient, ")
+            .appendln("owner=$owner, ")
+            .appendln("messages=$messages")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 
     override val owner = raw.owner_id!!.identify {
@@ -160,6 +192,12 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : PrivateC
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override fun toString(): String {
-        return "GroupPrivateChannel(recipient=$recipient, owner=$owner, icon=$icon, messages=$messages) ${super.toString()}"
+        return StringBuilder("GroupPrivateChannel(")
+            .appendln("recipient=$recipient, ")
+            .appendln("owner=$owner, ")
+            .appendln("icon=$icon, ")
+            .appendln("messages=$messages")
+            .appendln(") ${super.toString()}")
+            .toString()
     }
 }

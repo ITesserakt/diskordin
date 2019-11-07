@@ -9,6 +9,11 @@ class Video(raw: VideoResponse) : IVideo {
     override val height: Int? = raw.height
     override val width: Int? = raw.width
     override fun toString(): String {
-        return "Video(url=$url, height=$height, width=$width)"
+        return StringBuilder("Video(")
+            .appendln("url=$url, ")
+            .appendln("height=$height, ")
+            .appendln("width=$width")
+            .appendln(")")
+            .toString()
     }
 }
