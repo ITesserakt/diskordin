@@ -26,7 +26,7 @@ interface IDiscordClient : IDiscordObject {
     /*
     Performs a login to discord servers and enables the Gateway
      */
-    fun login(): IO<Unit>
+    fun login()
 
     /*
     Should be used when need fast connect to Discord. Does not runs the Gateway

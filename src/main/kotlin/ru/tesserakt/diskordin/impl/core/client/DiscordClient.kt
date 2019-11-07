@@ -67,7 +67,7 @@ data class DiscordClient(
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override fun login(): IO<Unit> = IO.fx {
+    override fun login() = IO.fx {
         val gatewayStats = rest.call(Id.functor()) {
             gatewayService.getGatewayBot()
         }.bind().extract()
@@ -77,8 +77,9 @@ data class DiscordClient(
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
 
-        !effect { this@DiscordClient.gateway.run().join() }
-    }
+        this@DiscordClient.gateway.run()
+        Unit
+    }.unsafeRunSync()
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
