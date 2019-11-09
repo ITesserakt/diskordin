@@ -1,6 +1,6 @@
 # Diskordin
 ### What is this?
-Diskordin (**Dis**c**rd** & **Ko**tl**in**) is a [Discord API](https://discordapp.com/developers/docs/) wrapper written in Kotlin using
+Diskordin (**Dis**co**rd** & **Ko**tl**in**) is a [Discord API](https://discordapp.com/developers/docs/) wrapper written in Kotlin using
 functional approach which reached with [Arrow](http://arrow-kt.io/) library.
 ***
 The state of this wrapper is **PRE-ALPHA** because most features are not implemented. 
