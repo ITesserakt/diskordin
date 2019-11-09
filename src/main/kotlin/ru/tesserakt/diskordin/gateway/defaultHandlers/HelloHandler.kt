@@ -9,7 +9,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
-import ru.tesserakt.diskordin.gateway.json.Heartbeat
+import ru.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
 import sun.awt.OSInfo
 

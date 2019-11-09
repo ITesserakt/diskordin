@@ -2,6 +2,7 @@ package ru.tesserakt.diskordin.gateway.json
 
 import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
+import ru.tesserakt.diskordin.gateway.json.commands.GatewayCommand
 import ru.tesserakt.diskordin.util.gson
 import ru.tesserakt.diskordin.util.toJsonTree
 
@@ -16,12 +17,11 @@ data class Payload<T : IPayload>(
     fun opcode() = opcode.asOpcode()
 }
 
-fun <T : IGatewayCommand> T.wrap(opcode: Int, name: String, seq: Int?) =
+fun <T : GatewayCommand> T.wrap(opcode: Int, name: String, seq: Int?) =
     Payload<T>(opcode, seq, name, this.toJsonTree())
 
-fun <T : IGatewayCommand> T.wrapWith(opcode: Opcode, seq: Int?) =
+fun <T : GatewayCommand> T.wrapWith(opcode: Opcode, seq: Int?) =
     wrap(opcode.ordinal, opcode.name, seq)
 
 interface IPayload
-interface IGatewayCommand : IPayload
 interface IRawEvent : IPayload

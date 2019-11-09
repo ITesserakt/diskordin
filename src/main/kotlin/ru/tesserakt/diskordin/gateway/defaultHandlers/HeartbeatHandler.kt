@@ -10,7 +10,7 @@ import ru.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatEvent
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
-import ru.tesserakt.diskordin.gateway.json.Heartbeat
+import ru.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import ru.tesserakt.diskordin.util.Loggers
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
