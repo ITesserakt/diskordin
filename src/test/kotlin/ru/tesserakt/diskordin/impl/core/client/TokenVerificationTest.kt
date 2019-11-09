@@ -1,21 +1,16 @@
 package ru.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Either
-import arrow.core.EitherOf
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.fix
-import arrow.core.orNull
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.Test
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.getLeft
+import ru.tesserakt.diskordin.getRight
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
-
-fun <E, A> EitherOf<E, A>.getLeft(): E {
-    require(this is Either.Left<E>) { "Cannot get left value from Right Either" }
-    return swap().orNull()!!
-}
 
 internal class TokenVerificationTest {
     val partial = { token: String ->
@@ -52,6 +47,6 @@ internal class TokenVerificationTest {
             .verify().fix()
 
         verification.isRight() shouldBe true
-        547489107585007636.asSnowflake() shouldEqual verification.orNull()
+        547489107585007636.asSnowflake() shouldEqual verification.getRight()
     }
 }

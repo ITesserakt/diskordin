@@ -78,7 +78,7 @@ interface ChannelService {
     @GET("/api/v6/channels/{id}/pins")
     fun getPinnedMessages(@Path("id") id: Snowflake): CallK<ListK<MessageResponse>>
 
-    @PUT("/api/v6/channels/{id}/pins/{messageId}")
+    @PUT("/api/v6/channels/{channelId}/pins/{messageId}")
     fun pinMessage(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
