@@ -11,7 +11,6 @@ import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import ru.tesserakt.diskordin.gateway.json.commands.Identify
-import sun.awt.OSInfo
 
 @ExperimentalCoroutinesApi
 internal class HelloHandler(override val gateway: Gateway) : GatewayHandler() {
@@ -26,7 +25,7 @@ internal class HelloHandler(override val gateway: Gateway) : GatewayHandler() {
                     Identify(
                         token,
                         Identify.ConnectionProperties(
-                            OSInfo.getOSType().name.toLowerCase(),
+                            System.getProperty("os.name"),
                             "Diskordin",
                             "Diskordin"
                         ),
