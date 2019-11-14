@@ -5,6 +5,7 @@ import arrow.core.ListK
 import arrow.integrations.retrofit.adapter.CallKindAdapterFactory
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
+import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -13,7 +14,6 @@ import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.json.request.JsonRequest
 import ru.tesserakt.diskordin.core.entity.builder.BuilderBase
-import ru.tesserakt.diskordin.util.Loggers
 import ru.tesserakt.diskordin.util.typeAdapter.IdTypeAdapter
 import ru.tesserakt.diskordin.util.typeAdapter.InstantTypeAdapter
 import ru.tesserakt.diskordin.util.typeAdapter.ListKTypeAdapter
@@ -34,7 +34,7 @@ internal val defaultHttpClient = OkHttpClient.Builder()
             .build()
         chain.proceed(request)
     }.addInterceptor(
-        HttpLoggingInterceptor(Loggers("[Http client]").value::debug)
+        HttpLoggingInterceptor(KotlinLogging.logger("[Http client]")::debug)
             .setLevel(HttpLoggingInterceptor.Level.BODY)
     ).build()
 

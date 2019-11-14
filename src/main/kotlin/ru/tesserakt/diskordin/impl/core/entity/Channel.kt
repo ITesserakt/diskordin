@@ -9,6 +9,7 @@ import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.applicative.map
 import arrow.fx.fix
+import mu.KotlinLogging
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.identify
 import ru.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -20,12 +21,11 @@ import ru.tesserakt.diskordin.core.entity.`object`.IInvite
 import ru.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import ru.tesserakt.diskordin.core.entity.builder.*
 import ru.tesserakt.diskordin.rest.call
-import ru.tesserakt.diskordin.util.Loggers
 import ru.tesserakt.diskordin.util.enums.not
 import kotlin.time.ExperimentalTime
 
 sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
-    private val logger by Loggers
+    private val logger = KotlinLogging.logger { }
 
     final override val type: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.type }
 

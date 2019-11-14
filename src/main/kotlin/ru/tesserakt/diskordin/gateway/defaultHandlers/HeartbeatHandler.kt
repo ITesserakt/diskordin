@@ -6,19 +6,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.asFlowable
+import mu.KLogging
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatEvent
 import ru.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.gateway.json.commands.Heartbeat
-import ru.tesserakt.diskordin.util.Loggers
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
 @UseExperimental(ExperimentalTime::class)
 @ExperimentalCoroutinesApi
 internal class HeartbeatHandler(override val gateway: Gateway) : GatewayHandler() {
-    private val logger by Loggers
+    private companion object : KLogging()
     private var interval = 0L
 
     init {

@@ -8,6 +8,7 @@ import com.tinder.scarlet.messageadapter.gson.GsonMessageAdapter
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.okhttp.OkHttpWebSocket
+import mu.KotlinLogging
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -20,7 +21,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import ru.tesserakt.diskordin.core.client.IDiscordClient
 import ru.tesserakt.diskordin.gateway.GatewayLifecycle
 import ru.tesserakt.diskordin.util.FlowStreamAdapter
-import ru.tesserakt.diskordin.util.Loggers
 import ru.tesserakt.diskordin.util.gson
 import ru.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import java.io.File
@@ -54,7 +54,7 @@ internal fun setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClien
             .build()
         chain.proceed(request)
     }.addInterceptor(
-        HttpLoggingInterceptor(Loggers("[Http client]").value::debug)
+        HttpLoggingInterceptor(KotlinLogging.logger("[HTTP client]")::debug)
             .setLevel(HttpLoggingInterceptor.Level.BASIC)
     ).build()
 

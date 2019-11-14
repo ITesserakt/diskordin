@@ -50,8 +50,7 @@ dependencies {
     implementation "com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version"
     implementation "com.tinder.scarlet:message-adapter-gson:$scarlet_version"
 
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.1'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
+    compile 'io.github.microutils:kotlin-logging:1.7.6'
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"

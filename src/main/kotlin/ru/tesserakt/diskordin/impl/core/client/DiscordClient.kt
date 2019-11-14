@@ -13,6 +13,7 @@ import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import mu.KLogging
 import org.koin.core.inject
 import ru.tesserakt.diskordin.core.client.EventDispatcher
 import ru.tesserakt.diskordin.core.client.IDiscordClient
@@ -30,7 +31,6 @@ import ru.tesserakt.diskordin.core.entity.builder.build
 import ru.tesserakt.diskordin.gateway.Gateway
 import ru.tesserakt.diskordin.rest.RestClient
 import ru.tesserakt.diskordin.rest.call
-import ru.tesserakt.diskordin.util.Loggers
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
@@ -39,10 +39,11 @@ data class DiscordClient(
 ) : IDiscordClient {
     @ExperimentalCoroutinesApi
     override lateinit var eventDispatcher: EventDispatcher
-    private val logger by Loggers
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
     override val rest: RestClient<ForIO> by inject()
+
+    private companion object : KLogging()
 
     init {
         self = TokenVerification(token, tokenType, Either.monadError())
@@ -85,7 +86,7 @@ data class DiscordClient(
     @ExperimentalTime
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
         isConnected = true
-        block()
+        this.block()
         logout()
     }
 

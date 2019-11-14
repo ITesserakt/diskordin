@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.koin.core.parameter.parametersOf
@@ -18,7 +19,6 @@ import ru.tesserakt.diskordin.gateway.defaultHandlers.HeartbeatHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.HelloHandler
 import ru.tesserakt.diskordin.gateway.defaultHandlers.RestartHandler
 import ru.tesserakt.diskordin.impl.core.client.EventDispatcherImpl
-import ru.tesserakt.diskordin.util.Loggers
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
@@ -42,7 +42,7 @@ class Gateway @ExperimentalTime constructor(
     internal val scope: CoroutineScope = getKoin().getProperty("gatewayScope")!!
     internal var lastSequenceId: Int? = null
 
-    private val logger by Loggers("[Gateway]")
+    private val logger = KotlinLogging.logger { }
     private val lifecycle by inject<GatewayLifecycle>()
     private val restartHandler = registerHandler(::RestartHandler)
 
