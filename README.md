@@ -50,7 +50,7 @@ There will more use cases as they will implement.
 | Koin              | Dependency injection library                                  |
 | OkHTTP            | Http client implementation on which Rest and Gateway are based|
 | Scarlet           | Easy work with websockets                                     |
-| SLF4J             | Logging                                                       |
+| Kotlin logging    | Kotlin adapter for loggers                                    |
 | JUnit             | Tests                                                         |
 | Kluent            | Extensions providing easily unit testing                      |
 
