@@ -5,7 +5,7 @@ import java.io.File
 
 data class EmojiCreateRequest(
     val name: String,
-    val image: File, //TODO: заменить на класс Image
+    val image: File,
     val roles: Array<Snowflake>
 ) : JsonRequest() {
     init {
