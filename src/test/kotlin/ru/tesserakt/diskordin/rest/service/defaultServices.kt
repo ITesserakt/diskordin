@@ -23,6 +23,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 internal val defaultToken = ResourceBundle.getBundle("token").getString("token")
+    ?: System.getProperty("token")
 
 internal val defaultHttpClient = OkHttpClient.Builder()
     .callTimeout(10, TimeUnit.SECONDS)

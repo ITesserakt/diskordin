@@ -9,8 +9,8 @@ import arrow.fx.typeclasses.Bracket
 import org.amshove.kluent.`should contain`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.shouldBeTrue
-import org.junit.Test
 import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
 import ru.tesserakt.diskordin.callAndExtract
 import ru.tesserakt.diskordin.core.data.asSnowflake

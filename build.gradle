@@ -5,6 +5,7 @@ buildscript {
     ext.arrow_version = "0.10.3"
     ext.scarlet_version = "0.2.5-SNAPSHOT"
     ext.retrofit_version = "2.6.2"
+    ext.junit_version = "5.5.2"
 }
 
 plugins {
@@ -50,11 +51,16 @@ dependencies {
     implementation "com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version"
     implementation "com.tinder.scarlet:message-adapter-gson:$scarlet_version"
 
-    compile 'io.github.microutils:kotlin-logging:1.7.6'
+    compile 'io.github.microutils:kotlin-logging:1.7.7'
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
-    testImplementation 'org.amshove.kluent:kluent:1.55'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
+    testImplementation 'org.amshove.kluent:kluent:1.57'
+    testImplementation 'org.slf4j:slf4j-simple:1.7.26'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 compileKotlin {
@@ -65,5 +71,5 @@ compileTestKotlin {
 }
 
 wrapper {
-    version = "5.6.2"
+    version = "6.0"
 }

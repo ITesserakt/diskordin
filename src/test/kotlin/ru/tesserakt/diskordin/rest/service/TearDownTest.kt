@@ -6,7 +6,7 @@ import arrow.fx.extensions.io.bracket.bracket
 import arrow.fx.fix
 import arrow.fx.typeclasses.Bracket
 import org.amshove.kluent.*
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import ru.tesserakt.diskordin.withFinalize
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")

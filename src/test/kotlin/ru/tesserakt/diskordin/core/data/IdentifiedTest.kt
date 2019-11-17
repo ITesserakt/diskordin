@@ -2,7 +2,7 @@ package ru.tesserakt.diskordin.core.data
 
 import arrow.fx.IO
 import arrow.fx.extensions.fx
-import org.amshove.kluent.*
+import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
 import ru.tesserakt.diskordin.core.entity.IMentioned
@@ -16,8 +16,12 @@ internal class IdentifiedTest {
     internal fun setUp() {
         snowflake = Random.nextLong(4194305, Long.MAX_VALUE).asSnowflake()
         println("Next id: $snowflake, ${snowflake.timestamp}")
-        val mock = mock<IMentioned>()
-        When calling mock.id `it returns` snowflake
+        val mock = object : IMentioned {
+            override val id: Snowflake = snowflake
+
+            override val mention: String
+                get() = throw NotImplementedError()
+        }
 
         sample = snowflake identify { mock }
     }
