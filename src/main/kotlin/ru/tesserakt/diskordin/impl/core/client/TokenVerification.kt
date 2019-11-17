@@ -5,6 +5,7 @@ import arrow.typeclasses.MonadError
 import ru.tesserakt.diskordin.core.client.TokenType
 import ru.tesserakt.diskordin.core.data.Snowflake
 import ru.tesserakt.diskordin.core.data.asSnowflake
+import ru.tesserakt.diskordin.core.data.asSnowflakeSafe
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError
 import ru.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
 import java.util.*
@@ -41,9 +42,12 @@ internal class TokenVerification<F>(
             bytes.toString(Charsets.UTF_8)
         }.bind()
 
-        catch({ CorruptedId }, {
-            padded.asSnowflake()
-        }).bind()
+        padded.asSnowflakeSafe().fromEither {
+            when (it) {
+                is Snowflake.ConstructionError.NotANumber -> InvalidCharacters
+                is Snowflake.ConstructionError.LessThenDiscordEpoch -> CorruptedId
+            }
+        }.bind()
     }
 
     internal sealed class VerificationError(val message: String) {

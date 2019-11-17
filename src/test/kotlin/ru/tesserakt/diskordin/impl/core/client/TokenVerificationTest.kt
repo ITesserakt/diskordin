@@ -38,7 +38,7 @@ internal class TokenVerificationTest {
     @Test
     fun `first part of the token should be right id`() {
         val verification = partial("some.incorrect.token").verify()
-        CorruptedId shouldEqual verification.getLeft()
+        InvalidCharacters shouldEqual verification.getLeft()
     }
 
     @Test

@@ -1,7 +1,11 @@
 package ru.tesserakt.diskordin.core.data
 
+import arrow.core.left
+import arrow.core.right
 import org.amshove.kluent.*
 import org.junit.jupiter.api.Test
+import ru.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
+import ru.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotANumber
 
 internal class SnowflakeTest {
     @Test
@@ -36,5 +40,16 @@ internal class SnowflakeTest {
         l2.asSnowflake() shouldEqual Snowflake.of(999999999999u);
 
         { ul1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater then 4194304"
+    }
+
+    @Test
+    fun `safe converts`() {
+        val s1 = "invalid"
+        val s2 = "6666666666666666"
+        val s3 = "0"
+
+        s1.asSnowflakeSafe() `should equal` NotANumber.left()
+        s2.asSnowflakeSafe() `should equal` Snowflake.of(6666666666666666).right()
+        s3.asSnowflakeSafe() `should equal` LessThenDiscordEpoch.left()
     }
 }
