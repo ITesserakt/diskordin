@@ -14,6 +14,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.Logger.slf4jLogger
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -25,6 +26,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
+
+private val libraryVersion = GlobalContext.get().koin.getProperty("lib-ver", "Undefined")
 
 internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
     .client(httpClient)
@@ -50,7 +53,7 @@ internal fun setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClien
         val request = chain.request()
             .newBuilder()
             .addHeader("Authorization", "${client.tokenType} ${client.token}")
-            .addHeader("User-Agent", "Discord bot (Diskordin, 0.0.1)")
+            .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
             .build()
         chain.proceed(request)
     }.addInterceptor(

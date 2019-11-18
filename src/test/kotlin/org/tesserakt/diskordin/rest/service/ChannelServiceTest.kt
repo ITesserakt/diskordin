@@ -12,6 +12,7 @@ import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.tesserakt.diskordin.callAndExtract
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.entity.IChannel
@@ -26,6 +27,7 @@ import kotlin.time.seconds
 
 @TestMethodOrder(MethodOrderer.Random::class)
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
+@EnabledIfEnvironmentVariable(named = "token", matches = ".*") //all this tests enabled if token presents
 internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     private val constPinMessage = 641979565593460747.asSnowflake()
     private val constChannelId = 641701349914050560.asSnowflake()

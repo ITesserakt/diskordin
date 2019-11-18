@@ -21,7 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
-internal val defaultToken = System.getProperty("token")
+internal val defaultToken = System.getenv("token")
+private val libraryVersion = System.getenv("lib-ver")
 
 internal val defaultHttpClient = OkHttpClient.Builder()
     .callTimeout(10, TimeUnit.SECONDS)
@@ -29,11 +30,11 @@ internal val defaultHttpClient = OkHttpClient.Builder()
         val request = chain.request()
             .newBuilder()
             .addHeader("Authorization", "${TokenType.Bot} $defaultToken")
-            .addHeader("User-Agent", "Discord bot (Diskordin, 0.0.1)")
+            .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
             .build()
         chain.proceed(request)
     }.addInterceptor(
-        HttpLoggingInterceptor(KotlinLogging.logger("[Http client]")::debug)
+        HttpLoggingInterceptor(KotlinLogging.logger("[Http client]")::info)
             .setLevel(HttpLoggingInterceptor.Level.BODY)
     ).build()
 
