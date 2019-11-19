@@ -25,7 +25,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'com.github.ITesserakt:diskordin:0.1'
+    implementation 'com.github.ITesserakt:diskordin:0.1.1'
 }
 ```
 #### Maven
@@ -42,14 +42,14 @@ dependencies {
     <dependency>
    <groupId>com.github.ITesserakt</groupId>
    <artifactId>diskordin</artifactId>
-   <version>0.1</version>
+   <version>0.1.1</version>
     </dependency>
 </dependencies>
 ```
 #### SBT 
 ```scala
 resolvers += "jitpack" at "https://jitpack.io"
-libraryDependencies += "com.github.ITesserakt" % "diskordin" % "0.1"
+libraryDependencies += "com.github.ITesserakt" % "diskordin" % "0.1.1"
 ```
 **Also you must add a dependency for logger. The most simple is** 
 `'org.slf4j:slf4j-simple:1.7.26'`
