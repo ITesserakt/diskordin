@@ -8,7 +8,6 @@ import com.google.gson.Gson
 import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.tesserakt.diskordin.core.client.TokenType
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -29,7 +28,7 @@ internal val defaultHttpClient = OkHttpClient.Builder()
     .addInterceptor { chain ->
         val request = chain.request()
             .newBuilder()
-            .addHeader("Authorization", "${TokenType.Bot} $defaultToken")
+            .addHeader("Authorization", "Bot $defaultToken")
             .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
             .build()
         chain.proceed(request)

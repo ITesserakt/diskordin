@@ -1,5 +1,7 @@
 package org.tesserakt.diskordin.core.data
 
+import arrow.core.Either
+import arrow.core.extensions.either.applicativeError.applicativeError
 import arrow.core.left
 import arrow.core.right
 import org.amshove.kluent.*
@@ -48,8 +50,8 @@ internal class SnowflakeTest {
         val s2 = "6666666666666666"
         val s3 = "0"
 
-        s1.asSnowflakeSafe() `should equal` NotANumber.left()
-        s2.asSnowflakeSafe() `should equal` Snowflake.of(6666666666666666).right()
-        s3.asSnowflakeSafe() `should equal` LessThenDiscordEpoch.left()
+        s1.asSnowflakeSafe(Either.applicativeError()) `should equal` NotANumber.left()
+        s2.asSnowflakeSafe(Either.applicativeError()) `should equal` Snowflake.of(6666666666666666).right()
+        s3.asSnowflakeSafe(Either.applicativeError()) `should equal` LessThenDiscordEpoch.left()
     }
 }

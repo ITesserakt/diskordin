@@ -1,10 +1,11 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.Kind
+import arrow.core.Either
+import arrow.core.extensions.either.applicativeError.applicativeError
+import arrow.core.fix
 import arrow.typeclasses.MonadError
-import org.tesserakt.diskordin.core.client.TokenType
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.asSnowflakeSafe
 import org.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError
 import org.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
@@ -13,14 +14,11 @@ import java.util.*
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 internal class TokenVerification<F>(
     private val token: String,
-    private val tokenType: TokenType,
     ME: MonadError<F, VerificationError>
 ) : MonadError<F, VerificationError> by ME {
     fun verify(): Kind<F, Snowflake> {
         if (token.isBlank()) return raiseError(BlankString)
         if (token.contains(Regex("""\s"""))) return raiseError(InvalidCharacters)
-
-        if (tokenType == TokenType.Webhook || tokenType == TokenType.Bearer) return token.asSnowflake().just()
 
         val parts = token.split('.')
         if (parts.size != 3) return raiseError(InvalidConstruction)
@@ -42,7 +40,7 @@ internal class TokenVerification<F>(
             bytes.toString(Charsets.UTF_8)
         }.bind()
 
-        padded.asSnowflakeSafe().fromEither {
+        padded.asSnowflakeSafe(Either.applicativeError()).fix().fromEither {
             when (it) {
                 is Snowflake.ConstructionError.NotANumber -> InvalidCharacters
                 is Snowflake.ConstructionError.LessThenDiscordEpoch -> CorruptedId

@@ -12,12 +12,12 @@ import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
+import arrow.fx.typeclasses.ConcurrentSyntax
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.client.TokenType
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -34,23 +34,22 @@ import org.tesserakt.diskordin.rest.call
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
-data class DiscordClient(
-    override val tokenType: TokenType
-) : IDiscordClient {
+class DiscordClient : IDiscordClient {
     @ExperimentalCoroutinesApi
     override lateinit var eventDispatcher: EventDispatcher
     override val token: String = getKoin().getProperty("token")!!
-    override val self: Identified<ISelf>
+    override lateinit var self: Identified<ISelf>
+        private set
     override val rest: RestClient<ForIO> by inject()
 
     private companion object : KLogging()
 
     init {
-        self = TokenVerification(token, tokenType, Either.monadError())
+        self = TokenVerification(token, Either.monadError())
             .verify()
             .flatTap { logger.info("Token verified").right() }
             .getOrHandle {
-                throw error(it.message)
+                error(it.message)
             } identify {
             rest.call(Id.functor()) { userService.getCurrentUser() }.bind().extract()
         }
@@ -80,13 +79,13 @@ data class DiscordClient(
 
         this@DiscordClient.gateway.run()
         Unit
-    }.unsafeRunSync()
+    }
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
+    override fun use(block: ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
         isConnected = true
-        this.block()
+        this.block(this@DiscordClient)
         logout()
     }
 

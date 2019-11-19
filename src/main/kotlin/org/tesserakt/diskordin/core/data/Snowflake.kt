@@ -1,18 +1,16 @@
-@file:Suppress("unused", "DataClassPrivateConstructor")
+@file:Suppress("unused", "DataClassPrivateConstructor", "EXPERIMENTAL_UNSIGNED_LITERALS")
 
 package org.tesserakt.diskordin.core.data
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import arrow.extension
+import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Order
 import arrow.typeclasses.Show
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotANumber
 import java.time.Instant
 
-private const val DISCORD_EPOCH = 1420070400000
+private const val DISCORD_EPOCH = 1420070400000u
 
 @UseExperimental(ExperimentalUnsignedTypes::class)
 data class Snowflake private constructor(private val id: ULong) : Comparable<Snowflake> {
@@ -31,7 +29,7 @@ data class Snowflake private constructor(private val id: ULong) : Comparable<Sno
     fun asLong() = id.toLong()
 
     val timestamp: Instant
-        get() = Instant.ofEpochMilli((id.toLong() shr 22) + DISCORD_EPOCH)
+        get() = Instant.ofEpochMilli(((id shr 22) + DISCORD_EPOCH).toLong())
 
     companion object {
         fun of(id: String): Snowflake = of(
@@ -64,17 +62,17 @@ fun Long.asSnowflake() = Snowflake.of(this)
 fun ULong.asSnowflake() = Snowflake.of(this)
 
 @UseExperimental(ExperimentalUnsignedTypes::class)
-fun String.asSnowflakeSafe(): Either<Snowflake.ConstructionError, Snowflake> {
+fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionError>) = AE.run {
     val stringToConvert = this@asSnowflakeSafe
 
     if (stringToConvert.toLongOrNull() == null)
-        return NotANumber.left()
-
-    val raw = toULongOrNull()
-    if (raw == null || raw < DISCORD_EPOCH.toULong())
-        return LessThenDiscordEpoch.left()
-
-    return asSnowflake().right()
+        NotANumber.raiseError()
+    else {
+        val raw = toULongOrNull()
+        if (raw == null || raw < DISCORD_EPOCH)
+            LessThenDiscordEpoch.raiseError()
+        else asSnowflake().just()
+    }
 }
 
 @extension

@@ -6,7 +6,6 @@ import arrow.core.fix
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.Test
-import org.tesserakt.diskordin.core.client.TokenType
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.getLeft
 import org.tesserakt.diskordin.getRight
@@ -14,7 +13,7 @@ import org.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationEr
 
 internal class TokenVerificationTest {
     val partial = { token: String ->
-        TokenVerification(token, TokenType.Bot, Either.monadError())
+        TokenVerification(token, Either.monadError())
     }
 
     @Test

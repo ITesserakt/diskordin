@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.client
 import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
+import arrow.fx.typeclasses.ConcurrentSyntax
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -16,7 +17,6 @@ import org.tesserakt.diskordin.rest.RestClient
 interface IDiscordClient : IDiscordObject {
     val eventDispatcher: EventDispatcher
     val token: String
-    val tokenType: TokenType
     val self: Identified<ISelf>
     val isConnected: Boolean
     @ExperimentalCoroutinesApi
@@ -26,12 +26,12 @@ interface IDiscordClient : IDiscordObject {
     /*
     Performs a login to discord servers and enables the Gateway
      */
-    fun login()
+    fun login(): IO<Unit>
 
     /*
     Should be used when need fast connect to Discord. Does not runs the Gateway
      */
-    suspend fun use(block: suspend IDiscordClient.() -> Unit)
+    fun use(block: ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit): IO<Unit>
 
     fun logout()
     fun getUser(id: Snowflake): IO<IUser>
@@ -44,8 +44,4 @@ interface IDiscordClient : IDiscordObject {
 
     val users: IO<List<IUser>>
     val guilds: IO<List<IGuild>>
-}
-
-enum class TokenType {
-    Bot, Bearer, Webhook
 }

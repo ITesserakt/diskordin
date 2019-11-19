@@ -9,14 +9,12 @@ import org.koin.core.context.loadKoinModules
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.client.TokenType
 import org.tesserakt.diskordin.gateway.GatewayLifecycle
 import org.tesserakt.diskordin.rest.RestClient
 import java.util.concurrent.atomic.AtomicBoolean
 
 class DiscordClientBuilder private constructor() {
     var token: String = "Invalid"
-    var tokenType: TokenType = TokenType.Bot
     var gatewayScope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
 
     companion object {
@@ -31,7 +29,7 @@ class DiscordClientBuilder private constructor() {
                 koin.setProperty("token", builder.token)
             koin.setProperty("gatewayScope", builder.gatewayScope)
 
-            return DiscordClient(builder.tokenType).also { client ->
+            return DiscordClient().also { client ->
                 loadKoinModules(module {
                     single { client } bind IDiscordClient::class
                     single { setupHttpClient(get()) }

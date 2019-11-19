@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-private val libraryVersion = GlobalContext.get().koin.getProperty("lib-ver", "Undefined")
+private val libraryVersion get() = GlobalContext.get().koin.getProperty("lib-ver", "Undefined")
 
 internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
     .client(httpClient)
@@ -52,7 +52,7 @@ internal fun setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClien
     .addInterceptor { chain ->
         val request = chain.request()
             .newBuilder()
-            .addHeader("Authorization", "${client.tokenType} ${client.token}")
+            .addHeader("Authorization", "Bot ${client.token}")
             .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
             .build()
         chain.proceed(request)
