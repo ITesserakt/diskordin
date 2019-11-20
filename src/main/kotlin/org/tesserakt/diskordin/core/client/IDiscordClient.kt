@@ -31,7 +31,7 @@ interface IDiscordClient : IDiscordObject {
     /*
     Should be used when need fast connect to Discord. Does not runs the Gateway
      */
-    fun use(block: ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit): IO<Unit>
+    fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit): IO<Unit>
 
     fun logout()
     fun getUser(id: Snowflake): IO<IUser>
