@@ -74,7 +74,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     fun `get 100 last messages from text channel`() {
         val messages = rest.callRaw {
             channelService.getMessages(constChannelId, MessagesQuery().apply {
-                this.limit = 100
+                +limit(100)
             }.create())
         }.attempt().fix().unsafeRunSync()
 

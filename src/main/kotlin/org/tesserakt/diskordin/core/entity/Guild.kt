@@ -82,8 +82,12 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     fun addRole(builder: RoleCreateBuilder.() -> Unit): IO<IRole>
     fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>>
     fun getBan(userId: Snowflake): IO<IBan>
+    @UseExperimental(ExperimentalTime::class)
     fun ban(member: IMember, builder: BanQuery.() -> Unit): IO<Unit>
+
+    @UseExperimental(ExperimentalTime::class)
     fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit): IO<Unit>
+
     fun pardon(userId: Snowflake, reason: String?): IO<Unit>
     fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int>
     fun addIntegration(id: Snowflake, type: String): IO<Unit>

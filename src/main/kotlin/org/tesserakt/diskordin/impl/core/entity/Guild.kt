@@ -151,8 +151,10 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.getBan(id, userId)
     }.map { it.extract() }
 
+    @ExperimentalTime
     override fun ban(member: IMember, builder: BanQuery.() -> Unit) = ban(member.id, builder)
 
+    @ExperimentalTime
     override fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = rest.effect {
         guildService.ban(id, memberId, builder.query())
     }.fix()
@@ -219,7 +221,7 @@ class Guild(raw: GuildResponse) : IGuild {
 
     override val members: IO<ListK<IMember>> = rest.call(id, ListK.functor()) {
         guildService.getMembers(id, MemberQuery().apply {
-            this.limit = 1000
+            +limit(1000)
         }.create())
     }.map { it.fix() }
 

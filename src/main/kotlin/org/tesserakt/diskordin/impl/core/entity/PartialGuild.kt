@@ -77,8 +77,10 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
 
     override fun getBan(userId: Snowflake): IO<IBan> = delegate.getBan(userId)
 
+    @ExperimentalTime
     override fun ban(member: IMember, builder: BanQuery.() -> Unit) = delegate.ban(member, builder)
 
+    @ExperimentalTime
     override fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = delegate.ban(memberId, builder)
 
     override fun pardon(userId: Snowflake, reason: String?) = delegate.pardon(userId, reason)

@@ -104,7 +104,7 @@ interface IMessageChannel : IChannel {
     val messages
         get() = rest.call(ListK.functor()) {
             channelService.getMessages(id, MessagesQuery().apply {
-                limit = 100
+                +limit(100)
             }.create())
         }.map { it.fix() }
 
