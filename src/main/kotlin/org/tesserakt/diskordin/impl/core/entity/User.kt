@@ -72,6 +72,12 @@ open class User(raw: UserResponse<IUser>) : IUser {
 }
 
 class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
+    override fun joinIntoDM(to: Snowflake): IO<IPrivateChannel> = rest.call {
+        userService.joinToDM(DMCreateBuilder().apply {
+            recipientId = to
+        }.create())
+    }.fix()
+
     override val guilds: Flow<IGuild> = flow {
         rest.call(ListK.functor()) {
             userService.getCurrentUserGuilds(UserGuildsQuery().create())
@@ -95,10 +101,6 @@ class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     override fun leaveGuild(guildId: Snowflake) = rest.effect {
         userService.leaveGuild(guildId)
     }.fix()
-
-    override fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IO<IPrivateChannel> = rest.call(Id.functor()) {
-        userService.joinToDM(builder.build())
-    }.map { it.extract() }
 
     override fun edit(builder: UserEditBuilder.() -> Unit): IO<ISelf> = rest.call(Id.functor()) {
         userService.editCurrentUser(builder.build())

@@ -3,8 +3,11 @@
 package org.tesserakt.diskordin.core.data
 
 import org.tesserakt.diskordin.util.enums.IValued
+import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.typeclass.Integral
 import org.tesserakt.diskordin.util.typeclass.integral
+
+typealias Permissions = ValuedEnum<Permission, Long>
 
 enum class Permission(override val value: Long) : IValued<Permission, Long>, Integral<Long> by Long.integral() {
     CreateInstantInvite(1),

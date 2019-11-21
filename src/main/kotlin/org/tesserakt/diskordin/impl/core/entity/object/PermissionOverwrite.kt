@@ -8,6 +8,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import org.tesserakt.diskordin.core.entity.`object`.MemberId
 import org.tesserakt.diskordin.core.entity.`object`.RoleId
 import org.tesserakt.diskordin.util.enums.ValuedEnum
+import org.tesserakt.diskordin.util.enums.not
 import org.tesserakt.diskordin.util.typeclass.integral
 
 class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
@@ -30,4 +31,6 @@ class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
             .appendln(")")
             .toString()
     }
+
+    override fun computeCode(): Long = (allowed and !denied).code
 }

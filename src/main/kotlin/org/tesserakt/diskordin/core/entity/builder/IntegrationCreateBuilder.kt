@@ -3,10 +3,8 @@ package org.tesserakt.diskordin.core.entity.builder
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.IntegrationCreateRequest
 
-class IntegrationCreateBuilder : BuilderBase<IntegrationCreateRequest>() {
-    lateinit var type: String
-    lateinit var id: Snowflake
-
+@RequestBuilder
+class IntegrationCreateBuilder(val id: Snowflake, val type: String) : BuilderBase<IntegrationCreateRequest>() {
     override fun create(): IntegrationCreateRequest = IntegrationCreateRequest(
         type,
         id

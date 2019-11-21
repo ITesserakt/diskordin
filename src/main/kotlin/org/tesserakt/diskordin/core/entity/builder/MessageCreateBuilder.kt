@@ -2,22 +2,47 @@
 
 package org.tesserakt.diskordin.core.entity.builder
 
+import arrow.core.Ior
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.MessageCreateRequest
 
-class MessageCreateBuilder : BuilderBase<MessageCreateRequest>() {
-    var content: String = ""
-    var nonce: Snowflake? = null
-    var tts: Boolean? = null
-    var embed: (EmbedCreateBuilder.() -> Unit)? = null
+typealias Content = String
+typealias Embed = EmbedCreateBuilder
+
+@RequestBuilder
+@Suppress("NOTHING_TO_INLINE", "unused")
+class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderBase<MessageCreateRequest>() {
+    private var content: String? = null
+    private var nonce: Snowflake? = null
+    private var tts: Boolean? = null
+    private var embed: EmbedCreateBuilder? = null
 
     override fun create(): MessageCreateRequest {
-        require(content.isNotEmpty() || embed != null) { "You must send at least one of content or embed" }
+        required.fold({
+            content = it
+        }, {
+            embed = it
+        }, { c, e ->
+            content = c
+            embed = e
+        })
+
         return MessageCreateRequest(
-            content,
+            content!!,
             nonce?.asLong(),
             tts,
-            embed?.build()
+            embed?.create()
         )
     }
+
+    operator fun Snowflake.unaryPlus() {
+        nonce = this
+    }
+
+    operator fun Boolean.unaryPlus() {
+        tts = this
+    }
+
+    inline fun MessageCreateBuilder.nonce(id: Snowflake) = id
+    inline fun MessageCreateBuilder.tts(value: Boolean) = value
 }

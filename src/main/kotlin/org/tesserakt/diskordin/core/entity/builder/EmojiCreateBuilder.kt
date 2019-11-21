@@ -4,6 +4,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.EmojiCreateRequest
 import java.io.File
 
+@RequestBuilder
 class EmojiCreateBuilder : BuilderBase<EmojiCreateRequest>() {
     lateinit var name: String
     lateinit var image: File

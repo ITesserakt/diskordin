@@ -27,7 +27,6 @@ import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
-import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
@@ -83,7 +82,7 @@ class DiscordClient : IDiscordClient {
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override fun use(block: ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
+    override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
         isConnected = true
         this.block(this@DiscordClient)
         logout()
@@ -98,9 +97,25 @@ class DiscordClient : IDiscordClient {
         exitProcess(0)
     }
 
-    override fun createGuild(request: GuildCreateBuilder.() -> Unit): IO<IGuild> = rest.call(Id.functor()) {
-        guildService.createGuild(request.build())
-    }.map { it.extract() }
+    override fun createGuild(
+        name: String,
+        region: IRegion,
+        icon: String,
+        verificationLevel: IGuild.VerificationLevel,
+        defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
+        explicitContentFilter: IGuild.ExplicitContentFilter,
+        builder: GuildCreateBuilder.() -> Unit
+    ): IO<IGuild> = rest.call {
+        val inst = GuildCreateBuilder(
+            name,
+            region.name,
+            icon,
+            verificationLevel,
+            defaultMessageNotificationLevel,
+            explicitContentFilter
+        ).apply(builder)
+        guildService.createGuild(inst.create())
+    }.fix()
 
     override fun getInvite(code: String): IO<IInvite> = rest.call(Id.functor()) {
         inviteService.getInvite(code)

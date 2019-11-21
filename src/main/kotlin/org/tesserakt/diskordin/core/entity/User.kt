@@ -3,7 +3,6 @@ package org.tesserakt.diskordin.core.entity
 import arrow.fx.IO
 import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.enums.ValuedEnum
@@ -51,5 +50,10 @@ interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
 
     fun leaveGuild(guild: IGuild): IO<Unit>
     fun leaveGuild(guildId: Snowflake): IO<Unit>
-    fun joinIntoDM(builder: DMCreateBuilder.() -> Unit): IO<IPrivateChannel>
+    fun joinIntoDM(to: IUser): IO<IPrivateChannel> = joinIntoDM(to.id)
+    fun joinIntoDM(to: Snowflake): IO<IPrivateChannel>
+    fun edit(username: String, avatar: String) = edit {
+        this.username = username
+        this.avatar = avatar
+    }
 }

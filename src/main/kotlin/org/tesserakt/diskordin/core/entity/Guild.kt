@@ -14,6 +14,7 @@ import org.tesserakt.diskordin.core.entity.query.BanQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.impl.core.entity.TextChannel
 import org.tesserakt.diskordin.impl.core.entity.VoiceChannel
+import java.io.File
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -70,22 +71,22 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
 
     fun getRole(id: Snowflake): IO<IRole>
     fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji>
-    fun createEmoji(builder: EmojiCreateBuilder.() -> Unit): IO<ICustomEmoji>
-    fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit): IO<String?>
-    fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel>
-    fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel>
+    fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji>
+    fun editOwnNickname(newNickname: String): IO<String?>
+    fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel>
+    fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel>
     fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit): IO<Unit>
-    fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit): IO<IMember>
+    fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember>
     fun kick(member: IMember, reason: String?): IO<Unit>
     fun kick(memberId: Snowflake, reason: String?): IO<Unit>
     fun addRole(builder: RoleCreateBuilder.() -> Unit): IO<IRole>
-    fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit): IO<ListK<IRole>>
+    fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>>
     fun getBan(userId: Snowflake): IO<IBan>
     fun ban(member: IMember, builder: BanQuery.() -> Unit): IO<Unit>
     fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit): IO<Unit>
     fun pardon(userId: Snowflake, reason: String?): IO<Unit>
     fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int>
-    fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit): IO<Unit>
+    fun addIntegration(id: Snowflake, type: String): IO<Unit>
     fun getEveryoneRole(): IO<IRole>
     fun <C : IGuildChannel> getChannel(id: Snowflake): IO<C>
 

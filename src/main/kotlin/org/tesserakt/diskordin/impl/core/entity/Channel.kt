@@ -10,6 +10,7 @@ import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.applicative.map
 import arrow.fx.fix
 import mu.KotlinLogging
+import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -82,16 +83,19 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
         channelService.createChannelInvite(id, builder.build(), null)
     }.map { it.extract() as IGuildInvite }
 
-    final override fun editPermissions(overwrite: IPermissionOverwrite, builder: PermissionEditBuilder.() -> Unit) =
-        rest.effect {
-            val inst = builder.instance()
-            channelService.editChannelPermissions(
-                id,
-                (overwrite.allowed and !overwrite.denied).code,
-                inst.create(),
-                inst.reason
-            )
-        }.fix()
+    final override fun editPermissions(
+        overwrite: IPermissionOverwrite,
+        type: IPermissionOverwrite.Type,
+        allowed: Permissions,
+        denied: Permissions,
+        reason: String?
+    ): IO<Unit> = rest.effect {
+        val instance = PermissionEditBuilder(type, allowed, denied).apply {
+            if (reason != null)
+                +reason(reason)
+        }
+        channelService.editChannelPermissions(id, overwrite.computeCode(), instance.create(), instance.reason)
+    }.fix()
 
     final override fun removePermissions(toRemove: IPermissionOverwrite, reason: String?) = rest.effect {
         channelService.deleteChannelPermissions(id, (toRemove.allowed and !toRemove.denied).code, reason)

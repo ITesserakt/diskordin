@@ -27,4 +27,6 @@ interface IPermissionOverwrite : IDiscordObject {
             }
         }
     }
+
+    fun computeCode(): Long
 }

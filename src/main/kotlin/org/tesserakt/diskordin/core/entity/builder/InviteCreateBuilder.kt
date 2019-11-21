@@ -5,6 +5,8 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
+@RequestBuilder
+@Suppress("NOTHING_TO_INLINE", "unused")
 class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
     @ExperimentalTime
     override fun create(): InviteCreateRequest = InviteCreateRequest(
@@ -14,10 +16,34 @@ class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
         isUnique
     )
 
-    override var reason: String? = null
     @ExperimentalTime
-    var maxAge: Duration = 86400.seconds
-    var maxUses = 0
-    var isTemporary = false
-    var isUnique = false
+    private var maxAge: Duration = 86400.seconds
+    private var maxUses = 0
+    private var isTemporary = false
+    private var isUnique = false
+
+    @ExperimentalTime
+    operator fun Duration.unaryPlus() {
+        maxAge = this
+    }
+
+    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+    operator fun Int.unaryPlus() {
+        maxUses = this
+    }
+
+    operator fun Temporary.unaryPlus() {
+        isTemporary = this.v
+    }
+
+    operator fun Boolean.unaryPlus() {
+        isUnique = this
+    }
+
+    @ExperimentalTime
+    inline fun InviteCreateBuilder.maxAge(age: Duration = 86400.seconds) = age
+
+    inline fun InviteCreateBuilder.maxUses(value: Int) = value
+    inline fun InviteCreateBuilder.temporary(value: Boolean) = Temporary(value)
+    inline fun InviteCreateBuilder.unique(value: Boolean) = value
 }

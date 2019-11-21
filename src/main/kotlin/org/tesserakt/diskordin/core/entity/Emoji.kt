@@ -25,4 +25,9 @@ interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject, IEditable
     val requireColons: Boolean
     val isManaged: Boolean
     val isAnimated: Boolean
+
+    fun edit(name: String, roles: Array<Snowflake>) = edit {
+        this.name = name
+        this.roles = roles
+    }
 }

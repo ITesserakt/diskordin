@@ -37,7 +37,16 @@ interface IDiscordClient : IDiscordObject {
     fun getUser(id: Snowflake): IO<IUser>
     fun getGuild(id: Snowflake): IO<IGuild>
     fun getChannel(id: Snowflake): IO<IChannel>
-    fun createGuild(request: GuildCreateBuilder.() -> Unit): IO<IGuild>
+    fun createGuild(
+        name: String,
+        region: IRegion,
+        icon: String,
+        verificationLevel: IGuild.VerificationLevel,
+        defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
+        explicitContentFilter: IGuild.ExplicitContentFilter,
+        builder: GuildCreateBuilder.() -> Unit
+    ): IO<IGuild>
+
     fun getInvite(code: String): IO<IInvite>
     fun deleteInvite(code: String, reason: String?): IO<Unit>
     fun getRegions(): IO<ListK<IRegion>>

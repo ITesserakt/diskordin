@@ -18,5 +18,11 @@ interface IIntegration : IEntity, INamed, IGuildObject, IDeletable, IEditable<II
 
     fun sync(): IO<Unit>
 
+    fun edit(expireBehavior: Int, expireGracePeriod: Int, enableEmoticons: Boolean) = edit {
+        this.enableEmoticons = enableEmoticons
+        this.expireBehavior = expireBehavior
+        this.expireGracePeriod = expireGracePeriod
+    }
+
     interface IAccount : IEntity, INamed
 }

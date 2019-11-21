@@ -1,5 +1,7 @@
 package org.tesserakt.diskordin.rest.service
 
+import arrow.core.bothIor
+import arrow.core.toT
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
@@ -50,7 +52,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     @Test
     fun `change channel name from editChannel`() = withFinalize(rest.callAndExtract {
         channelService.editChannel(constChannelId, TextChannelEditBuilder().build {
-            name = "testnew"
+            +name("testnew")
         }, "Test")
     }, {
         it.isRight().shouldBeTrue()
@@ -58,7 +60,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     }, {
         rest.callRaw {
             channelService.editChannel(constChannelId, TextChannelEditBuilder().build {
-                name = "testing"
+                +name("testing")
             }, "Recover")
         }
     }).fix().unsafeRunSync()
@@ -94,20 +96,13 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     @Test
     @Suppress("RemoveExplicitTypeArguments")
     fun `create message and then delete it`() = withFinalize(rest.callAndExtract {
-        channelService.createMessage(constChannelId, MessageCreateBuilder().build {
-            content = "Test"
-            tts = true
-            nonce = null
-            embed = {
-                url = "https://example.com"
-                fields = arrayOf<EmbedCreateBuilder.FieldBuilder.() -> Unit>(
-                    {
-                        value = "huh"
-                        name = "Huh"
-                        inline = null
-                    }
-                )
-            }
+        channelService.createMessage(constChannelId, MessageCreateBuilder(
+            ("Test" toT EmbedCreateBuilder().apply {
+                +url("https://example.com")
+                +field("huh", "Huh")
+            }).bothIor()
+        ).build {
+            +tts(true)
         })
     }, {
         it.isRight().shouldBeTrue()
@@ -124,7 +119,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     @Test
     fun `change message content`() = withFinalize(rest.callRaw {
         channelService.editMessage(constChannelId, constEditMessageId, MessageEditBuilder().build {
-            content = "It`s an edited test message!"
+            +content("It`s an edited test message!")
         })
     }.map { it.extract() }.attempt(), {
         it.isRight().shouldBeTrue()
@@ -132,7 +127,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     }, {
         rest.callRaw {
             channelService.editMessage(constChannelId, constEditMessageId, MessageEditBuilder().build {
-                content = "Message to edit"
+                +content("Message to edit")
             })
         }
     }).fix().unsafeRunSync()
@@ -203,8 +198,8 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     fun `create an invite and check it channel id`() {
         val invite = rest.callAndExtract {
             channelService.createChannelInvite(constChannelId, InviteCreateBuilder().build {
-                isTemporary = true
-                maxAge = 15.seconds
+                +temporary(true)
+                +maxAge(15.seconds)
             }, "Test")
         }.unsafeRunSync()
 

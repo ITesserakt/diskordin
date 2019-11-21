@@ -4,11 +4,9 @@ import org.tesserakt.diskordin.core.data.json.request.GuildRoleCreateRequest
 import java.awt.Color
 import kotlin.properties.Delegates
 
-class RoleCreateBuilder : AuditLogging<GuildRoleCreateRequest>() {
-    override var reason: String? = null
-    lateinit var name: String
+@RequestBuilder
+class RoleCreateBuilder(val name: String, val color: Color) : AuditLogging<GuildRoleCreateRequest>() {
     var permissions: Int by Delegates.notNull()
-    lateinit var color: Color
     var isHoisted: Boolean by Delegates.notNull()
     var isMentionable: Boolean by Delegates.notNull()
 

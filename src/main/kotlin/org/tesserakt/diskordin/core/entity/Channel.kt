@@ -3,17 +3,13 @@
 
 package org.tesserakt.diskordin.core.entity
 
-import arrow.core.Id
-import arrow.core.ListK
-import arrow.core.NonEmptyList
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
+import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
-import arrow.core.fix
 import arrow.fx.IO
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import org.tesserakt.diskordin.core.entity.IChannel.Type.*
@@ -63,7 +59,13 @@ interface IGuildChannel : IChannel, IGuildObject, INamed {
 
     override fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IGuildInvite>
     fun removePermissions(toRemove: IPermissionOverwrite, reason: String?): IO<Unit>
-    fun editPermissions(overwrite: IPermissionOverwrite, builder: PermissionEditBuilder.() -> Unit): IO<Unit>
+    fun editPermissions(
+        overwrite: IPermissionOverwrite,
+        type: IPermissionOverwrite.Type,
+        allowed: Permissions,
+        denied: Permissions,
+        reason: String? = null
+    ): IO<Unit>
 }
 
 interface IVoiceChannel : IGuildChannel, IAudioChannel,
@@ -110,17 +112,22 @@ interface IMessageChannel : IChannel {
         channelService.triggerTyping(id)
     }.fix()
 
-    fun createMessage(content: String) = createMessage {
-        this.content = content
-    }
+    fun createMessage(content: String) = createMessage(content.leftIor())
 
-    fun createMessage(builder: MessageCreateBuilder.() -> Unit): IO<IMessage> = rest.call(Id.functor()) {
-        channelService.createMessage(id, builder.build())
-    }.map { it.extract() }
+    fun createMessage(required: Ior<Content, Embed>, builder: MessageCreateBuilder.() -> Unit = {}): IO<IMessage> =
+        rest.call {
+            channelService.createMessage(id, MessageCreateBuilder(required).apply(builder).create())
+        }.fix()
 
-    fun createEmbed(builder: EmbedCreateBuilder.() -> Unit) = createMessage {
-        embed = builder
-    }
+    fun createEmbed(builder: EmbedCreateBuilder.() -> Unit) =
+        createMessage(EmbedCreateBuilder().apply(builder).rightIor())
+
+    fun createMessage(
+        content: String,
+        embed: EmbedCreateBuilder.() -> Unit,
+        builder: MessageCreateBuilder.() -> Unit = {}
+    ) =
+        createMessage((content toT EmbedCreateBuilder().apply(embed)).bothIor(), builder)
 
     fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) = rest.effect {
         channelService.bulkDeleteMessages(id, builder.build())

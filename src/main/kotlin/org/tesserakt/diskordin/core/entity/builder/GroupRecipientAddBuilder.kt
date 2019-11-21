@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.core.entity.builder
 
 import org.tesserakt.diskordin.core.data.json.request.GroupRecipientAddRequest
 
+@RequestBuilder
 class GroupRecipientAddBuilder : BuilderBase<GroupRecipientAddRequest>() {
     lateinit var accessToken: String
     lateinit var nick: String

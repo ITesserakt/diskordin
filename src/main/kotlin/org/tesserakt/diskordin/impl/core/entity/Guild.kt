@@ -26,6 +26,7 @@ import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
 import org.tesserakt.diskordin.rest.call
+import java.io.File
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -93,34 +94,40 @@ class Guild(raw: GuildResponse) : IGuild {
         emojiService.getGuildEmoji(id, emojiId)
     }.map { it.extract() }
 
-    override fun createEmoji(builder: EmojiCreateBuilder.() -> Unit) = rest.call(id.some(), Id.functor()) {
-        emojiService.createGuildEmoji(id, builder.build())
+    override fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji> =
+        rest.call(id.some(), Id.functor()) {
+            emojiService.createGuildEmoji(id, EmojiCreateBuilder().apply {
+                this.name = name
+                this.image = image
+                this.roles = roles
+            }.create())
+        }.map { it.extract() }
+
+    override fun editOwnNickname(newNickname: String): IO<String?> = rest.callRaw {
+        guildService.editCurrentNickname(id, NicknameEditBuilder(newNickname).create())
     }.map { it.extract() }
 
-    override fun editOwnNickname(builder: NicknameEditBuilder.() -> Unit) = rest.callRaw {
-        guildService.editCurrentNickname(id, builder.build())
-    }.map { it.extract() }
+    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel> =
+        addChannelJ(TextChannelCreateBuilder(name), builder)
 
-    override fun addTextChannel(builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel> =
-        addChannelJ(builder)
-
-    override fun addVoiceChannel(builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel> =
-        addChannelJ(builder)
+    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel> =
+        addChannelJ(VoiceChannelCreateBuilder(name), builder)
 
     private inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(
+        instance: B,
         noinline builder: B.() -> Unit
-    ): IO<C> = rest.call(Id.functor()) {
-        val inst = builder.instance()
-        guildService.createGuildChannel(id, inst.create(), inst.reason)
-    }.map { it.extract() as C }
+    ): IO<C> = rest.call {
+        instance.apply(builder)
+        guildService.createGuildChannel(id, instance.create(), instance.reason)
+    }.map { it as C }
 
     override fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = rest.effect {
         guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
     }.fix()
 
-    override fun addMember(userId: Snowflake, builder: MemberAddBuilder.() -> Unit) =
+    override fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember> =
         rest.call(id, Id.functor()) {
-            guildService.newMember(id, userId, builder.build())
+            guildService.newMember(id, userId, MemberAddBuilder(accessToken).apply(builder).create())
         }.map { it.extract() }
 
     override fun kick(member: IMember, reason: String?) = kick(member.id, reason)
@@ -134,8 +141,10 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.createRole(id, inst.create(), inst.reason)
     }.map { it.extract() }
 
-    override fun moveRoles(vararg builder: PositionEditBuilder.() -> Unit) = rest.call(id, ListK.functor()) {
-        guildService.editRolePositions(id, builder.map { it.build() }.toTypedArray())
+    override fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>> = rest.call(id, ListK.functor()) {
+        guildService.editRolePositions(id, builder.map { (id, pos) ->
+            PositionEditBuilder(id, pos).create()
+        }.toTypedArray())
     }.map { it.fix() }
 
     override fun getBan(userId: Snowflake): IO<IBan> = rest.call(Id.functor()) {
@@ -156,8 +165,8 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.getPruneCount(id, builder.query())
     }.map { it.extract() }
 
-    override fun addIntegration(builder: IntegrationCreateBuilder.() -> Unit) = rest.effect {
-        guildService.createIntegration(id, builder.build())
+    override fun addIntegration(id: Snowflake, type: String): IO<Unit> = rest.effect {
+        guildService.createIntegration(id, IntegrationCreateBuilder(id, type).create())
     }.fix()
 
     override fun getEveryoneRole(): IO<IRole> = getRole(id) //everyone role id == guild id
