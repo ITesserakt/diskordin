@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-private val libraryVersion get() = GlobalContext.get().koin.getProperty("lib-ver", "Undefined")
+private val libraryVersion get() = GlobalContext.get().koin.getProperty("diskordin_version", "Undefined")
 
 internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
     .client(httpClient)
