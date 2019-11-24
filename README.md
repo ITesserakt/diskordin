@@ -8,7 +8,7 @@ functional approach which reached with [Arrow](http://arrow-kt.io/) library.
 ***
 The state of this wrapper is **PRE-ALPHA** because most features are not implemented. 
 So API can change very fast.
-[See road map](https://github.com/ITesserakt/diskordin/issues/1).
+[See the road map](https://github.com/ITesserakt/diskordin/issues/1).
 ***
 ## Why I should use it?
 There are a lot of other wrappers written in Java (whole 4). 
@@ -28,44 +28,20 @@ dependencies {
     implementation 'com.github.ITesserakt:diskordin:0.1.1'
 }
 ```
-#### Maven
-```xml
-<repositories>
-    <repository>
-        <id>jitpack</id>
-        <url>https://jitpack.io</url>
-    </repository>
-    <repository>
-        <id>jcenter</id>
-        <url>https://jcenter.bintray.com/</url>
-    </repository>
-    <repository>
-        <id>sonatype snapshots</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>    
-    </repository>
-</repositories>
-```
-```xml
-<dependencies>
-    <dependency>
-        <groupId>com.github.ITesserakt</groupId>
-        <artifactId>diskordin</artifactId>
-        <version>0.1.1</version>
-    </dependency>
-</dependencies>
-```
 #### SBT 
-```scala
+```
 resolvers += "jitpack" at "https://jitpack.io"
 resolvers += "jcenter" at "https://jcenter.bintray.com/"
 resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "0.1.1"
 ```
-**Also you must add a dependency for logger. The most simple is** 
+**Also, you must add a dependency for logger. The most simple is** 
 `'org.slf4j:slf4j-simple:1.7.26'`
 ## How can I use it? 
 **The future syntax may change!**
+
+#### Log on
 
 Just logging into Discord as simple as possible
 ```kotlin
@@ -91,9 +67,29 @@ In Diskordin vice versa subscribing to different events from Discord are after `
             .collect { println(it) } //subscribeOn returns Flow
     }
 ```
+
+#### Builders
+
+In some functions like `edit`, you can meet with `builders`.
+This is a state mutators, necessary parameters of which are "inlined" into the corresponding function.
+In a lambda of the builder, you can apply optional properties.
+ You _apply_ them and so you have to _bind_ them with state. 
+ For this, there is a unary + operator.   
+```kotlin
+//An example of ITextChannel.edit
+channel.edit { //this is TextChannelEditBuilder
+    +name("New fancy name")
+    +topic("New fancy topic!")
+    // ...
+}
+```
+Auto-complete helps you to show all optional properties
+***
+
 There will more use cases as they will implement.
 
 ### Libraries
++ ----------------- + ------------------------------------------------------------- +
 |Name               | Reason                                                        |
 | ----------------- | ------------------------------------------------------------- |
 | Arrow             | Functional approach in Kotlin                                 |
