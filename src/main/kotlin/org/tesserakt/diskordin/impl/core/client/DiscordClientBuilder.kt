@@ -12,10 +12,23 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.gateway.GatewayLifecycle
 import org.tesserakt.diskordin.rest.RestClient
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
 
+@Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder private constructor() {
-    var token: String = "Invalid"
-    var gatewayScope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    private var token: String = "Invalid"
+    private var gatewayScope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+
+    operator fun String.unaryPlus() {
+        token = this
+    }
+
+    operator fun CoroutineContext.unaryPlus() {
+        gatewayScope = CoroutineScope(this)
+    }
+
+    inline fun DiscordClientBuilder.token(value: String) = value
+    inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
 
     companion object {
         private val isEnabled = AtomicBoolean(false)
