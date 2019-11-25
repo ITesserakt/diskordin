@@ -14,7 +14,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.Logger.slf4jLogger
-import org.koin.core.context.GlobalContext
+import org.koin.core.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-private val libraryVersion = GlobalContext.get().koin.getProperty("lib-ver", "Undefined")
+private val KoinComponent.libraryVersion get() = getKoin().getProperty("lib-ver", "Undefined")
 
 internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
     .client(httpClient)
@@ -43,7 +43,7 @@ internal fun setupKoin() = startKoin {
     environmentProperties()
 }.koin
 
-internal fun setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClient().newBuilder()
+internal fun KoinComponent.setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClient().newBuilder()
     .cache(Cache(File.createTempFile("okHttpCache", null), 10 * 1024 * 1024))
     .retryOnConnectionFailure(true)
     .connectTimeout(20, TimeUnit.SECONDS)

@@ -5,5 +5,5 @@ import org.tesserakt.diskordin.gateway.Gateway
 
 abstract class GatewayHandler {
     @ExperimentalCoroutinesApi
-    protected abstract val gateway: Gateway
+    protected abstract val gateway: Gateway<*>
 }

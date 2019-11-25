@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.client
 import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
+import arrow.fx.rx2.ForFlowableK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -14,13 +15,13 @@ import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
-    val eventDispatcher: EventDispatcher
+    val eventDispatcher: EventDispatcher<ForFlowableK>
     val token: String
     val tokenType: TokenType
     val self: Identified<ISelf>
     val isConnected: Boolean
     @ExperimentalCoroutinesApi
-    val gateway: Gateway
+    val gateway: Gateway<ForFlowableK>
     val rest: RestClient<ForIO>
 
     /*

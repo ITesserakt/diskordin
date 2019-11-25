@@ -12,6 +12,10 @@ import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
+import arrow.fx.rx2.FlowableK
+import arrow.fx.rx2.ForFlowableK
+import arrow.fx.rx2.extensions.flowablek.async.async
+import arrow.fx.rx2.extensions.flowablek.traverse.traverse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
@@ -38,7 +42,7 @@ data class DiscordClient(
     override val tokenType: TokenType
 ) : IDiscordClient {
     @ExperimentalCoroutinesApi
-    override lateinit var eventDispatcher: EventDispatcher
+    override lateinit var eventDispatcher: EventDispatcher<ForFlowableK>
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
     override val rest: RestClient<ForIO> by inject()
@@ -60,7 +64,7 @@ data class DiscordClient(
         private set
 
     @ExperimentalCoroutinesApi
-    override lateinit var gateway: Gateway
+    override lateinit var gateway: Gateway<ForFlowableK>
         private set
 
     override val users = mutableListOf<IUser>().just()
@@ -74,7 +78,7 @@ data class DiscordClient(
         }.bind().extract()
         val gatewayURL = gatewayStats.url
         val metadata = gatewayStats.session
-        this@DiscordClient.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
+        this@DiscordClient.gateway = Gateway(FlowableK.async(), FlowableK.traverse())
         eventDispatcher = gateway.eventDispatcher
         isConnected = true
 

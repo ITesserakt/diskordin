@@ -34,7 +34,7 @@ class DiscordClientBuilder private constructor() {
             return DiscordClient(builder.tokenType).also { client ->
                 loadKoinModules(module {
                     single { client } bind IDiscordClient::class
-                    single { setupHttpClient(get()) }
+                    single { client.setupHttpClient(get()) }
                     single {
                         setupRetrofit(
                             koin.getProperty<String>("API_url")

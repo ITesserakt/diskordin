@@ -1,27 +1,27 @@
 package org.tesserakt.diskordin.gateway.defaultHandlers
 
+import arrow.typeclasses.Monad
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.commands.Identify
+import org.tesserakt.diskordin.gateway.sendPayload
 
 @ExperimentalCoroutinesApi
-internal class HelloHandler(override val gateway: Gateway) : GatewayHandler() {
+internal class HelloHandler<F>(override val gateway: Gateway<F>, M: Monad<F>) : GatewayHandler(), Monad<F> by M {
     private val dispatcher = gateway.eventDispatcher
 
     init {
         val token = gateway.getKoin().getProperty<String>("token")!!
-        dispatcher.subscribeOn<HelloEvent>()
-            .map { it.heartbeatInterval }
-            .onEach {
-                dispatcher.sendAnswer(
+        fx.monad {
+            val helloEvents = !dispatcher.subscribeOn<HelloEvent>()
+            val intervals = helloEvents.map { it.heartbeatInterval }
+            intervals.forEach { _ ->
+                sendPayload(
                     Identify(
                         token,
                         Identify.ConnectionProperties(
@@ -30,17 +30,18 @@ internal class HelloHandler(override val gateway: Gateway) : GatewayHandler() {
                             "Diskordin"
                         ),
                         shard = arrayOf(0, 1)
-                    )
+                    ), gateway.lastSequenceId
                 )
-            }.map { heartbeat(it) }
-            .launchIn(gateway.scope)
+            }
+            intervals.map { heartbeat(it) }
+        }
     }
 
     @ExperimentalCoroutinesApi
     private fun heartbeat(interval: Long) = gateway.scope.launch {
         while (isActive) {
             delay(interval)
-            dispatcher.sendAnswer(Heartbeat(gateway.lastSequenceId))
+            sendPayload(Heartbeat(gateway.lastSequenceId), gateway.lastSequenceId)
         }
     }
 }
