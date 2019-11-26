@@ -8,14 +8,13 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
 import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.extensions.flowablek.traverse.traverse
+import arrow.fx.rx2.extensions.flowablek.functorFilter.functorFilter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
@@ -70,21 +69,15 @@ data class DiscordClient(
     override val users = mutableListOf<IUser>().just()
     override val guilds = mutableListOf<IGuild>().just()
 
+    @ExperimentalStdlibApi
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override fun login() = IO.fx {
-        val gatewayStats = rest.call(Id.functor()) {
-            gatewayService.getGatewayBot()
-        }.bind().extract()
-        val gatewayURL = gatewayStats.url
-        val metadata = gatewayStats.session
-        this@DiscordClient.gateway = Gateway(FlowableK.async(), FlowableK.traverse())
-        eventDispatcher = gateway.eventDispatcher
+    override fun login() {
+        gateway = Gateway(FlowableK.async(), FlowableK.functorFilter())
         isConnected = true
 
-        this@DiscordClient.gateway.run()
-        Unit
-    }.unsafeRunSync()
+        gateway.run()
+    }
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime

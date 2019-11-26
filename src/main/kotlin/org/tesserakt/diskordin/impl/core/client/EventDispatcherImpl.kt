@@ -1,14 +1,10 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Either
-import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.either.bifunctor.mapLeft
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.k
 import arrow.core.left
 import arrow.core.right
 import arrow.fx.typeclasses.Async
-import arrow.typeclasses.Traverse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.data.event.*
@@ -25,26 +21,19 @@ import org.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemoveEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
-import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 @ExperimentalCoroutinesApi
-internal class EventDispatcherImpl<F>(private val gateway: Gateway<F>, A: Async<F>, private val T: Traverse<F>) :
+internal class EventDispatcherImpl<F>(A: Async<F>) :
     EventDispatcher<F>(), Async<F> by A {
     private val channel = Ref(emptyList<IEvent>())
 
-    override fun publish(rawEvent: Payload<IRawEvent>) = parseEvent(rawEvent)
-        .flatTap { event ->
-            T.run {
-                channel.flatMap { it.tryUpdate { list -> list + event } }
-                    .attempt()
-                    .sequence(Either.applicative())
-                    .mapLeft { ParseError.Unknown(it) }
-            }
-        }
+    override fun publish(rawEvent: Payload<IRawEvent>) = parseEvent(rawEvent).flatTap { event ->
+        channel.flatMap { it.update { list -> list + event } }.right()
+    }
 
     private fun parseEvent(rawEvent: Payload<IRawEvent>) = when (rawEvent.opcode()) {
         Opcode.HEARTBEAT -> HeartbeatEvent(rawEvent.unwrap()).right()
@@ -94,9 +83,7 @@ internal class EventDispatcherImpl<F>(private val gateway: Gateway<F>, A: Async<
         else -> ParseError.NonExistentDispatch(rawEvent).left()
     }
 
-    override fun <E : IEvent> subscribeOn(type: Class<E>) = T.run {
-        channel.flatMap {
-            it.get()
-        }.map { it.filterIsInstance(type).k() }
-    }
+    override fun <E : IEvent> subscribeOn(type: Class<E>) = channel.flatMap {
+        it.get()
+    }.map { it.filterIsInstance(type).k() }
 }

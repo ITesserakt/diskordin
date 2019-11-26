@@ -4,9 +4,9 @@ import arrow.Kind
 import arrow.free.Free
 import arrow.free.extensions.FreeMonad
 import arrow.higherkind
-import arrow.syntax.function.bind
+import arrow.syntax.function.andThen
+import arrow.syntax.function.partially1
 import com.tinder.scarlet.websocket.WebSocketEvent
-import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.commands.*
@@ -22,39 +22,37 @@ sealed class GatewayAPIF<T> : GatewayAPIFOf<T> {
     data class UpdateVoiceStatePayload(val data: Payload<UpdateVoiceState>) : GatewayAPIF<Boolean>()
 
     class WebSocketEvents<F> : GatewayAPIF<Kind<F, WebSocketEvent>>()
-    class DiscordEvents<F> : GatewayAPIF<Kind<F, Payload<IRawEvent>>>()
 
     companion object : FreeMonad<ForGatewayAPIF>
 }
 
-typealias NewGatewayAPI<A> = Free<ForGatewayAPIF, A>
+typealias GatewayAPI<A> = Free<ForGatewayAPIF, A>
 
-fun heartbeat(data: Payload<Heartbeat>): NewGatewayAPI<Boolean> =
+fun heartbeat(data: Payload<Heartbeat>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.HeartbeatPayload(data))
 
-fun identify(data: Payload<Identify>): NewGatewayAPI<Boolean> =
+fun identify(data: Payload<Identify>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.IdentifyPayload(data))
 
-fun resume(data: Payload<Resume>): NewGatewayAPI<Boolean> =
+fun resume(data: Payload<Resume>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.ResumePayload(data))
 
-fun requestMembers(data: Payload<RequestGuildMembers>): NewGatewayAPI<Boolean> =
+fun requestMembers(data: Payload<RequestGuildMembers>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.RequestMembersPayload(data))
 
-fun invalidateSession(data: Payload<InvalidSession>): NewGatewayAPI<Boolean> =
+fun invalidateSession(data: Payload<InvalidSession>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.InvalidSessionPayload(data))
 
-fun updateVoiceState(data: Payload<UpdateVoiceState>): NewGatewayAPI<Boolean> =
+fun updateVoiceState(data: Payload<UpdateVoiceState>): GatewayAPI<Boolean> =
     Free.liftF(GatewayAPIF.UpdateVoiceStatePayload(data))
 
 fun sendPayload(data: GatewayCommand, lastSequenceId: Int?) = when (data) {
-    is UpdateVoiceState -> { id -> updateVoiceState(data.wrapWith(Opcode.VOICE_STATUS_UPDATE, id)) }
-    is RequestGuildMembers -> { id -> requestMembers(data.wrapWith(Opcode.REQUEST_GUILD_MEMBERS, id)) }
-    is Resume -> { id: Int? -> resume(data.wrapWith(Opcode.RESUME, id)) }
-    is Identify -> { id -> identify(data.wrapWith(Opcode.IDENTIFY, id)) }
-    is InvalidSession -> { id -> invalidateSession(data.wrapWith(Opcode.INVALID_SESSION, id)) }
-    is Heartbeat -> { id -> heartbeat(data.wrapWith(Opcode.HEARTBEAT, id)) }
-}.bind(lastSequenceId).invoke()
+    is UpdateVoiceState -> data::wrapWith.partially1(Opcode.VOICE_STATUS_UPDATE) andThen ::updateVoiceState
+    is RequestGuildMembers -> data::wrapWith.partially1(Opcode.REQUEST_GUILD_MEMBERS) andThen ::requestMembers
+    is Resume -> data::wrapWith.partially1(Opcode.RESUME) andThen ::resume
+    is Identify -> data::wrapWith.partially1(Opcode.IDENTIFY) andThen ::identify
+    is InvalidSession -> data::wrapWith.partially1(Opcode.INVALID_SESSION) andThen ::invalidateSession
+    is Heartbeat -> data::wrapWith.partially1(Opcode.HEARTBEAT) andThen ::heartbeat
+}.invoke(lastSequenceId)
 
-fun <F> observeWebSocketEvents(): NewGatewayAPI<Kind<F, WebSocketEvent>> = Free.liftF(GatewayAPIF.WebSocketEvents())
-fun <F> observeDiscordEvents(): NewGatewayAPI<Kind<F, Payload<IRawEvent>>> = Free.liftF(GatewayAPIF.DiscordEvents())
+fun <F> observeWebSocketEvents(): GatewayAPI<Kind<F, WebSocketEvent>> = Free.liftF(GatewayAPIF.WebSocketEvents())

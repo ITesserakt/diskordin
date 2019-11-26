@@ -25,3 +25,4 @@ fun <T : GatewayCommand> T.wrapWith(opcode: Opcode, seq: Int?) =
 
 interface IPayload
 interface IRawEvent : IPayload
+interface IToken : IPayload
