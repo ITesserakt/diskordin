@@ -56,6 +56,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
     testImplementation 'org.amshove.kluent:kluent:1.57'
     testImplementation 'org.slf4j:slf4j-simple:1.7.26'
+    testImplementation "io.mockk:mockk:1.9.3"
 }
 
 test {

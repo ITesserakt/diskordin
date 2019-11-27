@@ -1,17 +1,15 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.Kind
-import arrow.free.fix
+import arrow.free.map
 import arrow.fx.typeclasses.Async
 import arrow.typeclasses.FunctorFilter
 import com.tinder.scarlet.Message
+import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.websocket.WebSocketEvent
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import mu.KotlinLogging
-import org.koin.core.KoinComponent
-import org.koin.core.inject
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -29,12 +27,10 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 class Gateway<F> @ExperimentalTime constructor(
     A: Async<F>, private val FF: FunctorFilter<F>
-) : KoinComponent, Async<F> by A {
-    internal val coroutineContext: CoroutineContext =
-        getKoin().getProperty<CoroutineScope>("gatewayScope")!!.coroutineContext
-
+) : Async<F> by A {
+    private val coroutineContext: CoroutineContext = Dispatchers.IO
     private val logger = KotlinLogging.logger { }
-    private val lifecycle by inject<GatewayLifecycle>()
+    private val lifecycle = GatewayLifecycle(LifecycleRegistry())
 
     internal fun stop() {
         lifecycle.stop()
@@ -47,8 +43,9 @@ class Gateway<F> @ExperimentalTime constructor(
     }
 
     @ExperimentalStdlibApi
-    private fun FunctorFilter<F>.run(): GatewayAPI<Kind<F, Payload<out IPayload>>> = GatewayAPIF.fx.monad {
-        val fromConnection = observeWebSocketEvents<F>().bind().continueOn(coroutineContext)
+    private fun FunctorFilter<F>.run(): GatewayAPI<Payload<out IPayload>> {
+        lifecycle.start()
+        val fromConnection = observeWebSocketEvents()
 
         fun parseMessage(message: Message) = when (message) {
             is Message.Text -> message.value
@@ -83,8 +80,8 @@ class Gateway<F> @ExperimentalTime constructor(
             )
         }
 
-        fromConnection.map(::connectionMapping)
-    }.fix()
+        return fromConnection.map(::connectionMapping)
+    }
 
     @ExperimentalStdlibApi
     internal fun run() = FF.run()
