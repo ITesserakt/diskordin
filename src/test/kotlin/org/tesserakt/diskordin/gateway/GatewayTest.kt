@@ -1,16 +1,19 @@
 package org.tesserakt.diskordin.gateway
 
+import arrow.core.FunctionK
 import arrow.core.ListK
 import arrow.core.extensions.listk.applicative.applicative
+import arrow.core.extensions.listk.foldable.foldable
 import arrow.core.extensions.monoid
-import arrow.core.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ObservableK
 import arrow.fx.rx2.extensions.flowablek.applicative.applicative
-import arrow.fx.rx2.extensions.flowablek.foldable.size
+import arrow.fx.rx2.extensions.flowablek.foldable.foldable
 import arrow.fx.rx2.extensions.observablek.applicative.applicative
-import arrow.fx.rx2.extensions.observablek.foldable.size
-import arrow.fx.rx2.fix
+import arrow.fx.rx2.extensions.observablek.foldable.foldable
+import arrow.typeclasses.Applicative
+import arrow.typeclasses.Foldable
+import arrow.typeclasses.Monoid
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.Stream
 import com.tinder.scarlet.utils.FlowableStream
@@ -19,34 +22,70 @@ import com.tinder.scarlet.websocket.WebSocketEvent
 import io.mockk.mockk
 import io.reactivex.Flowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.amshove.kluent.`should be in`
 import org.amshove.kluent.`should contain same`
 import org.amshove.kluent.`should equal`
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.amshove.kluent.shouldBeTrue
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.tesserakt.diskordin.gateway.interpreter.Implementation
 import org.tesserakt.diskordin.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.gateway.interpreter.listKInterpreter
 import org.tesserakt.diskordin.gateway.interpreter.observableInterpreter
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
+import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.events.Hello
 import org.tesserakt.diskordin.util.toJson
 import org.tesserakt.diskordin.util.toJsonTree
 import kotlin.time.ExperimentalTime
 
 internal class GatewayTest {
-    lateinit var buffer: MutableList<Any>
-    lateinit var innerFlowable: Flowable<WebSocketEvent>
-    private lateinit var impl: Implementation
-
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     val gateway = Gateway()
 
-    @BeforeEach
-    internal fun setUp() {
-        buffer = mutableListOf()
-        innerFlowable = Flowable.fromArray(
+    @ExperimentalStdlibApi
+    @ExperimentalCoroutinesApi
+    @ExperimentalTime
+    @ParameterizedTest
+    @MethodSource(value = ["compilers"])
+    fun <G> `gateway on start should produce 5 events`(
+        compiler: FunctionK<ForGatewayAPIF, G>,
+        AP: Applicative<G>,
+        FB: Foldable<G>
+    ) = FB.run {
+        val events = gateway.run(compiler).fold(AP)
+
+        events.size(Long.monoid()) `should equal` 5
+        AP.run {
+            events.map { it.opcode }.map { it `should be in` arrayListOf(-1, 10, 2, -1, -1) }
+        }
+        Unit
+    }
+
+    @ParameterizedTest
+    @MethodSource("compilers")
+    fun <G> `sended data should appear in a buffer`(
+        compiler: FunctionK<ForGatewayAPIF, G>,
+        AP: Applicative<G>,
+        FB: Foldable<G>
+    ) = FB.run {
+        sendPayload(Heartbeat(null), null).compile(compiler).fold(AP)
+            .fold(object : Monoid<Boolean> {
+                override fun empty(): Boolean = false
+
+                override fun Boolean.combine(b: Boolean): Boolean = this or b
+            }).shouldBeTrue()
+
+        buffer.map { it.opcode } `should contain same` arrayListOf(1)
+        buffer.clear()
+        Unit
+    }
+
+    companion object {
+        val innerFlowable: Flowable<WebSocketEvent> = Flowable.fromArray(
             WebSocketEvent.OnConnectionOpened(mockk(), mockk()),
             WebSocketEvent.OnMessageReceived(
                 Message.Text(
@@ -71,46 +110,20 @@ internal class GatewayTest {
             WebSocketEvent.OnConnectionClosing(ShutdownReason.GRACEFUL),
             WebSocketEvent.OnConnectionClosed(ShutdownReason.GRACEFUL)
         )
-        impl = object : Implementation {
+
+        private val buffer: MutableList<Payload<*>> = mutableListOf()
+
+        private val impl: Implementation = object : Implementation {
             override fun send(data: Payload<out GatewayCommand>): Boolean = buffer.add(data)
 
             override fun receive(): Stream<WebSocketEvent> = FlowableStream(innerFlowable)
         }
-    }
 
-    @ExperimentalStdlibApi
-    @ExperimentalCoroutinesApi
-    @ExperimentalTime
-    @Test
-    fun `gateway on start should produce 5 events with list interpreter`() {
-        val events = gateway.run(impl.listKInterpreter).fold(ListK.applicative())
-            .fix()
-
-        events.size `should equal` 5
-        events.map { it.opcode } `should contain same` arrayListOf(-1, 10, 2, -1, -1)
-    }
-
-    @Test
-    @ExperimentalStdlibApi
-    @ExperimentalCoroutinesApi
-    @ExperimentalTime
-    fun `gateway on start should produce 5 events with flowable interpreter`() {
-        val events = gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
-            .fix()
-
-        events.size(Long.monoid()) `should equal` 5
-        events.map { it.opcode }.flowable.blockingIterable() `should contain same` arrayListOf(-1, 10, 2, -1, -1)
-    }
-
-    @ExperimentalCoroutinesApi
-    @ExperimentalStdlibApi
-    @ExperimentalTime
-    @Test
-    fun `gateway on start should produce 5 events with observable interpreter`() {
-        val events = gateway.run(impl.observableInterpreter).fold(ObservableK.applicative())
-            .fix()
-
-        events.size(Long.monoid()) `should equal` 5
-        events.map { it.opcode }.observable.blockingIterable() `should contain same` arrayListOf(-1, 10, 2, -1, -1)
+        @JvmStatic
+        fun compilers() = arrayOf(
+            Arguments.of(impl.listKInterpreter, ListK.applicative(), ListK.foldable()),
+            Arguments.of(impl.flowableInterpreter, FlowableK.applicative(), FlowableK.foldable()),
+            Arguments.of(impl.observableInterpreter, ObservableK.applicative(), ObservableK.foldable())
+        )
     }
 }
