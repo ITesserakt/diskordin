@@ -16,7 +16,7 @@ import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
 import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.extensions.flowablek.functorFilter.filterMap
+import arrow.fx.rx2.fix
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
@@ -74,6 +74,7 @@ data class DiscordClient(
     override val users = mutableListOf<IUser>().just()
     override val guilds = mutableListOf<IGuild>().just()
 
+    @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
     @ExperimentalCoroutinesApi
     @ExperimentalTime
@@ -87,10 +88,8 @@ data class DiscordClient(
         isConnected = true
 
         gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
-            .filterMap {
-                if (it.opcode == -1) none()
-                else eventDispatcher.publish(it as Payload<IRawEvent>).some()
-            }
+            .fix().flowable.filter { it.opcode != -1 }
+            .subscribe { eventDispatcher.publish(it as Payload<IRawEvent>) }
 
         Unit
     }.unsafeRunSync()
