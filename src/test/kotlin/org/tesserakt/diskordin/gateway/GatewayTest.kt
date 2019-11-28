@@ -1,18 +1,15 @@
 package org.tesserakt.diskordin.gateway
 
 import arrow.core.ListK
-import arrow.core.extensions.listk.monad.monad
+import arrow.core.extensions.listk.applicative.applicative
 import arrow.core.extensions.monoid
 import arrow.core.fix
-import arrow.free.foldMap
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ObservableK
-import arrow.fx.rx2.extensions.flowablek.async.async
+import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.foldable.size
-import arrow.fx.rx2.extensions.flowablek.functorFilter.functorFilter
-import arrow.fx.rx2.extensions.flowablek.monad.monad
+import arrow.fx.rx2.extensions.observablek.applicative.applicative
 import arrow.fx.rx2.extensions.observablek.foldable.size
-import arrow.fx.rx2.extensions.observablek.monad.monad
 import arrow.fx.rx2.fix
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.Stream
@@ -25,7 +22,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.amshove.kluent.`should contain same`
 import org.amshove.kluent.`should equal`
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.tesserakt.diskordin.gateway.interpreter.Implementation
 import org.tesserakt.diskordin.gateway.interpreter.flowableInterpreter
@@ -45,7 +41,7 @@ internal class GatewayTest {
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    val gateway = Gateway(FlowableK.async(), FlowableK.functorFilter())
+    val gateway = Gateway()
 
     @BeforeEach
     internal fun setUp() {
@@ -87,8 +83,7 @@ internal class GatewayTest {
     @ExperimentalTime
     @Test
     fun `gateway on start should produce 5 events with list interpreter`() {
-        val events = gateway.run()
-            .foldMap(impl.listKInterpreter, ListK.monad())
+        val events = gateway.run(impl.listKInterpreter).fold(ListK.applicative())
             .fix()
 
         events.size `should equal` 5
@@ -96,32 +91,26 @@ internal class GatewayTest {
     }
 
     @Test
-    @Disabled("Bug in foldMap")
     @ExperimentalStdlibApi
     @ExperimentalCoroutinesApi
     @ExperimentalTime
     fun `gateway on start should produce 5 events with flowable interpreter`() {
-        val events = gateway.run()
-            .foldMap(impl.flowableInterpreter, FlowableK.monad())
+        val events = gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
             .fix()
 
         events.size(Long.monoid()) `should equal` 5
-        println(events.flowable.blockingIterable().map { it.name }.joinToString())
-        println("-----")
+        events.map { it.opcode }.flowable.blockingIterable() `should contain same` arrayListOf(-1, 10, 2, -1, -1)
     }
 
     @ExperimentalCoroutinesApi
     @ExperimentalStdlibApi
     @ExperimentalTime
     @Test
-    @Disabled("Bug in foldMap")
     fun `gateway on start should produce 5 events with observable interpreter`() {
-        val events = gateway.run()
-            .foldMap(impl.observableInterpreter, ObservableK.monad())
+        val events = gateway.run(impl.observableInterpreter).fold(ObservableK.applicative())
             .fix()
 
         events.size(Long.monoid()) `should equal` 5
-        println(events.observable.blockingIterable().map { it.name }.joinToString())
-        println("-----")
+        events.map { it.opcode }.observable.blockingIterable() `should contain same` arrayListOf(-1, 10, 2, -1, -1)
     }
 }

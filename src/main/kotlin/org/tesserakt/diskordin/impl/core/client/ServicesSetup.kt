@@ -74,8 +74,7 @@ internal fun setupScarlet(path: String, httpClient: OkHttpClient, lifecycle: Lif
     val configuration = Scarlet.Configuration(
         backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 10000),
         streamAdapterFactories = listOf(FlowStreamAdapter.Factory()),
-        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson)),
-        lifecycle = lifecycle
+        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson))
     )
 
     return Scarlet(protocol, configuration)

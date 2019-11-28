@@ -21,7 +21,7 @@ interface IDiscordClient : IDiscordObject {
     val self: Identified<ISelf>
     val isConnected: Boolean
     @ExperimentalCoroutinesApi
-    val gateway: Gateway<ForFlowableK>
+    val gateway: Gateway
     val rest: RestClient<ForIO>
 
     /*

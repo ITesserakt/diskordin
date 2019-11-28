@@ -8,13 +8,15 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
+import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
+import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.extensions.flowablek.functorFilter.functorFilter
+import arrow.fx.rx2.extensions.flowablek.functorFilter.filterMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
@@ -32,6 +34,9 @@ import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.Gateway
+import org.tesserakt.diskordin.gateway.interpreter.flowableInterpreter
+import org.tesserakt.diskordin.gateway.json.IRawEvent
+import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 import kotlin.system.exitProcess
@@ -41,7 +46,7 @@ data class DiscordClient(
     override val tokenType: TokenType
 ) : IDiscordClient {
     @ExperimentalCoroutinesApi
-    override lateinit var eventDispatcher: EventDispatcher<ForFlowableK>
+    override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.async())
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
     override val rest: RestClient<ForIO> by inject()
@@ -63,7 +68,7 @@ data class DiscordClient(
         private set
 
     @ExperimentalCoroutinesApi
-    override lateinit var gateway: Gateway<ForFlowableK>
+    override lateinit var gateway: Gateway
         private set
 
     override val users = mutableListOf<IUser>().just()
@@ -72,12 +77,23 @@ data class DiscordClient(
     @ExperimentalStdlibApi
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    override fun login() {
-        gateway = Gateway(FlowableK.async(), FlowableK.functorFilter())
+    override fun login() = IO.fx {
+        val gatewayUrl = !rest.call { gatewayService.getGatewayBot() }
+        val (gateway, impl) = Gateway.create(
+            gatewayUrl.url,
+            "zlib-stream"
+        )
+        this@DiscordClient.gateway = gateway
         isConnected = true
 
-        gateway.run()
-    }
+        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
+            .filterMap {
+                if (it.opcode == -1) none()
+                else eventDispatcher.publish(it as Payload<IRawEvent>).some()
+            }
+
+        Unit
+    }.unsafeRunSync()
 
     @ExperimentalCoroutinesApi
     @ExperimentalTime
@@ -91,7 +107,6 @@ data class DiscordClient(
     override fun logout() {
         if (this::gateway.isInitialized) {
             logger.info("Shutting down gateway")
-            gateway.stop()
         }
         exitProcess(0)
     }

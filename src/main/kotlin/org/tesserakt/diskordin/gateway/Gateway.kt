@@ -1,15 +1,17 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.free.map
-import arrow.fx.typeclasses.Async
-import arrow.typeclasses.FunctorFilter
+import arrow.core.FunctionK
+import arrow.core.toT
+import arrow.free.FreeApplicative
+import arrow.syntax.function.andThen
 import com.tinder.scarlet.Message
-import com.tinder.scarlet.lifecycle.LifecycleRegistry
+import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.websocket.WebSocketEvent
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
-import mu.KotlinLogging
+import org.koin.core.KoinComponent
+import org.koin.core.get
+import org.koin.core.parameter.parametersOf
+import org.tesserakt.diskordin.gateway.interpreter.Implementation
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -19,32 +21,15 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.util.fromJson
 import org.tesserakt.diskordin.util.toJsonTree
-import java.util.concurrent.CancellationException
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.ExperimentalTime
+
+typealias Compiled<G, A> = FreeApplicative<G, A>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 @ExperimentalCoroutinesApi
-class Gateway<F> @ExperimentalTime constructor(
-    A: Async<F>, private val FF: FunctorFilter<F>
-) : Async<F> by A {
-    private val coroutineContext: CoroutineContext = Dispatchers.IO
-    private val logger = KotlinLogging.logger { }
-    private val lifecycle = GatewayLifecycle(LifecycleRegistry())
-
-    internal fun stop() {
-        lifecycle.stop()
-        coroutineContext.cancel(CancellationException("Shutdown"))
-    }
-
-    internal fun restart() {
-        lifecycle.restart()
-        lifecycle.start()
-    }
-
+class Gateway @ExperimentalTime constructor() {
     @ExperimentalStdlibApi
-    private fun FunctorFilter<F>.run(): GatewayAPI<Payload<out IPayload>> {
-        lifecycle.start()
+    internal fun <G> run(compiler: FunctionK<ForGatewayAPIF, G>): Compiled<G, Payload<out IPayload>> {
         val fromConnection = observeWebSocketEvents()
 
         fun parseMessage(message: Message) = when (message) {
@@ -80,9 +65,25 @@ class Gateway<F> @ExperimentalTime constructor(
             )
         }
 
-        return fromConnection.map(::connectionMapping)
+        return fromConnection.map(::connectionMapping).compile(compiler)
     }
 
-    @ExperimentalStdlibApi
-    internal fun run() = FF.run()
+    companion object Factory : KoinComponent {
+        private const val gatewayVersion = 6
+        private const val encoding = "json"
+
+        private val gatewayUrl = { start: String, compression: String ->
+            "$start/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
+        }
+
+        private val scarlet = gatewayUrl andThen {
+            get<Scarlet> { parametersOf(it) }
+        }
+
+        private val impl = scarlet andThen { it.create<Implementation>() }
+
+        @ExperimentalTime
+        fun create(start: String, compression: String) =
+            Gateway() toT impl(start, compression)
+    }
 }
