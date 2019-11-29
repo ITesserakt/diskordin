@@ -15,6 +15,7 @@ import org.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
     val eventDispatcher: EventDispatcher<ForFlowableK>
+    val webSocketStateHolder: WebSocketStateHolder
     val token: String
     val tokenType: TokenType
     val self: Identified<ISelf>

@@ -38,7 +38,7 @@ class Gateway {
                 -1,
                 null,
                 "CONNECTION_OPENED",
-                ConnectionOpened(state.okHttpResponse).toJsonTree()
+                ConnectionOpened.toJsonTree()
             )
             is WebSocketEvent.OnMessageReceived -> parseMessage(state.message)
             is WebSocketEvent.OnConnectionClosing -> Payload<ConnectionClosing>(

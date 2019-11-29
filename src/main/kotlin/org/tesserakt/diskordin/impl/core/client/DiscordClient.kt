@@ -15,13 +15,14 @@ import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
 import arrow.fx.rx2.extensions.flowablek.applicative.applicative
+import arrow.fx.rx2.extensions.flowablek.applicative.map
 import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.fix
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.TokenType
+import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -33,8 +34,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.json.IRawEvent
-import org.tesserakt.diskordin.gateway.json.Payload
+import org.tesserakt.diskordin.gateway.json.*
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
@@ -44,6 +44,7 @@ data class DiscordClient(
     override val tokenType: TokenType
 ) : IDiscordClient {
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.async())
+    override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
     override val rest: RestClient<ForIO> by inject()
@@ -82,8 +83,13 @@ data class DiscordClient(
         isConnected = true
 
         gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
-            .fix().flowable.filter { it.opcode != -1 }
-            .subscribe { eventDispatcher.publish(it as Payload<IRawEvent>) }
+            .map { payload: Payload<out IPayload> ->
+                if (payload.opcode() == Opcode.UNDERLYING) {
+                    webSocketStateHolder.update(payload as Payload<IToken>)
+                } else {
+                    eventDispatcher.publish(payload as Payload<IRawEvent>)
+                }
+            }.flowable.subscribe()
 
         Unit
     }.unsafeRunSync()
