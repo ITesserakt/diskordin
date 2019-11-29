@@ -4,7 +4,6 @@ import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.rx2.ForFlowableK
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
@@ -20,7 +19,6 @@ interface IDiscordClient : IDiscordObject {
     val tokenType: TokenType
     val self: Identified<ISelf>
     val isConnected: Boolean
-    @ExperimentalCoroutinesApi
     val gateway: Gateway
     val rest: RestClient<ForIO>
 

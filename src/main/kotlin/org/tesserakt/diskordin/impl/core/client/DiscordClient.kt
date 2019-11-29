@@ -17,7 +17,6 @@ import arrow.fx.rx2.ForFlowableK
 import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.async.async
 import arrow.fx.rx2.fix
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
@@ -34,18 +33,16 @@ import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
+import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 import kotlin.system.exitProcess
-import kotlin.time.ExperimentalTime
 
 data class DiscordClient(
     override val tokenType: TokenType
 ) : IDiscordClient {
-    @ExperimentalCoroutinesApi
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.async())
     override val token: String = getKoin().getProperty("token")!!
     override val self: Identified<ISelf>
@@ -67,7 +64,6 @@ data class DiscordClient(
     override var isConnected: Boolean = false
         private set
 
-    @ExperimentalCoroutinesApi
     override lateinit var gateway: Gateway
         private set
 
@@ -76,8 +72,6 @@ data class DiscordClient(
 
     @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
-    @ExperimentalCoroutinesApi
-    @ExperimentalTime
     override fun login() = IO.fx {
         val gatewayUrl = !rest.call { gatewayService.getGatewayBot() }
         val (gateway, impl) = Gateway.create(
@@ -94,15 +88,12 @@ data class DiscordClient(
         Unit
     }.unsafeRunSync()
 
-    @ExperimentalCoroutinesApi
-    @ExperimentalTime
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
         isConnected = true
         this.block()
         logout()
     }
 
-    @ExperimentalCoroutinesApi
     override fun logout() {
         if (this::gateway.isInitialized) {
             logger.info("Shutting down gateway")

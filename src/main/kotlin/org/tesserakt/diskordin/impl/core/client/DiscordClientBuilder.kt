@@ -10,7 +10,6 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.TokenType
-import org.tesserakt.diskordin.gateway.GatewayLifecycle
 import org.tesserakt.diskordin.rest.RestClient
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,8 +41,7 @@ class DiscordClientBuilder private constructor() {
                             get()
                         )
                     }
-                    single { setupLifecycle() } bind GatewayLifecycle::class
-                    single { (path: String) -> setupScarlet(path, get(), get()) }
+                    single { (path: String) -> setupScarlet(path, get()) }
                     single { RestClient(get(), IO.async()) }
                 })
             }

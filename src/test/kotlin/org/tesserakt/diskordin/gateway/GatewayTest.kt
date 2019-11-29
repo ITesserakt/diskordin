@@ -29,14 +29,13 @@ import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.tesserakt.diskordin.gateway.interpreter.Implementation
-import org.tesserakt.diskordin.gateway.interpreter.flowableInterpreter
-import org.tesserakt.diskordin.gateway.interpreter.listKInterpreter
-import org.tesserakt.diskordin.gateway.interpreter.observableInterpreter
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.events.Hello
+import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
+import org.tesserakt.diskordin.impl.gateway.interpreter.listKInterpreter
+import org.tesserakt.diskordin.impl.gateway.interpreter.observableInterpreter
 import org.tesserakt.diskordin.util.toJson
 import org.tesserakt.diskordin.util.toJsonTree
 import kotlin.time.ExperimentalTime
@@ -111,6 +110,7 @@ internal class GatewayTest {
             WebSocketEvent.OnConnectionClosed(ShutdownReason.GRACEFUL)
         )
 
+        @JvmStatic
         private val buffer: MutableList<Payload<*>> = mutableListOf()
 
         private val impl: Implementation = object : Implementation {

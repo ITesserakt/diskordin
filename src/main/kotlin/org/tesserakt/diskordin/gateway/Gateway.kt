@@ -7,11 +7,9 @@ import arrow.syntax.function.andThen
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.websocket.WebSocketEvent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.core.KoinComponent
 import org.koin.core.get
 import org.koin.core.parameter.parametersOf
-import org.tesserakt.diskordin.gateway.interpreter.Implementation
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -21,13 +19,11 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.util.fromJson
 import org.tesserakt.diskordin.util.toJsonTree
-import kotlin.time.ExperimentalTime
 
 typealias Compiled<G, A> = FreeApplicative<G, A>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-@ExperimentalCoroutinesApi
-class Gateway @ExperimentalTime constructor() {
+class Gateway {
     @ExperimentalStdlibApi
     internal fun <G> run(compiler: FunctionK<ForGatewayAPIF, G>): Compiled<G, Payload<out IPayload>> {
         val fromConnection = observeWebSocketEvents()
@@ -82,7 +78,6 @@ class Gateway @ExperimentalTime constructor() {
 
         private val impl = scarlet andThen { it.create<Implementation>() }
 
-        @ExperimentalTime
         fun create(start: String, compression: String) =
             Gateway() toT impl(start, compression)
     }

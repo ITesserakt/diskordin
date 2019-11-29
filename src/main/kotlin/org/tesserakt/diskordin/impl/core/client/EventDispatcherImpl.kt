@@ -7,10 +7,6 @@ import arrow.fx.typeclasses.Async
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
@@ -29,13 +25,13 @@ import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEv
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.util.receiveAsFlow
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
-@ExperimentalCoroutinesApi
 internal class EventDispatcherImpl<F>(private val A: Async<F>) : EventDispatcher<F>(), Async<F> by A {
+    @ExperimentalCoroutinesApi
     private val channel = ConflatedBroadcastChannel<IEvent>()
 
+    @ExperimentalCoroutinesApi
     override fun publish(rawEvent: Payload<IRawEvent>) =
         parseEvent(rawEvent).flatTap { channel.sendBlocking(it).right() }
 
@@ -87,14 +83,18 @@ internal class EventDispatcherImpl<F>(private val A: Async<F>) : EventDispatcher
         else -> ParseError.NonExistentDispatch(rawEvent).left()
     }
 
+    @ExperimentalCoroutinesApi
     @Suppress("UNCHECKED_CAST")
     override fun <E : IEvent> subscribeOn(type: Class<E>) = asyncF<E> { sink ->
         effect {
-            channel.openSubscription().receiveAsFlow()
-                .filter { type.isInstance(it) }
-                .map { it as E }
-                .catch { sink(it.left()) }
-                .collect { sink(it.right()) }
+            val receiveChannel = channel.openSubscription()
+            if (receiveChannel.isClosedForReceive)
+                sink(IllegalStateException("Underlying channel is closed").left())
+
+            for (event in receiveChannel) {
+                event as? E ?: continue
+                sink(event.right())
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ fun <T : GatewayCommand> T.wrap(opcode: Int, name: String, seq: Int?) =
     Payload<T>(opcode, seq, name, this.toJsonTree())
 
 fun <T : GatewayCommand> T.wrapWith(opcode: Opcode, seq: Int?) =
-    wrap(opcode.ordinal, opcode.name, seq)
+    wrap(opcode.asInt(), opcode.name, seq)
 
 interface IPayload
 interface IRawEvent : IPayload

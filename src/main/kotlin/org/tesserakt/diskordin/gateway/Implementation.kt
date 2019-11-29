@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway.interpreter
+package org.tesserakt.diskordin.gateway
 
 import com.tinder.scarlet.Stream
 import com.tinder.scarlet.websocket.WebSocketEvent
