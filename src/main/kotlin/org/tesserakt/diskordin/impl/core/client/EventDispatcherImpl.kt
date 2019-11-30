@@ -3,7 +3,6 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.left
 import arrow.core.right
-import arrow.fx.typeclasses.Async
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.sendBlocking
@@ -25,9 +24,10 @@ import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEv
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
+import org.tesserakt.diskordin.util.typeclass.Generative
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
-internal class EventDispatcherImpl<F>(private val A: Async<F>) : EventDispatcher<F>(), Async<F> by A {
+internal class EventDispatcherImpl<F>(private val GE: Generative<F>) : EventDispatcher<F>(), Generative<F> by GE {
     @ExperimentalCoroutinesApi
     private val channel = ConflatedBroadcastChannel<IEvent>()
 
@@ -85,7 +85,7 @@ internal class EventDispatcherImpl<F>(private val A: Async<F>) : EventDispatcher
 
     @ExperimentalCoroutinesApi
     @Suppress("UNCHECKED_CAST")
-    override fun <E : IEvent> subscribeOn(type: Class<E>) = asyncF<E> { sink ->
+    override fun <E : IEvent> subscribeOn(type: Class<E>) = generateF<E> { sink ->
         effect {
             val receiveChannel = channel.openSubscription()
             if (receiveChannel.isClosedForReceive)
