@@ -5,10 +5,10 @@ import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.typeclass.Integral
-import org.tesserakt.diskordin.util.typeclass.integral
 
 interface IUser : IMentioned, INamed {
     val username: String

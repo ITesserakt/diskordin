@@ -1,8 +1,9 @@
 @file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 
-package org.tesserakt.diskordin.util.typeclass
+package org.tesserakt.diskordin.impl.util.typeclass
 
 import arrow.core.extensions.*
+import org.tesserakt.diskordin.util.typeclass.Numeric
 
 interface IntNumeric : Numeric<Int>, IntOrder {
     override fun Int.toInt(): Int = this

@@ -16,9 +16,9 @@ import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.core.entity.rest
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.typeclass.integral
 import java.awt.Color
 
 class Role constructor(

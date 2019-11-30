@@ -4,8 +4,8 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.typeclass.integral
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime

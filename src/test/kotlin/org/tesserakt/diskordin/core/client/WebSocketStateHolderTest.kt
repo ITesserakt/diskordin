@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.client
 import org.amshove.kluent.`should be instance of`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.shouldBeTrue
+import org.amshove.kluent.shouldContainAll
 import org.junit.jupiter.api.Test
 import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -29,6 +30,9 @@ internal class WebSocketStateHolderTest {
 
     @Test
     fun `update and get new state`() {
+        val buffer = mutableListOf<IToken>()
+        stateHolder.observe { _, new -> buffer += new }
+
         val initialState = stateHolder.getState()
         initialState `should equal` NoConnection
 
@@ -40,6 +44,12 @@ internal class WebSocketStateHolderTest {
         val secondUpdate = stateHolder.update(second)
         secondUpdate.isRight().shouldBeTrue()
         stateAfterUpd = stateHolder.getState()
-        stateAfterUpd `should be instance of` ConnectionFailed::class
+        stateAfterUpd `should equal` NoConnection
+
+        buffer.map { it::class } shouldContainAll arrayListOf(
+            ConnectionOpened::class,
+            ConnectionFailed::class,
+            NoConnection::class
+        )
     }
 }
