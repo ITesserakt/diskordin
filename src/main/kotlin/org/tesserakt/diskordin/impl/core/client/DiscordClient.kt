@@ -19,6 +19,7 @@ import arrow.fx.rx2.extensions.flowablek.applicative.map
 import arrow.fx.rx2.extensions.flowablek.async.async
 import arrow.fx.rx2.extensions.flowablek.dispatchers.dispatchers
 import arrow.fx.rx2.fix
+import arrow.fx.typeclasses.ConcurrentSyntax
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher

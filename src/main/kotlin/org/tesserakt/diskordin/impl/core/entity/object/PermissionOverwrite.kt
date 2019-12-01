@@ -9,6 +9,7 @@ import org.tesserakt.diskordin.core.entity.`object`.MemberId
 import org.tesserakt.diskordin.core.entity.`object`.RoleId
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
+import org.tesserakt.diskordin.util.enums.not
 
 class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
     override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.of(raw.type)

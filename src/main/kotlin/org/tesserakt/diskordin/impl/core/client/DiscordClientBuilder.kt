@@ -9,8 +9,6 @@ import org.koin.core.context.loadKoinModules
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.client.TokenType
-import org.tesserakt.diskordin.gateway.GatewayLifecycle
 import org.tesserakt.diskordin.rest.RestClient
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
