@@ -92,8 +92,8 @@ internal class EventDispatcherImpl<F>(private val GE: Generative<F>) : EventDisp
                 sink(IllegalStateException("Underlying channel is closed").left())
 
             for (event in receiveChannel) {
-                event as? E ?: continue
-                sink(event.right())
+                if (!type.isInstance(event)) continue
+                sink((event as E).right())
             }
         }
     }

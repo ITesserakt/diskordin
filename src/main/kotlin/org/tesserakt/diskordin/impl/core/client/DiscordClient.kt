@@ -43,11 +43,14 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
 import org.tesserakt.diskordin.impl.gateway.handler.handleHello
+import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
+import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 import kotlin.system.exitProcess
+import kotlin.time.ExperimentalTime
 
 data class DiscordClient(
     override val tokenType: TokenType
@@ -87,6 +90,7 @@ data class DiscordClient(
     override val users = mutableListOf<IUser>().just()
     override val guilds = mutableListOf<IGuild>().just()
 
+    @ExperimentalTime
     @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
     override fun login() = IO.fx {
@@ -116,6 +120,8 @@ data class DiscordClient(
         Unit
     }.unsafeRunSync()
 
+
+    @ExperimentalTime
     private fun launchDefaultEventHandlers(impl: Implementation) {
         eventDispatcher.handleHello(
             token,
@@ -124,6 +130,11 @@ data class DiscordClient(
             FlowableK.async(),
             FlowableK.dispatchers()
         ).fix().flowable.subscribe()
+
+        eventDispatcher.heartbeatHandler(gateway::sequenceId, impl.flowableInterpreter, FlowableK.async()).fix()
+            .flowable.subscribe()
+
+        eventDispatcher.heartbeatACKHandler(FlowableK.async()).fix().flowable.subscribe()
     }
 
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
