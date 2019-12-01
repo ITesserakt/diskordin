@@ -24,6 +24,6 @@ val gson: Gson = GsonBuilder()
 
 fun <T> T.toJson(): String = gson.toJson(this)
 
-fun <T> CharSequence.fromJson(): T = gson.fromJson<T>(this.toString(), object : TypeToken<T>() {}.type)
+inline fun <reified T> CharSequence.fromJson(): T = gson.fromJson<T>(this.toString(), T::class.java)
 
 fun <T> T.toJsonTree(): JsonElement = gson.toJsonTree(this, object : TypeToken<T>() {}.type)

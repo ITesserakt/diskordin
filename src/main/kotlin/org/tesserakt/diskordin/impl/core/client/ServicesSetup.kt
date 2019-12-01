@@ -18,7 +18,6 @@ import org.koin.core.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.gateway.GatewayLifecycle
 import org.tesserakt.diskordin.util.FlowStreamAdapter
 import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
@@ -62,9 +61,7 @@ internal fun KoinComponent.setupHttpClient(client: IDiscordClient): OkHttpClient
             .setLevel(HttpLoggingInterceptor.Level.BASIC)
     ).build()
 
-internal fun setupLifecycle(): Lifecycle = GatewayLifecycle(LifecycleRegistry())
-
-internal fun setupScarlet(path: String, httpClient: OkHttpClient, lifecycle: Lifecycle): Scarlet {
+internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
     val protocol = OkHttpWebSocket(
         httpClient,
         OkHttpWebSocket.SimpleRequestFactory(
@@ -75,8 +72,7 @@ internal fun setupScarlet(path: String, httpClient: OkHttpClient, lifecycle: Lif
     val configuration = Scarlet.Configuration(
         backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 10000),
         streamAdapterFactories = listOf(FlowStreamAdapter.Factory()),
-        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson)),
-        lifecycle = lifecycle
+        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson))
     )
 
     return Scarlet(protocol, configuration)

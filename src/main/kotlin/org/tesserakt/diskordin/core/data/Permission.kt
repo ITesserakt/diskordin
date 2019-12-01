@@ -2,10 +2,10 @@
 
 package org.tesserakt.diskordin.core.data
 
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.typeclass.Integral
-import org.tesserakt.diskordin.util.typeclass.integral
 
 typealias Permissions = ValuedEnum<Permission, Long>
 

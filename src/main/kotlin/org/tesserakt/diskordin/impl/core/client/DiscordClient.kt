@@ -12,12 +12,18 @@ import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
-import arrow.fx.typeclasses.ConcurrentSyntax
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import arrow.fx.rx2.FlowableK
+import arrow.fx.rx2.ForFlowableK
+import arrow.fx.rx2.extensions.flowablek.applicative.applicative
+import arrow.fx.rx2.extensions.flowablek.applicative.map
+import arrow.fx.rx2.extensions.flowablek.async.async
+import arrow.fx.rx2.extensions.flowablek.dispatchers.dispatchers
+import arrow.fx.rx2.fix
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
+import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -28,17 +34,27 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
+import org.tesserakt.diskordin.gateway.Implementation
+import org.tesserakt.diskordin.gateway.json.*
+import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
+import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
+import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
+import org.tesserakt.diskordin.gateway.json.token.NoConnection
+import org.tesserakt.diskordin.impl.gateway.handler.handleHello
+import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
+import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
+import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
+import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
 class DiscordClient : IDiscordClient {
-    @ExperimentalCoroutinesApi
-    override lateinit var eventDispatcher: EventDispatcher
+    override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
+    override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = getKoin().getProperty("token")!!
-    override lateinit var self: Identified<ISelf>
-        private set
+    override val self: Identified<ISelf>
     override val rest: RestClient<ForIO> by inject()
 
     private companion object : KLogging()
@@ -52,47 +68,80 @@ class DiscordClient : IDiscordClient {
             } identify {
             rest.call(Id.functor()) { userService.getCurrentUser() }.bind().extract()
         }
+
+        webSocketStateHolder.observe { _, new ->
+            when (new) {
+                is ConnectionOpened -> logger.info("Gateway reached")
+                is ConnectionClosed -> logger.warn("Gateway closed: ${new.reason}")
+                is ConnectionFailed -> logger.error("Gateway met with error", new.error)
+            }
+        }
     }
 
     override var isConnected: Boolean = false
         private set
 
-    @ExperimentalCoroutinesApi
-    override lateinit var gateway: Gateway
-        private set
+    override val gateway: Gateway = Gateway()
 
     override val users = mutableListOf<IUser>().just()
     override val guilds = mutableListOf<IGuild>().just()
 
-    @ExperimentalCoroutinesApi
     @ExperimentalTime
+    @Suppress("UNCHECKED_CAST")
+    @ExperimentalStdlibApi
     override fun login() = IO.fx {
-        val gatewayStats = rest.call(Id.functor()) {
-            gatewayService.getGatewayBot()
-        }.bind().extract()
-        val gatewayURL = gatewayStats.url
-        val metadata = gatewayStats.session
-        this@DiscordClient.gateway = Gateway(gatewayURL, metadata.total, metadata.remaining, metadata.resetAfter)
-        eventDispatcher = gateway.eventDispatcher
+        val gatewayUrl = !rest.call { gatewayService.getGatewayBot() }
+        val (_, impl) = Gateway.create(
+            gatewayUrl.url,
+            "zlib-stream"
+        )
         isConnected = true
 
-        this@DiscordClient.gateway.run()
+        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
+            .map { payload: Payload<out IPayload> ->
+                if (payload.opcode() == Opcode.UNDERLYING) {
+                    webSocketStateHolder.update(payload as Payload<IToken>)
+                } else {
+                    eventDispatcher.publish(payload as Payload<IRawEvent>).mapLeft { IllegalStateException(it.message) }
+                }
+            }.flatMap { either ->
+                either.fold(
+                    { FlowableK.raiseError<Any>(it) },
+                    { FlowableK.just(it) }
+                )
+            }.flowable.subscribe()
+
+        launchDefaultEventHandlers(impl)
+
         Unit
     }
 
-    @ExperimentalCoroutinesApi
+
     @ExperimentalTime
+    private fun launchDefaultEventHandlers(impl: Implementation) {
+        eventDispatcher.handleHello(
+            token,
+            gateway::sequenceId,
+            impl.flowableInterpreter,
+            FlowableK.async(),
+            FlowableK.dispatchers()
+        ).fix().flowable.subscribe()
+
+        eventDispatcher.heartbeatHandler(gateway::sequenceId, impl.flowableInterpreter, FlowableK.async()).fix()
+            .flowable.subscribe()
+
+        eventDispatcher.heartbeatACKHandler(FlowableK.async()).fix().flowable.subscribe()
+    }
+
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
         isConnected = true
         this.block(this@DiscordClient)
         logout()
     }
 
-    @ExperimentalCoroutinesApi
     override fun logout() {
-        if (this::gateway.isInitialized) {
+        if (webSocketStateHolder.getState() != NoConnection) {
             logger.info("Shutting down gateway")
-            gateway.stop()
         }
         exitProcess(0)
     }

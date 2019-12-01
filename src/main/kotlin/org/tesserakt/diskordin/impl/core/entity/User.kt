@@ -20,9 +20,9 @@ import org.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.query.UserGuildsQuery
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.typeclass.integral
 
 open class User(raw: UserResponse<IUser>) : IUser {
     final override val avatar: String? = raw.avatar

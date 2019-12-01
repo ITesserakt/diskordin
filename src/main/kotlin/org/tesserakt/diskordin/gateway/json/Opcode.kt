@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.gateway.json
 
 enum class Opcode {
+    UNDERLYING,
     DISPATCH,
     HEARTBEAT,
     IDENTIFY,
@@ -15,4 +16,6 @@ enum class Opcode {
     HEARTBEAT_ACK;
 }
 
-fun Int.asOpcode() = Opcode.values().first { it.ordinal == this }
+fun Opcode.asInt() = ordinal - 1
+
+fun Int.asOpcode() = Opcode.values().first { it.asInt() == this }

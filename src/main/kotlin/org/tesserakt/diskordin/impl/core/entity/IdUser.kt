@@ -4,8 +4,8 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.IDUserResponse
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.client
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.typeclass.integral
 
 class IdUser(raw: IDUserResponse) : IUser {
     private val delegate by lazy { client.getUser(raw.id).unsafeRunSync() }

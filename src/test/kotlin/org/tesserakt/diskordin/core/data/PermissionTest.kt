@@ -5,8 +5,8 @@ import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should equal`
 import org.junit.jupiter.api.Test
 import org.tesserakt.diskordin.core.data.Permission.*
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.*
-import org.tesserakt.diskordin.util.typeclass.integral
 import java.util.*
 
 internal class PermissionTest {

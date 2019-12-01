@@ -23,6 +23,7 @@ dependencies {
     compile "io.arrow-kt:arrow-core:$arrow_version"
     compile "io.arrow-kt:arrow-syntax:$arrow_version"
     compile "io.arrow-kt:arrow-fx:$arrow_version"
+    compile "io.arrow-kt:arrow-fx-rx2:$arrow_version"
     compile "io.arrow-kt:arrow-core-data:$arrow_version"
     compile "io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version"
     compile "io.arrow-kt:arrow-mtl:$arrow_version"
@@ -42,8 +43,12 @@ dependencies {
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
-    testImplementation "org.amshove.kluent:kluent:$kluent_version"
-    testImplementation "org.slf4j:slf4j-simple:$slf4j_version"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junit_version"
+    testImplementation 'org.amshove.kluent:kluent:$kluent_version'
+    testCompile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    testCompile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+    testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    testImplementation "io.mockk:mockk:1.9.3"
 }
 
 test {

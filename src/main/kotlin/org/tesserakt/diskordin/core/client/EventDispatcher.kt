@@ -1,14 +1,21 @@
 package org.tesserakt.diskordin.core.client
 
-import kotlinx.coroutines.flow.Flow
+import arrow.Kind
+import arrow.core.Either
 import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
 
-abstract class EventDispatcher {
-    internal abstract suspend fun publish(rawEvent: Payload<IRawEvent>)
-    abstract fun <E : IEvent> subscribeOn(type: Class<E>): Flow<E>
-    abstract fun sendAnswer(payload: GatewayCommand): Boolean
+abstract class EventDispatcher<F> {
+    internal abstract fun publish(rawEvent: Payload<IRawEvent>): Either<ParseError, IEvent>
+    abstract fun <E : IEvent> subscribeOn(type: Class<E>): Kind<F, E>
     inline fun <reified E : IEvent> subscribeOn() = subscribeOn(E::class.java)
+
+    sealed class ParseError(val message: String) {
+        object NonExistentOpcode : ParseError("Only send opcodes are suitable")
+        data class NonExistentDispatch(private val rawEvent: Payload<IRawEvent>) :
+            ParseError("No such event name or opcode: ${rawEvent.opcode}, ${rawEvent.name}")
+
+        data class Unknown(private val cause: Throwable) : ParseError(cause.message ?: cause.localizedMessage)
+    }
 }
