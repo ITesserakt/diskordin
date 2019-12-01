@@ -24,6 +24,9 @@ typealias Compiled<G, A> = FreeApplicative<G, A>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class Gateway {
+    var sequenceId: Int? = null
+        private set
+
     @ExperimentalStdlibApi
     internal fun <G> run(compiler: FunctionK<ForGatewayAPIF, G>): Compiled<G, Payload<out IPayload>> {
         val fromConnection = observeWebSocketEvents()
@@ -40,7 +43,9 @@ class Gateway {
                 "CONNECTION_OPENED",
                 ConnectionOpened.toJsonTree()
             )
-            is WebSocketEvent.OnMessageReceived -> parseMessage(state.message)
+            is WebSocketEvent.OnMessageReceived -> parseMessage(state.message).also {
+                sequenceId = it.seq ?: sequenceId
+            }
             is WebSocketEvent.OnConnectionClosing -> Payload<ConnectionClosing>(
                 -1,
                 null,

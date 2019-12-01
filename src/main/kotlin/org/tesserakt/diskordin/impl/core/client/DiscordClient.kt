@@ -16,6 +16,9 @@ import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
 import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.applicative.map
+import arrow.fx.rx2.extensions.flowablek.async.async
+import arrow.fx.rx2.extensions.flowablek.dispatchers.dispatchers
+import arrow.fx.rx2.fix
 import mu.KLogging
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
@@ -33,11 +36,13 @@ import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.Gateway
+import org.tesserakt.diskordin.gateway.Implementation
 import org.tesserakt.diskordin.gateway.json.*
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
+import org.tesserakt.diskordin.impl.gateway.handler.handleHello
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
@@ -106,8 +111,20 @@ data class DiscordClient(
                 )
             }.flowable.subscribe()
 
+        launchDefaultEventHandlers(impl)
+
         Unit
     }.unsafeRunSync()
+
+    private fun launchDefaultEventHandlers(impl: Implementation) {
+        eventDispatcher.handleHello(
+            token,
+            gateway::sequenceId,
+            impl.flowableInterpreter,
+            FlowableK.async(),
+            FlowableK.dispatchers()
+        ).fix().flowable.subscribe()
+    }
 
     override suspend fun use(block: suspend IDiscordClient.() -> Unit) {
         isConnected = true
