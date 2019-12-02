@@ -16,11 +16,11 @@ import arrow.typeclasses.Foldable
 import arrow.typeclasses.Monoid
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.Stream
-import com.tinder.scarlet.utils.FlowableStream
 import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.WebSocketEvent
 import io.mockk.mockk
 import io.reactivex.Flowable
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.amshove.kluent.`should be in`
 import org.amshove.kluent.`should contain same`
@@ -29,6 +29,7 @@ import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.reactivestreams.Publisher
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
@@ -125,5 +126,22 @@ internal class GatewayTest {
             Arguments.of(impl.flowableInterpreter, FlowableK.applicative(), FlowableK.foldable()),
             Arguments.of(impl.observableInterpreter, ObservableK.applicative(), ObservableK.foldable())
         )
+    }
+
+    class FlowableStream<T>(
+        private val flowable: Flowable<T>
+    ) : Stream<T>, Publisher<T> by flowable {
+        override fun start(observer: Stream.Observer<T>): Stream.Disposable {
+            val disposable = flowable.subscribe(observer::onNext, observer::onError, observer::onComplete)
+            return FlowableStreamDisposable(disposable)
+        }
+
+        class FlowableStreamDisposable(
+            private val disposable: Disposable
+        ) : Stream.Disposable {
+            override fun dispose() = disposable.dispose()
+
+            override fun isDisposed(): Boolean = disposable.isDisposed
+        }
     }
 }
