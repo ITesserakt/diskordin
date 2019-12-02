@@ -44,6 +44,7 @@ import org.tesserakt.diskordin.gateway.json.token.NoConnection
 import org.tesserakt.diskordin.impl.gateway.handler.handleHello
 import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
 import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
+import org.tesserakt.diskordin.impl.gateway.handler.restartHandler
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
@@ -98,6 +99,7 @@ class DiscordClient : IDiscordClient {
         )
         isConnected = true
 
+        GlobalGatewayLifecycle.start()
         gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
             .map { payload: Payload<out IPayload> ->
                 if (payload.opcode() == Opcode.UNDERLYING) {
@@ -131,7 +133,15 @@ class DiscordClient : IDiscordClient {
         eventDispatcher.heartbeatHandler(gateway::sequenceId, impl.flowableInterpreter, FlowableK.async()).fix()
             .flowable.subscribe()
 
-        eventDispatcher.heartbeatACKHandler(FlowableK.async()).fix().flowable.subscribe()
+        eventDispatcher.heartbeatACKHandler(webSocketStateHolder, FlowableK.async()).fix().flowable.subscribe()
+
+        eventDispatcher.restartHandler(
+            token,
+            gateway::sequenceId,
+            webSocketStateHolder,
+            impl.flowableInterpreter,
+            FlowableK.async()
+        ).fix().flowable.subscribe()
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
@@ -143,6 +153,7 @@ class DiscordClient : IDiscordClient {
     override fun logout() {
         if (webSocketStateHolder.getState() != NoConnection) {
             logger.info("Shutting down gateway")
+            GlobalGatewayLifecycle.stop()
         }
         exitProcess(0)
     }

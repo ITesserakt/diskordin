@@ -1,9 +1,7 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.integrations.retrofit.adapter.CallKindAdapterFactory
-import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.messageadapter.gson.GsonMessageAdapter
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
@@ -18,7 +16,6 @@ import org.koin.core.KoinComponent
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.util.FlowStreamAdapter
 import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import retrofit2.Retrofit
@@ -71,8 +68,8 @@ internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
     )
     val configuration = Scarlet.Configuration(
         backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 10000),
-        streamAdapterFactories = listOf(FlowStreamAdapter.Factory()),
-        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson))
+        messageAdapterFactories = listOf(GsonMessageAdapter.Factory(gson)),
+        lifecycle = GlobalGatewayLifecycle
     )
 
     return Scarlet(protocol, configuration)

@@ -49,7 +49,7 @@ data class RequestGuildMembers(
 data class Resume(
     val token: String,
     val sessionId: String,
-    val seq: String
+    val seq: Int?
 ) : GatewayCommand()
 
 data class Identify(
