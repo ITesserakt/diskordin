@@ -1,5 +1,6 @@
-[![](https://jitci.com/gh/ITesserakt/diskordin/svg)](https://jitci.com/gh/ITesserakt/diskordin) 
-[![](https://jitpack.io/v/ITesserakt/diskordin.svg)](https://jitpack.io/#ITesserakt/diskordin)
+[![JitCI](https://jitci.com/gh/ITesserakt/diskordin/svg)](https://jitci.com/gh/ITesserakt/diskordin) 
+[![JitPack](https://jitpack.io/v/ITesserakt/diskordin.svg)](https://jitpack.io/#ITesserakt/diskordin)
+[![Github License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 
 # Diskordin
 ## What is this?
@@ -25,7 +26,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'com.github.ITesserakt:diskordin:0.1.1'
+    implementation 'com.github.ITesserakt:diskordin:{version}'
 }
 ```
 #### SBT 
@@ -34,7 +35,7 @@ resolvers += "jitpack" at "https://jitpack.io"
 resolvers += "jcenter" at "https://jcenter.bintray.com/"
 resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "0.1.1"
+libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "{version}"
 ```
 **Also, you must add a dependency for logger. The most simple is** 
 `'org.slf4j:slf4j-simple:1.7.26'`
@@ -45,27 +46,32 @@ libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "0.1.1"
 
 Just logging into Discord as simple as possible
 ```kotlin
-    fun main() = DiscordClientBuilder {
-        token = "Put your bot`s token here"
-    }.login()
+fun main() = DiscordClientBuilder {
+    token = "Put your bot`s token here"
+}.login()
 ```
 In DiscordClientBuilder lambda you can put other config options.
  Like other builders, type `this.` keyword in a lambda to see all of them.
  
  If your token is in env variables the syntax will even more simple:
  ```kotlin
-    fun main() = DiscordClientBuilder{}.login()
+fun main() = DiscordClientBuilder{}.login()
 ```
 
 Most wrappers block main forever after `login`.
-In Diskordin vice versa subscribing to different events from Discord are after `client.login` call.
+In Diskordin `login` call is non-blocking but you shouldn't pass `delay(INFINITY)` or something else. 
+Wrapper creates another thread so the program doesn't terminates.
+
+Here is an example where you can see work with the Gateway.
+Currently, a type of `readyEvent` is Kind<ForFlowable, ReadyEvent> because of limitations in the Arrow.
+To repair it use `fix` and `flowable` after it.
+In the future, this will change to S\<ReadyEvent\> where `S` is a concrete streamable type of the Gateway.
  ```kotlin
-    fun main() {
-        val client = DiscordClientBuilder {}
-        client.login()
-        client.eventDispatcher.subscribeOn<ReadyEvent>()
-            .collect { println(it) } //subscribeOn returns Flow
-    }
+ fun main() {
+    val client = DiscordClientBuilder {}
+    client.login()
+    val readyEvents = client.eventDispatcher.subscribeOn<ReadyEvent>()
+}
 ```
 
 #### Builders
@@ -86,14 +92,13 @@ channel.edit { //this is TextChannelEditBuilder
 Auto-complete helps you to show all optional properties
 ***
 
-There will more use cases as they will implement.
+Here will more use cases as they will implement.
 
 ### Libraries
-+ ----------------- + ------------------------------------------------------------- +
 |Name               | Reason                                                        |
 | ----------------- | ------------------------------------------------------------- |
 | Arrow             | Functional approach in Kotlin                                 |
-| Kotlin coroutines | Dependency to Arrow. Gateway events structure                 |
+| Kotlin coroutines | Dependency to Arrow.                                          |
 | Koin              | Dependency injection library                                  |
 | OkHTTP            | Http client implementation on which Rest and Gateway are based|
 | Scarlet           | Easy work with WebSockets                                     |
