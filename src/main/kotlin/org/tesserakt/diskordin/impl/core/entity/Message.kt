@@ -9,12 +9,12 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -59,7 +59,7 @@ class Message(raw: MessageResponse) : IMessage {
         channelService.deleteMessage(channel.id, id, reason)
     }.fix()
 
-    override val channel: Identified<IMessageChannel> = raw.channel_id identify {
+    override val channel: IdentifiedF<ForIO, IMessageChannel> = raw.channel_id identify {
         client.getChannel(it).map { it as IMessageChannel }
     }
 

@@ -5,7 +5,7 @@ import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.rx2.ForFlowableK
 import arrow.fx.typeclasses.ConcurrentSyntax
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -18,7 +18,7 @@ interface IDiscordClient : IDiscordObject {
     val eventDispatcher: EventDispatcher<ForFlowableK>
     val webSocketStateHolder: WebSocketStateHolder
     val token: String
-    val self: Identified<ISelf>
+    val self: IdentifiedF<ForIO, ISelf>
     val isConnected: Boolean
     val gateway: Gateway
     val rest: RestClient<ForIO>

@@ -1,7 +1,8 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
 
-import org.tesserakt.diskordin.core.data.Identified
+import arrow.fx.ForIO
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildEmbedResponse
 import org.tesserakt.diskordin.core.entity.IGuildChannel
@@ -11,7 +12,7 @@ import org.tesserakt.diskordin.core.entity.client
 class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
     override val enabled: Boolean = raw.enabled
 
-    override val channel: Identified<IGuildChannel>? = raw.channel_id?.identify {
+    override val channel: IdentifiedF<ForIO, IGuildChannel>? = raw.channel_id?.identify {
         client.getChannel(it).map { it as IGuildChannel }
     }
 

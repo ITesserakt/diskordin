@@ -25,7 +25,7 @@ import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.entity.IGuild
@@ -56,7 +56,7 @@ class DiscordClient : IDiscordClient {
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = getKoin().getProperty("token")!!
-    override val self: Identified<ISelf>
+    override val self: IdentifiedF<ForIO, ISelf>
     override val rest: RestClient<ForIO> by inject()
 
     private companion object : KLogging()

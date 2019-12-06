@@ -5,10 +5,11 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -92,7 +93,7 @@ interface IGuildCategory : IGuildChannel {
 interface IAnnouncementChannel : IGuildChannel, IMessageChannel
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
-    val owner: Identified<IUser>
+    val owner: IdentifiedF<ForIO, IUser>
     val recipient: NonEmptyList<IUser>
 }
 

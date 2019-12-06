@@ -1,8 +1,9 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ListK
+import arrow.fx.ForIO
 import arrow.fx.IO
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
 import org.tesserakt.diskordin.core.entity.*
@@ -25,8 +26,8 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val explicitContentFilter: IGuild.ExplicitContentFilter by lazy { delegate.explicitContentFilter }
     override val mfaLevel: IGuild.MFALevel by lazy { delegate.mfaLevel }
     override val isWidgetEnabled: Boolean by lazy { delegate.isWidgetEnabled }
-    override val widgetChannel: Identified<IGuildChannel>? by lazy { delegate.widgetChannel }
-    override val systemChannel: Identified<IGuildChannel>? by lazy { delegate.systemChannel }
+    override val widgetChannel: IdentifiedF<ForIO, IGuildChannel>? by lazy { delegate.widgetChannel }
+    override val systemChannel: IdentifiedF<ForIO, IGuildChannel>? by lazy { delegate.systemChannel }
     override val maxMembers: Long? by lazy { delegate.maxMembers }
     override val maxPresences: Long by lazy { delegate.maxPresences }
     override val description: String? by lazy { delegate.description }
@@ -39,8 +40,8 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }
-    override val owner: Identified<IMember> by lazy { delegate.owner }
-    override val afkChannel: Identified<IVoiceChannel>? by lazy { delegate.afkChannel }
+    override val owner: IdentifiedF<ForIO, IMember> by lazy { delegate.owner }
+    override val afkChannel: IdentifiedF<ForIO, IVoiceChannel>? by lazy { delegate.afkChannel }
     @ExperimentalTime
     override val afkChannelTimeout: Duration by lazy { delegate.afkChannelTimeout }
     override val verificationLevel: IGuild.VerificationLevel by lazy { delegate.verificationLevel }

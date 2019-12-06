@@ -1,14 +1,14 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
-import org.tesserakt.diskordin.core.data.Identified
+import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.IdentifiedF
 
 interface IWebhook : IEntity, IDeletable {
     val name: String?
     val avatar: String?
     val token: String
-    val guild: Identified<IGuild>?
-    val channel: Identified<IChannel>
+    val guild: IdentifiedF<ForIO, IGuild>?
+    val channel: IdentifiedF<ForIO, IChannel>
     val user: IdentifiedF<ForId, IUser>?
 }

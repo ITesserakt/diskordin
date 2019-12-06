@@ -3,8 +3,9 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ListK
+import arrow.fx.ForIO
 import arrow.fx.IO
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -22,8 +23,8 @@ import kotlin.time.ExperimentalTime
 interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
     val iconHash: String?
     val splashHash: String?
-    val owner: Identified<IMember>
-    val afkChannel: Identified<IVoiceChannel>?
+    val owner: IdentifiedF<ForIO, IMember>
+    val afkChannel: IdentifiedF<ForIO, IVoiceChannel>?
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
@@ -33,8 +34,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val explicitContentFilter: ExplicitContentFilter
     val mfaLevel: MFALevel
     val isWidgetEnabled: Boolean
-    val widgetChannel: Identified<IGuildChannel>?
-    val systemChannel: Identified<IGuildChannel>?
+    val widgetChannel: IdentifiedF<ForIO, IGuildChannel>?
+    val systemChannel: IdentifiedF<ForIO, IGuildChannel>?
     val maxMembers: Long?
     val maxPresences: Long
     val description: String?

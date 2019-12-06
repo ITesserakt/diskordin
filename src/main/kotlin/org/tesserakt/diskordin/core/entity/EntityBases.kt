@@ -8,7 +8,7 @@ import arrow.fx.IO
 import org.koin.core.KoinComponent
 import org.koin.core.get
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.rest.RestClient
@@ -25,7 +25,7 @@ val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 
 interface IGuildObject : IDiscordObject {
-    val guild: Identified<IGuild>
+    val guild: IdentifiedF<ForIO, IGuild>
 }
 
 interface IMentioned : IEntity {

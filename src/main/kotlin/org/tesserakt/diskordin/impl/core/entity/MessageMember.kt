@@ -1,10 +1,11 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.k
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MessageMemberResponse
@@ -24,7 +25,7 @@ class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) 
     private val delegate by lazy {
         IO.fx { guild().bind().members.bind().first { it.nickname == raw.nick } }.unsafeRunSync()
     }
-    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it) }
+    override val guild: IdentifiedF<ForIO, IGuild> = guildId identify { client.getGuild(it) }
     override val nickname: String? = raw.nick
     override val roles = IO.fx { raw.roles.map { guild().bind().getRole(it).bind() }.k() }
     override val joinTime: Instant = raw.joined_at

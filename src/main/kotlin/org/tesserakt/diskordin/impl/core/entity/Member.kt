@@ -2,11 +2,12 @@ package org.tesserakt.diskordin.impl.core.entity
 
 
 import arrow.core.k
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MemberResponse
@@ -19,7 +20,7 @@ class Member constructor(
     raw: MemberResponse<*>,
     guildId: Snowflake
 ) : User(raw.user), IMember {
-    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it) }
+    override val guild: IdentifiedF<ForIO, IGuild> = guildId identify { client.getGuild(it) }
 
     override fun asMember(guildId: Snowflake): IO<IMember> = IO.just(this)
 
