@@ -1,11 +1,13 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.ForId
+import arrow.core.extensions.id.applicative.just
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.AccountResponse
@@ -28,7 +30,7 @@ class Integration(
         guildService.syncIntegration(guild.id, id)
     }.fix()
 
-    override val guild = guildId identify { client.getGuild(it).bind() }
+    override val guild = guildId identify { client.getGuild(it) }
 
     override fun delete(reason: String?) = rest.effect {
         guildService.deleteIntegration(guild.id, id)
@@ -62,13 +64,17 @@ class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role = raw.role_id identify { guild().bind().roles.bind().first { role -> role.id == it } }
+    override val role = raw.role_id identify { id ->
+        guild().flatMap {
+            it.roles.map { it.first { role -> role.id == id } }
+        }
+    }
 
     override val expireBehavior: Int = raw.expire_behavior
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: Identified<IUser> = raw.user.id identify { raw.user.unwrap() }
+    override val user: IdentifiedF<ForId, IUser> = raw.user.id identify { raw.user.unwrap().just() }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 

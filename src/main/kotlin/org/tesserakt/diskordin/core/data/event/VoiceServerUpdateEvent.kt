@@ -6,6 +6,6 @@ import org.tesserakt.diskordin.gateway.json.events.VoiceServerUpdate
 
 class VoiceServerUpdateEvent(raw: VoiceServerUpdate) : IEvent {
     val token = raw.token
-    val guild = raw.guildId identify { client.getGuild(it).bind() }
+    val guild = raw.guildId identify { client.getGuild(it) }
     val endpoint = raw.endpoint
 }

@@ -19,7 +19,7 @@ class Member constructor(
     raw: MemberResponse<*>,
     guildId: Snowflake
 ) : User(raw.user), IMember {
-    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it).bind() }
+    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it) }
 
     override fun asMember(guildId: Snowflake): IO<IMember> = IO.just(this)
 

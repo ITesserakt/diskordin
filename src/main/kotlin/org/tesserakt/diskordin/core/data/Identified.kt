@@ -1,22 +1,19 @@
 package org.tesserakt.diskordin.core.data
 
+import arrow.Kind
 import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.extensions.fx
-import arrow.fx.fix
-import arrow.fx.typeclasses.ConcurrentSyntax
 import arrow.mtl.Kleisli
 import org.tesserakt.diskordin.core.entity.IEntity
 
-data class Identified<E : IEntity>(
+data class IdentifiedF<F, E : IEntity>(
     val id: Snowflake,
-    private val render: Kleisli<ForIO, Snowflake, E>
+    private val render: Kleisli<F, Snowflake, E>
 ) {
-    operator fun invoke() = render.run(id).fix()
+    operator fun invoke() = render.run(id)
 }
 
-infix fun <E : IEntity> Snowflake.identify(render: suspend ConcurrentSyntax<ForIO>.(Snowflake) -> E) =
-    Identified<E>(this, Kleisli {
-        IO.fx { render(it) }
-    })
+typealias Identified<E> = IdentifiedF<ForIO, E>
+
+infix fun <F, E : IEntity> Snowflake.identify(render: (Snowflake) -> Kind<F, E>) =
+    IdentifiedF(this, Kleisli(render))
 

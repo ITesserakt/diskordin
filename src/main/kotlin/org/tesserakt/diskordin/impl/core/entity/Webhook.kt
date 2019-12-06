@@ -1,8 +1,10 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.ForId
+import arrow.core.extensions.id.applicative.just
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.WebhookResponse
@@ -36,14 +38,14 @@ class Webhook(raw: WebhookResponse) : IWebhook {
     override val token: String = raw.token
 
     override val guild = raw.guild_id?.identify {
-        client.getGuild(it).bind()
+        client.getGuild(it)
     }
 
     override val channel = raw.channel_id identify {
-        client.getChannel(it).bind()
+        client.getChannel(it)
     }
 
-    override val user: Identified<IUser>? = raw.user?.id?.identify { raw.user.unwrap() }
+    override val user: IdentifiedF<ForId, IUser>? = raw.user?.id?.identify { raw.user.unwrap().just() }
 
     override val id: Snowflake = raw.id
 }

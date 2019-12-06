@@ -12,7 +12,7 @@ class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
     override val enabled: Boolean = raw.enabled
 
     override val channel: Identified<IGuildChannel>? = raw.channel_id?.identify {
-        client.getChannel(it).bind() as IGuildChannel
+        client.getChannel(it).map { it as IGuildChannel }
     }
 
     override fun toString(): String {

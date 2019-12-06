@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
-import org.tesserakt.diskordin.core.data.Identified
+import arrow.core.ForId
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.json.response.InviteResponse
 import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IDiscordObject
@@ -12,7 +13,7 @@ interface IInvite : IDiscordObject {
     val code: String
     val url get() = "https://discord.gg/$code"
 
-    val channel: Identified<IChannel>
+    val channel: IdentifiedF<ForId, IChannel>
     val channelType: IChannel.Type
 
     companion object {

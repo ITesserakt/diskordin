@@ -69,7 +69,7 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
     final override val parentCategory: Snowflake? = raw.parent_id
 
     final override val guild = raw.guild_id!!.identify {
-        client.getGuild(it).bind()
+        client.getGuild(it)
     }
 
     final override val name: String = raw.name!!
@@ -188,7 +188,7 @@ open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw),
     }
 
     override val owner = raw.owner_id!!.identify {
-        client.getUser(it).bind()
+        client.getUser(it)
     }
 }
 

@@ -1,8 +1,10 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.ForId
 import arrow.core.Id
 import arrow.core.ListK
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
@@ -13,6 +15,7 @@ import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
@@ -57,11 +60,11 @@ class Message(raw: MessageResponse) : IMessage {
     }.fix()
 
     override val channel: Identified<IMessageChannel> = raw.channel_id identify {
-        client.getChannel(it).bind() as IMessageChannel
+        client.getChannel(it).map { it as IMessageChannel }
     }
 
-    override val author: Identified<IUser> = raw.author.id identify {
-        raw.author.unwrap()
+    override val author: IdentifiedF<ForId, IUser> = raw.author.id identify {
+        raw.author.unwrap().just()
     }
 
     override val content: String = raw.content

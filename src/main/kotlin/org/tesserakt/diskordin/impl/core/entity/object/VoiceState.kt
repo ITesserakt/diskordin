@@ -6,9 +6,9 @@ import org.tesserakt.diskordin.core.entity.`object`.IVoiceState
 import org.tesserakt.diskordin.core.entity.client
 
 class VoiceState(raw: VoiceStateResponse) : IVoiceState {
-    override val channel = raw.channelId?.identify { client.getChannel(it).bind() }
-    override val user = raw.userId identify { client.getUser(it).bind() }
-    override val guild = raw.guildId?.identify { client.getGuild(it).bind() }
+    override val channel = raw.channelId?.identify { client.getChannel(it) }
+    override val user = raw.userId identify { client.getUser(it) }
+    override val guild = raw.guildId?.identify { client.getGuild(it) }
     override val sessionId: String = raw.sessionId
     override val isDeafen: Boolean = raw.deaf
     override val isMuted: Boolean = raw.mute

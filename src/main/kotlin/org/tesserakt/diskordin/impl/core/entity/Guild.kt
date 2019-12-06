@@ -59,11 +59,11 @@ class Guild(raw: GuildResponse) : IGuild {
     override val isWidgetEnabled: Boolean = raw.widget_enabled ?: false
 
     override val widgetChannel = raw.widget_channel_id?.identify {
-        getChannel<IGuildChannel>(it).bind()
+        getChannel<IGuildChannel>(it)
     }
 
     override val systemChannel = raw.system_channel_id?.identify {
-        getChannel<IGuildChannel>(it).bind()
+        getChannel<IGuildChannel>(it)
     }
 
     override val maxMembers: Long? = raw.max_members
@@ -200,13 +200,12 @@ class Guild(raw: GuildResponse) : IGuild {
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
-    override val owner = raw.owner_id identify {
-        val m = !members
-        m.first { member -> member.id == it }
+    override val owner = raw.owner_id identify { id ->
+        members.map { it.first { member -> member.id == id } }
     }
 
     override val afkChannel = raw.afk_channel_id?.identify { id ->
-        channels.bind().first { it.id == id } as IVoiceChannel
+        channels.map { it.first { it.id == id } as IVoiceChannel }
     }
 
     @ExperimentalTime

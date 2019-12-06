@@ -43,7 +43,7 @@ class Role constructor(
     override val isEveryone: Boolean = id == guildId
 
     override val guild = guildId identify {
-        client.getGuild(it).bind()
+        client.getGuild(it)
     }
 
     override val mention: String = "<@&$id>"

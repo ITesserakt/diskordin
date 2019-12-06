@@ -7,6 +7,6 @@ import org.tesserakt.diskordin.gateway.json.events.MessageBulkDelete
 
 class MessageBulkDeleteEvent(raw: MessageBulkDelete) : IEvent {
     val deletedMessages = raw.ids
-    val channel = raw.channelId identify { client.getChannel(it).bind() }
-    val guild = raw.guildId?.identify { client.getGuild(it).bind() }
+    val channel = raw.channelId identify { client.getChannel(it) }
+    val guild = raw.guildId?.identify { client.getGuild(it) }
 }

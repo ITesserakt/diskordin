@@ -68,7 +68,7 @@ class DiscordClient : IDiscordClient {
             .getOrHandle {
                 error(it.message)
             } identify {
-            rest.call(Id.functor()) { userService.getCurrentUser() }.bind().extract()
+            rest.call { userService.getCurrentUser() }
         }
 
         webSocketStateHolder.observe { _, new ->

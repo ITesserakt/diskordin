@@ -1,7 +1,9 @@
 package org.tesserakt.diskordin.core.entity
 
+import arrow.core.ForId
 import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import java.time.Instant
 
@@ -12,7 +14,7 @@ interface IIntegration : IEntity, INamed, IGuildObject, IDeletable, IEditable<II
     val role: Identified<IRole>
     val expireBehavior: Int
     val expireGracePeriod: Int
-    val user: Identified<IUser>
+    val user: IdentifiedF<ForId, IUser>
     val account: IAccount
     val syncedAt: Instant
 

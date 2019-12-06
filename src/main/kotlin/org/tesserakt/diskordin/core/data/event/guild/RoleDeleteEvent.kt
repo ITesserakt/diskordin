@@ -6,6 +6,6 @@ import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.RoleDelete
 
 class RoleDeleteEvent(raw: RoleDelete) : IEvent {
-    val guild = raw.guildId identify { client.getGuild(it).bind() }
+    val guild = raw.guildId identify { client.getGuild(it) }
     val roleId = raw.roleId
 }

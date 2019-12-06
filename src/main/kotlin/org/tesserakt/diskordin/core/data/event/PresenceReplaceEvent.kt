@@ -2,6 +2,7 @@
 
 package org.tesserakt.diskordin.core.data.event
 
+import arrow.core.extensions.id.applicative.just
 import arrow.core.k
 import arrow.fx.IO
 import arrow.fx.extensions.fx
@@ -12,7 +13,7 @@ import org.tesserakt.diskordin.gateway.json.events.PresenceUpdate
 import kotlin.time.ExperimentalTime
 
 class PresenceReplaceEvent(raw: PresenceUpdate) : IEvent {
-    val guild = raw.guildId identify { client.getGuild(it).bind() }
+    val guild = raw.guildId identify { client.getGuild(it) }
     val roles = IO.fx {
         raw.roles.map { guild().bind().getRole(it).bind() }.k()
     }
@@ -30,5 +31,5 @@ class PresenceReplaceEvent(raw: PresenceUpdate) : IEvent {
             ClientStatus.Web(UserStatus.valueOf(raw.clientStatus.web.toUpperCase()))
         else -> null
     }
-    val user = raw.user.id identify { raw.user.unwrap() }
+    val user = raw.user.id identify { raw.user.unwrap().just() }
 }

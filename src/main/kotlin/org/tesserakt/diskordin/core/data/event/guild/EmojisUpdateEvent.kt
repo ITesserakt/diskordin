@@ -8,6 +8,6 @@ import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.Emojis
 
 class EmojisUpdateEvent(raw: Emojis) : IEvent {
-    val guild = raw.guildId identify { client.getGuild(it).bind() }
+    val guild = raw.guildId identify { client.getGuild(it) }
     val emojis = raw.emojis.map { it.unwrap(guild.id.some()) }
 }

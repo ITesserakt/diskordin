@@ -1,7 +1,9 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
+import arrow.core.ForId
 import arrow.core.Id
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.k
@@ -10,7 +12,7 @@ import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.Identified
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
@@ -40,14 +42,14 @@ class CustomEmoji constructor(
     }.map { it.extract() }
 
     override val guild = guildId identify {
-        client.getGuild(it).bind()
+        client.getGuild(it)
     }
 
     override val roles = IO.fx {
         raw.roles!!.map { guild().bind().getRole(it).bind() }.k()
     }
 
-    override val creator: Identified<IUser> = raw.user!!.id identify { raw.user.unwrap() }
+    override val creator: IdentifiedF<ForId, IUser> = raw.user!!.id identify { raw.user.unwrap().just() }
 
     override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
 

@@ -24,7 +24,7 @@ class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) 
     private val delegate by lazy {
         IO.fx { guild().bind().members.bind().first { it.nickname == raw.nick } }.unsafeRunSync()
     }
-    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it).bind() }
+    override val guild: Identified<IGuild> = guildId identify { client.getGuild(it) }
     override val nickname: String? = raw.nick
     override val roles = IO.fx { raw.roles.map { guild().bind().getRole(it).bind() }.k() }
     override val joinTime: Instant = raw.joined_at

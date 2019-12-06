@@ -1,7 +1,8 @@
 package org.tesserakt.diskordin.core.data
 
-import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.core.ForId
+import arrow.core.extensions.id.applicative.just
+import arrow.core.extensions.id.comonad.extract
 import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
@@ -9,7 +10,7 @@ import org.tesserakt.diskordin.core.entity.IMentioned
 import kotlin.random.Random
 
 internal class IdentifiedTest {
-    private lateinit var sample: Identified<IMentioned>
+    private lateinit var sample: IdentifiedF<ForId, IMentioned>
     private lateinit var snowflake: Snowflake
 
     @BeforeEach
@@ -23,12 +24,12 @@ internal class IdentifiedTest {
                 get() = throw NotImplementedError()
         }
 
-        sample = snowflake identify { mock }
+        sample = snowflake identify { mock.just() }
     }
 
     @RepeatedTest(10)
-    fun `invoke should return same id as in start`() = IO.fx<Unit> {
-        val data = sample().bind()
+    fun `invoke should return same id as in start`() {
+        val data = sample().extract()
         data.id shouldEqual snowflake
-    }.unsafeRunSync()
+    }
 }
