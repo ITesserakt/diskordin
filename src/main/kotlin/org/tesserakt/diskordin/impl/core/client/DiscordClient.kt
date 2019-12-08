@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.*
+import arrow.core.extensions.either.applicativeError.handleError
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.id.comonad.extract
@@ -14,11 +15,8 @@ import arrow.fx.extensions.io.functor.map
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
-import arrow.fx.rx2.extensions.flowablek.applicative.applicative
-import arrow.fx.rx2.extensions.flowablek.applicative.map
-import arrow.fx.rx2.extensions.flowablek.async.async
 import arrow.fx.rx2.extensions.flowablek.dispatchers.dispatchers
-import arrow.fx.rx2.fix
+import arrow.fx.rx2.extensions.fx
 import arrow.fx.typeclasses.ConcurrentSyntax
 import mu.KLogging
 import org.koin.core.inject
@@ -35,8 +33,11 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.Implementation
-import org.tesserakt.diskordin.gateway.json.*
+import org.tesserakt.diskordin.gateway.GatewayCompiler
+import org.tesserakt.diskordin.gateway.json.IRawEvent
+import org.tesserakt.diskordin.gateway.json.IToken
+import org.tesserakt.diskordin.gateway.json.Opcode
+import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
@@ -91,7 +92,7 @@ class DiscordClient : IDiscordClient {
     @ExperimentalTime
     @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
-    override fun login() = IO.fx {
+    override fun login() = IO.fx io@{
         val gatewayUrl = !rest.call { gatewayService.getGatewayBot() }
         val (_, impl) = Gateway.create(
             gatewayUrl.url,
@@ -100,48 +101,30 @@ class DiscordClient : IDiscordClient {
         isConnected = true
 
         GlobalGatewayLifecycle.start()
-        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
-            .map { payload: Payload<out IPayload> ->
-                if (payload.opcode() == Opcode.UNDERLYING) {
-                    webSocketStateHolder.update(payload as Payload<IToken>)
-                } else {
-                    eventDispatcher.publish(payload as Payload<IRawEvent>).mapLeft { IllegalStateException(it.message) }
-                }
-            }.flatMap { either ->
-                either.fold(
-                    { FlowableK.raiseError<Any>(it) },
-                    { FlowableK.just(it) }
-                )
-            }.flowable.subscribe()
+        FlowableK.fx flowable@{
+            val payload = !gateway.run(impl.flowableInterpreter).fold(this)
+            val result = if (payload.opcode() == Opcode.UNDERLYING)
+                webSocketStateHolder.update(payload as Payload<in IToken>)
+            else
+                eventDispatcher.publish(payload as Payload<IRawEvent>).mapLeft { Throwable(it.message) }
 
-        launchDefaultEventHandlers(impl)
+            result.handleError { this@flowable.raiseError<Any>(it) }
+
+            !launchDefaultEventHandlers(impl.flowableInterpreter)
+        }.flowable.doOnError {
+            raiseError<Unit>(it)
+        }.subscribe()
 
         Unit
     }
 
 
     @ExperimentalTime
-    private fun launchDefaultEventHandlers(impl: Implementation) {
-        eventDispatcher.handleHello(
-            token,
-            gateway::sequenceId,
-            impl.flowableInterpreter,
-            FlowableK.async(),
-            FlowableK.dispatchers()
-        ).fix().flowable.subscribe()
-
-        eventDispatcher.heartbeatHandler(gateway::sequenceId, impl.flowableInterpreter, FlowableK.async()).fix()
-            .flowable.subscribe()
-
-        eventDispatcher.heartbeatACKHandler(webSocketStateHolder, FlowableK.async()).fix().flowable.subscribe()
-
-        eventDispatcher.restartHandler(
-            token,
-            gateway::sequenceId,
-            webSocketStateHolder,
-            impl.flowableInterpreter,
-            FlowableK.async()
-        ).fix().flowable.subscribe()
+    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = FlowableK.fx {
+        !eventDispatcher.handleHello(token, gateway::sequenceId, compiler, this, FlowableK.dispatchers())
+        !eventDispatcher.heartbeatHandler(gateway::sequenceId, compiler, this)
+        !eventDispatcher.heartbeatACKHandler(webSocketStateHolder, this)
+        !eventDispatcher.restartHandler(token, gateway::sequenceId, webSocketStateHolder, compiler, this)
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {

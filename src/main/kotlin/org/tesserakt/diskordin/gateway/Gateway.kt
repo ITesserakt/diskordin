@@ -21,6 +21,7 @@ import org.tesserakt.diskordin.util.fromJson
 import org.tesserakt.diskordin.util.toJsonTree
 
 typealias Compiled<G, A> = FreeApplicative<G, A>
+typealias GatewayCompiler<G> = FunctionK<ForGatewayAPIF, G>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class Gateway {
@@ -28,7 +29,7 @@ class Gateway {
         private set
 
     @ExperimentalStdlibApi
-    internal fun <G> run(compiler: FunctionK<ForGatewayAPIF, G>): Compiled<G, Payload<out IPayload>> {
+    internal fun <G> run(compiler: GatewayCompiler<G>): Compiled<G, Payload<out IPayload>> {
         val fromConnection = observeWebSocketEvents()
 
         fun parseMessage(message: Message) = when (message) {
