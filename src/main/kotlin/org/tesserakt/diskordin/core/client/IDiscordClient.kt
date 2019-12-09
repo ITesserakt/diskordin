@@ -51,6 +51,6 @@ interface IDiscordClient : IDiscordObject {
     fun deleteInvite(code: String, reason: String?): IO<Unit>
     fun getRegions(): IO<ListK<IRegion>>
 
-    val users: IO<List<IUser>>
-    val guilds: IO<List<IGuild>>
+    val users: List<IUser>
+    val guilds: List<IGuild>
 }

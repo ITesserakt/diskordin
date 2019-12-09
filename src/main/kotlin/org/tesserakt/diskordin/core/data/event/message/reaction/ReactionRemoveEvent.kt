@@ -5,9 +5,11 @@ import arrow.fx.extensions.io.monad.flatMap
 import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.ICustomEmoji
 import org.tesserakt.diskordin.core.entity.IMessageChannel
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.Reaction
+import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 
 class ReactionRemoveEvent(raw: Reaction) : IEvent {
     val user = raw.userId identify { client.getUser(it) }
@@ -21,4 +23,9 @@ class ReactionRemoveEvent(raw: Reaction) : IEvent {
             }
     }
     val emoji = raw.emoji.unwrap(guild?.id.toOption())
+
+    init {
+        if (emoji is ICustomEmoji)
+            GlobalEntityCache[emoji.id] = emoji
+    }
 }

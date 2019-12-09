@@ -9,7 +9,7 @@ data class MemberUpdate(
     val guildId: Snowflake,
     val roles: Array<Snowflake>,
     val user: UserResponse<IUser>,
-    val nick: String
+    val nick: String?
 ) : IRawEvent {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

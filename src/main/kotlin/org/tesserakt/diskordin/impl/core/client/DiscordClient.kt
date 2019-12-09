@@ -1,22 +1,22 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.*
-import arrow.core.extensions.either.applicativeError.handleError
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.extensions.either.monadError.monadError
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
+import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
-import arrow.fx.rx2.extensions.flowablek.dispatchers.dispatchers
-import arrow.fx.rx2.extensions.fx
+import arrow.fx.rx2.extensions.concurrent
+import arrow.fx.rx2.extensions.flowablek.applicative.applicative
+import arrow.fx.rx2.extensions.flowablek.async.async
+import arrow.fx.rx2.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
 import mu.KLogging
 import org.koin.core.inject
@@ -26,6 +26,7 @@ import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.ISelf
 import org.tesserakt.diskordin.core.entity.IUser
@@ -50,6 +51,8 @@ import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
+import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
@@ -85,8 +88,8 @@ class DiscordClient : IDiscordClient {
 
     override val gateway: Gateway = Gateway()
 
-    override val users = mutableListOf<IUser>().just()
-    override val guilds = mutableListOf<IGuild>().just()
+    override val users get() = GlobalEntityCache.values.filterIsInstance<IUser>()
+    override val guilds get() = GlobalEntityCache.values.filterIsInstance<IGuild>()
 
     @ExperimentalTime
     @Suppress("UNCHECKED_CAST")
@@ -100,30 +103,24 @@ class DiscordClient : IDiscordClient {
         isConnected = true
 
         GlobalGatewayLifecycle.start()
-        FlowableK.fx flowable@{
-            val payload = !gateway.run(impl.flowableInterpreter).fold(this)
-            val result = if (payload.opcode() == Opcode.UNDERLYING)
+        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative()).fix().map { payload ->
+            if (payload.opcode() == Opcode.UNDERLYING)
                 webSocketStateHolder.update(payload as Payload<in IToken>)
             else
-                eventDispatcher.publish(payload as Payload<IRawEvent>).mapLeft { Throwable(it.message) }
+                eventDispatcher.publish(payload as Payload<IRawEvent>)
+        }.flowable.subscribe()
 
-            result.handleError { this@flowable.raiseError<Any>(it) }
-
-            !launchDefaultEventHandlers(impl.flowableInterpreter)
-        }.flowable.doOnError {
-            raiseError<Unit>(it)
-        }.subscribe()
-
+        launchDefaultEventHandlers(impl.flowableInterpreter)
         Unit
     }
 
-
     @ExperimentalTime
-    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = FlowableK.fx {
-        !eventDispatcher.handleHello(token, gateway::sequenceId, compiler, this, FlowableK.dispatchers())
-        !eventDispatcher.heartbeatHandler(gateway::sequenceId, compiler, this)
-        !eventDispatcher.heartbeatACKHandler(webSocketStateHolder, this)
-        !eventDispatcher.restartHandler(token, gateway::sequenceId, webSocketStateHolder, compiler, this)
+    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = with(eventDispatcher) {
+        handleHello(token, gateway::sequenceId, compiler, FlowableK.concurrent()).fix().flowable.subscribe()
+        heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async()).fix().flowable.subscribe()
+        heartbeatACKHandler(webSocketStateHolder, FlowableK.async()).fix().flowable.subscribe()
+        restartHandler(token, gateway::sequenceId, webSocketStateHolder, compiler, FlowableK.async()).fix()
+            .flowable.subscribe()
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
@@ -160,27 +157,24 @@ class DiscordClient : IDiscordClient {
         guildService.createGuild(inst.create())
     }.fix()
 
-    override fun getInvite(code: String): IO<IInvite> = rest.call(Id.functor()) {
-        inviteService.getInvite(code)
-    }.map { it.extract() }
+    override fun getInvite(code: String): IO<IInvite> = GlobalInviteCache[code]?.just()
+        ?: rest.call { inviteService.getInvite(code) }.flatTap { GlobalInviteCache[code] = it; just() }
 
-    override fun deleteInvite(code: String, reason: String?) = rest.effect {
-        inviteService.deleteInvite(code)
-    }.fix()
+    override fun deleteInvite(code: String, reason: String?) =
+        rest.effect { inviteService.deleteInvite(code) }.flatTap { GlobalInviteCache -= code; just() }
 
     override fun getRegions(): IO<ListK<IRegion>> = rest.call(ListK.functor()) {
         voiceService.getVoiceRegions()
     }.map { it.fix() }
 
-    override fun getChannel(id: Snowflake) = rest.call(Id.functor()) {
-        channelService.getChannel(id)
-    }.map { it.extract() }
+    override fun getChannel(id: Snowflake) = (GlobalEntityCache[id] as IChannel?)?.just()
+        ?: rest.call { channelService.getChannel(id) }.flatTap { GlobalEntityCache[id] = it; just() }
 
-    override fun getGuild(id: Snowflake) = rest.call(Id.functor()) {
-        guildService.getGuild(id)
-    }.map { it.extract() }
+    override fun getGuild(id: Snowflake) = guilds.find { it.id == id }?.just()
+        ?: rest.call { guildService.getGuild(id) }.flatTap { GlobalEntityCache[id] = it; just() }
 
-    override fun getUser(id: Snowflake) = rest.call {
-        userService.getUser(id)
-    }.fix()
+    override fun getUser(id: Snowflake) =
+        users.find { it.id == id }?.just() ?: rest.call { userService.getUser(id) }.flatTap {
+            GlobalEntityCache[id] = it; just()
+        }
 }

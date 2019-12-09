@@ -2,7 +2,6 @@ package org.tesserakt.diskordin.impl.core.client
 
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.koin.core.context.loadKoinModules
@@ -16,14 +15,14 @@ import kotlin.coroutines.CoroutineContext
 @Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder private constructor() {
     private var token: String = "Invalid"
-    private var gatewayScope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    private var gatewayContext: CoroutineContext = Dispatchers.Default + Job()
 
     operator fun String.unaryPlus() {
         token = this
     }
 
     operator fun CoroutineContext.unaryPlus() {
-        gatewayScope = CoroutineScope(this)
+        gatewayContext = this
     }
 
     inline fun DiscordClientBuilder.token(value: String) = value
@@ -39,7 +38,7 @@ class DiscordClientBuilder private constructor() {
             val koin = setupKoin()
             if (koin.getProperty<String>("token") == null)
                 koin.setProperty("token", builder.token)
-            koin.setProperty("gatewayScope", builder.gatewayScope)
+            koin.setProperty("gatewayContext", builder.gatewayContext)
 
             return DiscordClient().also { client ->
                 loadKoinModules(module {

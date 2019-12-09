@@ -3,7 +3,6 @@ package org.tesserakt.diskordin.impl.gateway.handler
 import arrow.core.FunctionK
 import arrow.core.identity
 import arrow.fx.typeclasses.Async
-import arrow.typeclasses.Monad
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
@@ -37,16 +36,12 @@ fun <F> EventDispatcher<F>.heartbeatHandler(
     Unit
 }
 
-fun <F> EventDispatcher<F>.getInterval(M: Monad<F>) = M.run {
-    subscribeOn<HelloEvent>().map { it.heartbeatInterval }
-}
-
 @ExperimentalTime
 fun <F> EventDispatcher<F>.heartbeatACKHandler(
     state: WebSocketStateHolder,
     A: Async<F>
 ) = A.fx.async {
-    val interval = !getInterval(this)
+    val interval = subscribeOn<HelloEvent>().bind().heartbeatInterval
     val (_) = subscribeOn<HeartbeatACKEvent>()
     val now = !effect { Instant.now() }
     val diff = lastHeartbeat

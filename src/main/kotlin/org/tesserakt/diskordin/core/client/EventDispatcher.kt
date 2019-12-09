@@ -15,7 +15,5 @@ abstract class EventDispatcher<F> {
         object NonExistentOpcode : ParseError("Only send opcodes are suitable")
         data class NonExistentDispatch(private val rawEvent: Payload<IRawEvent>) :
             ParseError("No such event name or opcode: ${rawEvent.opcode}, ${rawEvent.name}")
-
-        data class Unknown(private val cause: Throwable) : ParseError(cause.message ?: cause.localizedMessage)
     }
 }

@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.impl.gateway.handler
 
 import arrow.core.FunctionK
-import arrow.fx.typeclasses.Async
-import arrow.fx.typeclasses.Dispatchers
-import kotlinx.coroutines.delay
+import arrow.fx.typeclasses.Concurrent
+import arrow.fx.typeclasses.milliseconds
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import org.tesserakt.diskordin.gateway.ForGatewayAPIF
@@ -15,9 +14,8 @@ fun <F> EventDispatcher<F>.handleHello(
     token: String,
     sequenceId: () -> Int?,
     compiler: FunctionK<ForGatewayAPIF, F>,
-    A: Async<F>,
-    D: Dispatchers<F>
-) = A.fx.async {
+    CC: Concurrent<F>
+) = CC.fx.concurrent {
     val event = !subscribeOn<HelloEvent>()
     val interval = event.heartbeatInterval
 
@@ -34,9 +32,9 @@ fun <F> EventDispatcher<F>.handleHello(
         sequenceId()
     ).foldMap(compiler, this)
 
-    continueOn(D.io())
+    continueOn(dispatchers().io())
     while (true) {
         !sendPayload(Heartbeat(sequenceId()), sequenceId()).foldMap(compiler, this)
-        !effect { delay(interval) }
+        !sleep(interval.milliseconds)
     }
 }

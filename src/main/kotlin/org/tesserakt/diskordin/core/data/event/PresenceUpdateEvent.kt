@@ -3,6 +3,7 @@
 package org.tesserakt.diskordin.core.data.event
 
 import arrow.core.extensions.id.applicative.just
+import arrow.core.extensions.id.comonad.extract
 import arrow.core.k
 import arrow.fx.IO
 import arrow.fx.extensions.fx
@@ -10,6 +11,7 @@ import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.PresenceUpdate
+import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import kotlin.time.ExperimentalTime
 
 class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
@@ -32,6 +34,10 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
         else -> null
     }
     val user = raw.user.id identify { raw.user.unwrap().just() }
+
+    init {
+        GlobalEntityCache[user.id] = user().extract()
+    }
 }
 
 sealed class ClientStatus {
