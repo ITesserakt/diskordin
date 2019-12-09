@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.core.data.event.message
 
-import arrow.fx.extensions.io.monad.flatMap
+import arrow.fx.extensions.io.functor.map
 import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.entity.IMessageChannel
@@ -14,8 +14,8 @@ class MessageDeleteEvent(raw: MessageDelete) : IEvent {
     val guild = raw.guildId?.identify { client.getGuild(it) }
     val channel = raw.channelId identify {
         when (guild) {
-            null -> client.getChannel(it).map { it as IMessageChannel }
-            else -> guild.invoke().flatMap { guild -> guild.getChannel<ITextChannel>(it) }
+            null -> client.getChannel(it).map { channel -> channel as IMessageChannel }
+            else -> guild.invoke().map { guild -> guild.getChannel<ITextChannel>(it) }
         }
     }
 

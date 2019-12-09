@@ -1,8 +1,12 @@
 package org.tesserakt.diskordin.core.data.event.guild
 
 import arrow.core.extensions.id.applicative.just
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.listk.monadFilter.filterMap
+import arrow.core.identity
 import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.applicative
+import arrow.fx.extensions.io.applicative.map
 import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
@@ -15,14 +19,17 @@ import java.time.Instant
 
 class MemberUpdateEvent(raw: MemberUpdate) : IEvent {
     val guild = raw.guildId identify { client.getGuild(it) }
-    val roles = IO.fx {
-        raw.roles.map { guild().bind().getRole(it).bind() }
-    }
+
+    val roles = raw.roles.map { id ->
+        guild().map { it.getRole(id) }
+    }.sequence(IO.applicative()).map { it.filterMap(::identity) }
+
     val user = raw.user.id identify { raw.user.unwrap().just() }
+
     val nick = raw.nick
 
     init {
-        val cached = GlobalMemberCache[user.id]
+        val cached = GlobalMemberCache[guild.id to user.id]
         val bean = GuildMemberResponse(
             raw.user,
             nick,
@@ -31,6 +38,6 @@ class MemberUpdateEvent(raw: MemberUpdate) : IEvent {
             deaf = false,
             mute = false
         )
-        GlobalMemberCache[user.id] = Member(bean, guild.id)
+        GlobalMemberCache[guild.id to user.id] = Member(bean, guild.id)
     }
 }

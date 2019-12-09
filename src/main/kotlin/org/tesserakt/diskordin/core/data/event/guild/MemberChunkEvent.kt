@@ -13,6 +13,6 @@ class MemberChunkEvent(raw: MemberChunk) : IEvent {
     val notFoundMembers = raw.notFound ?: emptyArray()
 
     init {
-        GlobalMemberCache += members.map { it.id to it }
+        GlobalMemberCache += members.map { guild.id to it.id to it }
     }
 }

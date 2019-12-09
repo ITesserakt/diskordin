@@ -6,6 +6,7 @@ import arrow.core.extensions.id.applicative.just
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.flatMap
+import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -65,9 +66,7 @@ class Integration(
     override val syncing: Boolean = raw.syncing
 
     override val role = raw.role_id identify { id ->
-        guild().flatMap {
-            it.roles.map { it.first { role -> role.id == id } }
-        }
+        guild().map { it.getRole(id).orNull()!! }
     }
 
     override val expireBehavior: Int = raw.expire_behavior

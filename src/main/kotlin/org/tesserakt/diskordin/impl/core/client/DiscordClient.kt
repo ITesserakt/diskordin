@@ -53,6 +53,7 @@ import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
+import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
@@ -176,5 +177,10 @@ class DiscordClient : IDiscordClient {
     override fun getUser(id: Snowflake) =
         users.find { it.id == id }?.just() ?: rest.call { userService.getUser(id) }.flatTap {
             GlobalEntityCache[id] = it; just()
+        }
+
+    override fun getMember(userId: Snowflake, guildId: Snowflake) =
+        GlobalMemberCache[guildId to userId]?.just() ?: getUser(userId).flatMap { it.asMember(guildId) }.flatTap {
+            GlobalMemberCache[guildId to userId] = it; just()
         }
 }

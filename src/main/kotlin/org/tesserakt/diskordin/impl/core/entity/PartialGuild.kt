@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.ForId
 import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
@@ -12,6 +13,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.BanQuery
+import org.tesserakt.diskordin.core.entity.query.MemberQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import java.io.File
 import java.util.*
@@ -26,8 +28,8 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val explicitContentFilter: IGuild.ExplicitContentFilter by lazy { delegate.explicitContentFilter }
     override val mfaLevel: IGuild.MFALevel by lazy { delegate.mfaLevel }
     override val isWidgetEnabled: Boolean by lazy { delegate.isWidgetEnabled }
-    override val widgetChannel: IdentifiedF<ForIO, IGuildChannel>? by lazy { delegate.widgetChannel }
-    override val systemChannel: IdentifiedF<ForIO, IGuildChannel>? by lazy { delegate.systemChannel }
+    override val widgetChannel: IdentifiedF<ForId, IGuildChannel>? by lazy { delegate.widgetChannel }
+    override val systemChannel: IdentifiedF<ForId, IGuildChannel>? by lazy { delegate.systemChannel }
     override val maxMembers: Long? by lazy { delegate.maxMembers }
     override val maxPresences: Long by lazy { delegate.maxPresences }
     override val description: String? by lazy { delegate.description }
@@ -41,12 +43,12 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val iconHash: String? = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }
     override val owner: IdentifiedF<ForIO, IMember> by lazy { delegate.owner }
-    override val afkChannel: IdentifiedF<ForIO, IVoiceChannel>? by lazy { delegate.afkChannel }
+    override val afkChannel: IdentifiedF<ForId, IVoiceChannel>? by lazy { delegate.afkChannel }
     @ExperimentalTime
     override val afkChannelTimeout: Duration by lazy { delegate.afkChannelTimeout }
     override val verificationLevel: IGuild.VerificationLevel by lazy { delegate.verificationLevel }
 
-    override fun getRole(id: Snowflake): IO<IRole> = delegate.getRole(id)
+    override fun getRole(id: Snowflake) = delegate.getRole(id)
 
     override fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji> = delegate.getEmoji(emojiId)
 
@@ -90,23 +92,24 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
 
     override fun addIntegration(id: Snowflake, type: String): IO<Unit> = delegate.addIntegration(id, type)
 
-    override fun getEveryoneRole(): IO<IRole> = delegate.getEveryoneRole()
+    override fun getEveryoneRole() = delegate.getEveryoneRole()
 
-    override fun <C : IGuildChannel> getChannel(id: Snowflake): IO<C> = delegate.getChannel(id)
+    override fun <C : IGuildChannel> getChannel(id: Snowflake) = delegate.getChannel<C>(id)
 
-    override val members: IO<ListK<IMember>> by lazy { delegate.members }
     override val invites: IO<ListK<IGuildInvite>> by lazy { delegate.invites }
     override val emojis: IO<ListK<ICustomEmoji>> by lazy { delegate.emojis }
     override val bans: IO<ListK<IBan>> by lazy { delegate.bans }
     override val integrations: IO<ListK<IIntegration>> by lazy { delegate.integrations }
-    override val roles: IO<ListK<IRole>> by lazy { delegate.roles }
-    override val channels: IO<ListK<IGuildChannel>> by lazy { delegate.channels }
+    override val roles by lazy { delegate.roles }
+    override val channels by lazy { delegate.channels }
     override val id: Snowflake = raw.id
     override val name: String = raw.name
 
     override fun delete(reason: String?) = delegate.delete(reason)
 
     override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = delegate.edit(builder)
+
+    override fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>> = delegate.getMembers(query)
 
     override fun toString(): String {
         return StringBuilder("PartialGuild(")

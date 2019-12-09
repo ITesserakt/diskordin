@@ -1,10 +1,13 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.k
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.listk.monadFilter.filterMap
+import arrow.core.identity
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.applicative
 import arrow.fx.extensions.io.applicative.just
+import arrow.fx.extensions.io.applicative.map
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -14,7 +17,7 @@ import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.time.Instant
 
-class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) : IMember {
+class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : IMember {
     override val avatar: String? by lazy { delegate.avatar }
     override val mfaEnabled: Boolean by lazy { delegate.mfaEnabled }
     override val locale: String? by lazy { delegate.locale }
@@ -22,12 +25,17 @@ class MessageMember(private val raw: MessageMemberResponse, guildId: Snowflake) 
     override val email: String? by lazy { delegate.email }
     override val flags: ValuedEnum<IUser.Flags, Short> by lazy { delegate.flags }
     override val premiumType: IUser.Type? by lazy { delegate.premiumType }
-    private val delegate by lazy {
-        IO.fx { guild().bind().members.bind().first { it.nickname == raw.nick } }.unsafeRunSync()
-    }
+    private val delegate by lazy { client.getMember(id, guildId).unsafeRunSync() }
     override val guild: IdentifiedF<ForIO, IGuild> = guildId identify { client.getGuild(it) }
     override val nickname: String? = raw.nick
-    override val roles = IO.fx { raw.roles.map { guild().bind().getRole(it).bind() }.k() }
+
+    override val roles = raw.roles.map { id ->
+        guild()
+            .map { it.getRole(id) }
+    }
+        .sequence(IO.applicative())
+        .map { it.filterMap(::identity) }
+
     override val joinTime: Instant = raw.joined_at
 
     override fun addRole(role: IRole, reason: String?) =

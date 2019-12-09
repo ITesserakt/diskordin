@@ -37,6 +37,7 @@ interface IDiscordClient : IDiscordObject {
     fun getUser(id: Snowflake): IO<IUser>
     fun getGuild(id: Snowflake): IO<IGuild>
     fun getChannel(id: Snowflake): IO<IChannel>
+    fun getMember(userId: Snowflake, guildId: Snowflake): IO<IMember>
     fun createGuild(
         name: String,
         region: IRegion,

@@ -13,6 +13,6 @@ class MemberRemoveEvent(raw: MemberRemove) : IEvent {
     val user = raw.user.id identify { raw.user.unwrap().just() }
 
     init {
-        GlobalMemberCache -= user.id
+        GlobalMemberCache -= guild.id to user.id
     }
 }

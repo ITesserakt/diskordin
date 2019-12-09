@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.fx.IO
-import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.MessageUserResponse
@@ -25,10 +24,8 @@ class MessageUser(private val raw: MessageUserResponse) : IUser {
     override val discriminator: Short = raw.discriminator
     override val isBot: Boolean = raw.bot ?: false
 
-    override fun asMember(guildId: Snowflake): IO<IMember> = raw.member?.unwrap(guildId)?.just()
-        ?: IO.fx {
-            client.getGuild(guildId).bind().members.bind().first { member -> member.id == id }
-        }
+    override fun asMember(guildId: Snowflake): IO<IMember> =
+        raw.member?.unwrap(guildId)?.just() ?: client.getMember(id, guildId)
 
     override fun toString(): String {
         return StringBuilder("MessageUser(")

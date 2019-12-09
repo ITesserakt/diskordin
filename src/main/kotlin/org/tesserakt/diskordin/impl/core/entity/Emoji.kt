@@ -6,11 +6,13 @@ import arrow.core.Id
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.core.k
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.listk.monadFilter.filterMap
+import arrow.core.identity
 import arrow.core.some
 import arrow.fx.IO
-import arrow.fx.extensions.fx
-import arrow.fx.extensions.io.monad.map
+import arrow.fx.extensions.io.applicative.applicative
+import arrow.fx.extensions.io.applicative.map
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -45,9 +47,9 @@ class CustomEmoji constructor(
         client.getGuild(it)
     }
 
-    override val roles = IO.fx {
-        raw.roles!!.map { guild().bind().getRole(it).bind() }.k()
-    }
+    override val roles = raw.roles!!.map { id ->
+        guild().map { it.getRole(id) }
+    }.sequence(IO.applicative()).map { it.filterMap(::identity) }
 
     override val creator: IdentifiedF<ForId, IUser> = raw.user!!.id identify { raw.user.unwrap().just() }
 

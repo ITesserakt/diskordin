@@ -2,7 +2,9 @@
 
 package org.tesserakt.diskordin.core.entity
 
+import arrow.core.ForId
 import arrow.core.ListK
+import arrow.core.Option
 import arrow.fx.ForIO
 import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.IdentifiedF
@@ -12,6 +14,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.BanQuery
+import org.tesserakt.diskordin.core.entity.query.MemberQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.impl.core.entity.TextChannel
 import org.tesserakt.diskordin.impl.core.entity.VoiceChannel
@@ -24,7 +27,7 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val iconHash: String?
     val splashHash: String?
     val owner: IdentifiedF<ForIO, IMember>
-    val afkChannel: IdentifiedF<ForIO, IVoiceChannel>?
+    val afkChannel: IdentifiedF<ForId, IVoiceChannel>?
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
@@ -34,8 +37,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val explicitContentFilter: ExplicitContentFilter
     val mfaLevel: MFALevel
     val isWidgetEnabled: Boolean
-    val widgetChannel: IdentifiedF<ForIO, IGuildChannel>?
-    val systemChannel: IdentifiedF<ForIO, IGuildChannel>?
+    val widgetChannel: IdentifiedF<ForId, IGuildChannel>?
+    val systemChannel: IdentifiedF<ForId, IGuildChannel>?
     val maxMembers: Long?
     val maxPresences: Long
     val description: String?
@@ -70,7 +73,7 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
         None, Elevated
     }
 
-    fun getRole(id: Snowflake): IO<IRole>
+    fun getRole(id: Snowflake): Option<IRole>
     fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji>
     fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji>
     fun editOwnNickname(newNickname: String): IO<String?>
@@ -86,22 +89,23 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     @UseExperimental(ExperimentalTime::class)
     fun ban(member: IMember, builder: BanQuery.() -> Unit): IO<Unit>
 
+    fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>>
+
     @UseExperimental(ExperimentalTime::class)
     fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit): IO<Unit>
 
     fun pardon(userId: Snowflake, reason: String?): IO<Unit>
     fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int>
     fun addIntegration(id: Snowflake, type: String): IO<Unit>
-    fun getEveryoneRole(): IO<IRole>
-    fun <C : IGuildChannel> getChannel(id: Snowflake): IO<C>
+    fun getEveryoneRole(): IdentifiedF<ForId, IRole>
+    fun <C : IGuildChannel> getChannel(id: Snowflake): C
 
-    val members: IO<ListK<IMember>>
     val invites: IO<ListK<IGuildInvite>>
     val emojis: IO<ListK<ICustomEmoji>>
     val bans: IO<ListK<IBan>>
     val integrations: IO<ListK<IIntegration>>
-    val roles: IO<ListK<IRole>>
-    val channels: IO<ListK<IGuildChannel>>
+    val roles: List<IRole>
+    val channels: List<IGuildChannel>
 
     enum class VerificationLevel {
         None,

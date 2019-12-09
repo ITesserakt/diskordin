@@ -1,10 +1,13 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
-import arrow.core.k
+import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.listk.monadFilter.filterMap
+import arrow.core.identity
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.fx.extensions.io.applicative.applicative
+import arrow.fx.extensions.io.applicative.map
 import arrow.fx.extensions.io.monad.flatMap
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.IdentifiedF
@@ -42,7 +45,7 @@ class Member constructor(
 
     override fun edit(builder: MemberEditBuilder.() -> Unit) = rest.effect {
         guildService.editMember(guild.id, id, builder.build(), null)
-    }.flatMap { IO.fx { guild().bind().members.bind().first { it.id == id } } }
+    }.flatMap { client.getMember(id, guild.id) }
 
     override fun toString(): String {
         return StringBuilder("Member(")
@@ -57,11 +60,9 @@ class Member constructor(
 
     override val nickname: String? = raw.nick
 
-    override val roles = IO.fx {
-        raw.roles.map { roleId ->
-            guild().bind().getRole(roleId).bind()
-        }.k()
-    }
+    override val roles = raw.roles.map { id ->
+        guild().map { it.getRole(id) }
+    }.sequence(IO.applicative()).map { it.filterMap(::identity) }
 
     override val joinTime: Instant = raw.joinedAt
     override val mention: String = "<@!$id>"

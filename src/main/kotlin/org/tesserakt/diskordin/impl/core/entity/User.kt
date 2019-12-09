@@ -8,7 +8,6 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.fx.IO
-import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import kotlinx.coroutines.flow.Flow
@@ -47,9 +46,9 @@ open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val id: Snowflake = raw.id
 
-    override fun asMember(guildId: Snowflake): IO<IMember> = IO.fx {
-        client.getGuild(guildId).bind().members.bind().first { member -> member.id == id }
-    }
+    override fun asMember(guildId: Snowflake): IO<IMember> = rest.call(guildId, Id.functor()) {
+        guildService.getMember(guildId, id)
+    }.map { it.extract() }
 
     override fun toString(): String {
         return "User(" +
