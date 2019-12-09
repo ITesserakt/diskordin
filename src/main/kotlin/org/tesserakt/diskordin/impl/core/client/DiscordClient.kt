@@ -63,8 +63,7 @@ class DiscordClient : IDiscordClient {
     private companion object : KLogging()
 
     init {
-        self = TokenVerification(token, Either.monadError())
-            .verify()
+        self = token.verify(Either.monadError())
             .flatTap { logger.info("Token verified").right() }
             .getOrHandle {
                 error(it.message)

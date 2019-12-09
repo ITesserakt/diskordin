@@ -9,41 +9,40 @@ import org.junit.jupiter.api.Test
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.getLeft
 import org.tesserakt.diskordin.getRight
-import org.tesserakt.diskordin.impl.core.client.TokenVerification.VerificationError.*
+import org.tesserakt.diskordin.impl.core.client.VerificationError.*
 
 internal class TokenVerificationTest {
     val partial = { token: String ->
-        TokenVerification(token, Either.monadError())
+        token.verify(Either.monadError()).fix()
     }
 
     @Test
     fun `blank string should cause error`() {
-        val verification = partial("          ").verify()
+        val verification = partial("          ")
         BlankString shouldEqual verification.getLeft()
     }
 
     @Test
     fun `spaces are not allowed too`() {
-        val verification = partial("         test        ").verify()
+        val verification = partial("         test        ")
         InvalidCharacters shouldEqual verification.getLeft()
     }
 
     @Test
     fun `token must contains 2 dots`() {
-        val verification = partial("test.you").verify()
+        val verification = partial("test.you")
         InvalidConstruction shouldEqual verification.getLeft()
     }
 
     @Test
     fun `first part of the token should be right id`() {
-        val verification = partial("some.incorrect.token").verify()
+        val verification = partial("some.incorrect.token")
         InvalidCharacters shouldEqual verification.getLeft()
     }
 
     @Test
     fun `right token`() {
         val verification = partial("NTQ3NDg5MTA3NTg1MDA3NjM2.XQq07A.0POl52ji2E4lFlvf9HzdOw-Aisw")
-            .verify().fix()
 
         verification.isRight() shouldBe true
         547489107585007636.asSnowflake() shouldEqual verification.getRight()
