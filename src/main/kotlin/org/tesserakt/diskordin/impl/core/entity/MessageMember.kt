@@ -17,7 +17,7 @@ import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.time.Instant
 
-class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : IMember {
+internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : IMember {
     override val avatar: String? by lazy { delegate.avatar }
     override val mfaEnabled: Boolean by lazy { delegate.mfaEnabled }
     override val locale: String? by lazy { delegate.locale }

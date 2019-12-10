@@ -16,8 +16,6 @@ import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.BanQuery
 import org.tesserakt.diskordin.core.entity.query.MemberQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
-import org.tesserakt.diskordin.impl.core.entity.TextChannel
-import org.tesserakt.diskordin.impl.core.entity.VoiceChannel
 import java.io.File
 import java.util.*
 import kotlin.time.Duration
@@ -77,8 +75,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji>
     fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji>
     fun editOwnNickname(newNickname: String): IO<String?>
-    fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel>
-    fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel>
+    fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<ITextChannel>
+    fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel>
     fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit): IO<Unit>
     fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember>
     fun kick(member: IMember, reason: String?): IO<Unit>

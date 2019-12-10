@@ -8,7 +8,7 @@ import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-class IdUser(raw: IDUserResponse) : IUser {
+internal class IdUser(raw: IDUserResponse) : IUser {
     private val delegate by lazy {
         client.rest.call { userService.getUser(raw.id) }.fix().unsafeRunSync()
     }

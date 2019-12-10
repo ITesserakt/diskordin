@@ -9,7 +9,7 @@ import org.tesserakt.diskordin.gateway.json.token.*
 import kotlin.properties.Delegates
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
-class WebSocketStateHolderImpl : WebSocketStateHolder() {
+internal class WebSocketStateHolderImpl : WebSocketStateHolder() {
     @get:JvmName("_getState")
     private var state by Delegates.observable<IToken>(NoConnection) { _, old, new ->
         listeners.forEach { it(old, new) }

@@ -7,7 +7,7 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
-class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
+internal class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
     override val url: String = raw.url
     override val shards: Int = raw.shards
     override val session: IGatewayStats.ISession = raw.sessionMeta.unwrap()

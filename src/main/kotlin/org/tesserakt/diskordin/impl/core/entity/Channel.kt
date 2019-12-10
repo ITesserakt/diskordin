@@ -32,7 +32,7 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
 import org.tesserakt.diskordin.util.enums.not
 
-sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
+internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     private val logger = KotlinLogging.logger { }
 
     final override val type: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.type }
@@ -60,7 +60,7 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     }.map { it.fix() }.flatTap { list -> GlobalInviteCache += list.associateBy { it.code }; just() }
 }
 
-sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), IGuildChannel {
+internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), IGuildChannel {
     final override val position: Int = raw.position!!
 
     final override val permissionOverwrites = raw.permission_overwrites!!.map { it.unwrap() }
@@ -108,7 +108,7 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
     }
 }
 
-class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
+internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
     override fun getPinnedMessages(): IO<ListK<IMessage>> = rest.call(ListK.functor()) {
         channelService.getPinnedMessages(id)
     }.map { it.fix() }
@@ -137,7 +137,7 @@ class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), IText
     }
 }
 
-class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel {
+internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel {
     override val bitrate: Int = raw.bitrate!!
 
     override val userLimit: Int = raw.user_limit!!
@@ -156,11 +156,12 @@ class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVo
     }
 }
 
-class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
+internal class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
     override val parentId: Snowflake? = raw.parent_id
 }
 
-class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw), IAnnouncementChannel {
+internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw),
+    IAnnouncementChannel {
     override fun toString(): String {
         return StringBuilder("AnnouncementChannel(")
             .appendln("messages=$cachedMessages")
@@ -169,7 +170,7 @@ class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildCha
     }
 }
 
-open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
+internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override fun toString(): String {
@@ -186,7 +187,8 @@ open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw),
     }
 }
 
-class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : PrivateChannel(raw), IGroupPrivateChannel {
+internal class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : PrivateChannel(raw),
+    IGroupPrivateChannel {
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override fun toString(): String {

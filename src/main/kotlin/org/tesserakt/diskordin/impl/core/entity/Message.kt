@@ -27,7 +27,7 @@ import org.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.rest.call
 
-class Message(raw: MessageResponse) : IMessage {
+internal class Message(raw: MessageResponse) : IMessage {
     override fun addReaction(emoji: IEmoji) = rest.effect {
         channelService.addReaction(channel.id, id, emoji.name)
     }.fix()

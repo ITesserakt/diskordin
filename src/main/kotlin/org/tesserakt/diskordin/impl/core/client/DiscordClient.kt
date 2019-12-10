@@ -53,7 +53,7 @@ import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
 import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
-class DiscordClient : IDiscordClient {
+internal class DiscordClient : IDiscordClient {
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = getKoin().getProperty("token")!!

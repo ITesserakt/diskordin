@@ -6,9 +6,9 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.ChannelCreateRequest
 import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IGuildChannel
+import org.tesserakt.diskordin.core.entity.ITextChannel
+import org.tesserakt.diskordin.core.entity.IVoiceChannel
 import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
-import org.tesserakt.diskordin.impl.core.entity.TextChannel
-import org.tesserakt.diskordin.impl.core.entity.VoiceChannel
 import org.tesserakt.diskordin.util.enums.not
 
 @RequestBuilder
@@ -41,7 +41,7 @@ abstract class GuildChannelCreateBuilder<C : IGuildChannel>(protected val name: 
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE")
-class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<TextChannel>(name) {
+class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<ITextChannel>(name) {
     override val type: IChannel.Type = IChannel.Type.GuildText
     private var topic: String? = null
     private var rateLimitPerUser: Int? = null
@@ -78,7 +78,7 @@ class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<TextCha
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "EXTENSION_SHADOWED_BY_MEMBER")
-class VoiceChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<VoiceChannel>(name) {
+class VoiceChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<IVoiceChannel>(name) {
     override val type: IChannel.Type = IChannel.Type.GuildVoice
     private var bitrate: Int? = null
     private var userLimit: Int? = null

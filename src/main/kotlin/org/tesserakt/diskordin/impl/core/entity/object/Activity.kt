@@ -12,7 +12,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
 @ExperimentalTime
-class Activity(raw: ActivityResponse) : IActivity {
+internal class Activity(raw: ActivityResponse) : IActivity {
     override var startPlaying: Instant? = null
         private set
     @ExperimentalTime

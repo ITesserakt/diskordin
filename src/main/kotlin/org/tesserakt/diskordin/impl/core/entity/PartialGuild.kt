@@ -20,7 +20,7 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-class PartialGuild(raw: UserGuildResponse) : IGuild {
+internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val region: IRegion by lazy { delegate.region }
     override val isEmbedEnabled: Boolean by lazy { delegate.isEmbedEnabled }
     override val defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel
@@ -58,10 +58,10 @@ class PartialGuild(raw: UserGuildResponse) : IGuild {
     override fun editOwnNickname(newNickname: String): IO<String?> =
         delegate.editOwnNickname(newNickname)
 
-    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel> =
+    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<ITextChannel> =
         delegate.addTextChannel(name, builder)
 
-    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel> =
+    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel> =
         delegate.addVoiceChannel(name, builder)
 
     override fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = delegate.moveChannels(*builder)

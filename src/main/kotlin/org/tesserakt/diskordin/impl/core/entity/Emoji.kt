@@ -24,7 +24,7 @@ import org.tesserakt.diskordin.core.entity.builder.EmojiEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.rest.call
 
-open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
+internal open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
     final override val name: String = raw.name
 
     override fun toString(): String {
@@ -35,7 +35,7 @@ open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
     }
 }
 
-class CustomEmoji constructor(
+internal class CustomEmoji constructor(
     raw: EmojiResponse<ICustomEmoji>,
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {

@@ -12,7 +12,7 @@ import java.awt.Color
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class Embed(raw: EmbedResponse) : IEmbed {
+internal class Embed(raw: EmbedResponse) : IEmbed {
     override val title: String? = raw.title
 
     override val type: String? = raw.type

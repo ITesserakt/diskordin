@@ -10,7 +10,7 @@ import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.sendPayload
 
-fun <F> EventDispatcher<F>.handleHello(
+internal fun <F> EventDispatcher<F>.handleHello(
     token: String,
     sequenceId: () -> Int?,
     compiler: FunctionK<ForGatewayAPIF, F>,

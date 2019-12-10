@@ -9,7 +9,7 @@ import org.tesserakt.diskordin.core.entity.IGuildChannel
 import org.tesserakt.diskordin.core.entity.`object`.IGuildEmbed
 import org.tesserakt.diskordin.core.entity.client
 
-class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
+internal class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
     override val enabled: Boolean = raw.enabled
 
     override val channel: IdentifiedF<ForIO, IGuildChannel>? = raw.channel_id?.identify {

@@ -23,7 +23,7 @@ import org.tesserakt.diskordin.core.entity.rest
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class Integration(
+internal class Integration(
     raw: GuildIntegrationResponse,
     guildId: Snowflake
 ) : IIntegration {

@@ -4,7 +4,7 @@ package org.tesserakt.diskordin.impl.core.entity.`object`
 import org.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 
-class Region(raw: VoiceRegionResponse) : IRegion {
+internal class Region(raw: VoiceRegionResponse) : IRegion {
     override val id: String = raw.id
 
     override val isOptimal: Boolean = raw.optimal

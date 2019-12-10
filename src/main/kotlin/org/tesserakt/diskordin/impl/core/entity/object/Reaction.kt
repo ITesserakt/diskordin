@@ -7,7 +7,7 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IEmoji
 import org.tesserakt.diskordin.core.entity.`object`.IReaction
 
-class Reaction(raw: ReactionResponse) : IReaction {
+internal class Reaction(raw: ReactionResponse) : IReaction {
     override val count: Int = raw.count
 
     override val selfReacted: Boolean = raw.me

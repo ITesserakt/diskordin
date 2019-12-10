@@ -10,7 +10,7 @@ import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-class MessageUser(private val raw: MessageUserResponse) : IUser {
+internal class MessageUser(private val raw: MessageUserResponse) : IUser {
     private val delegate by lazy { client.getUser(raw.id).unsafeRunSync() }
 
     override val avatar: String? = raw.avatar

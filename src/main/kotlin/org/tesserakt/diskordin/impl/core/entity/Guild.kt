@@ -36,7 +36,7 @@ import kotlin.time.seconds
 import arrow.core.extensions.id.applicative.just as idJust
 
 @Suppress("UNCHECKED_CAST")
-class Guild(raw: GuildResponse) : IGuild {
+internal class Guild(raw: GuildResponse) : IGuild {
     override val region: IRegion = Region(
         VoiceRegionResponse(
             raw.region,
@@ -107,10 +107,10 @@ class Guild(raw: GuildResponse) : IGuild {
         guildService.editCurrentNickname(id, NicknameEditBuilder(newNickname).create())
     }.map { it.extract() }
 
-    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<TextChannel> =
+    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<ITextChannel> =
         addChannelJ(TextChannelCreateBuilder(name), builder)
 
-    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<VoiceChannel> =
+    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel> =
         addChannelJ(VoiceChannelCreateBuilder(name), builder)
 
     private inline fun <C : IGuildChannel, reified B : GuildChannelCreateBuilder<out C>> addChannelJ(

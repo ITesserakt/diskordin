@@ -12,7 +12,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.client
 
-open class Invite(raw: InviteResponse<IInvite>) : IInvite {
+internal open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val code: String = raw.code
     override val channel: IdentifiedF<ForId, IChannel> = raw.channel.id identify { raw.channel.unwrap().just() }
     override val channelType: IChannel.Type = IChannel.Type.values().first { it.ordinal == raw.channel.type }
@@ -26,7 +26,7 @@ open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     }
 }
 
-class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGuildInvite {
+internal class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGuildInvite {
     override val guild = raw.guild!!.id identify {
         client.getGuild(it)
     }

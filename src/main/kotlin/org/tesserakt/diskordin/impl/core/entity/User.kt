@@ -23,7 +23,7 @@ import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-open class User(raw: UserResponse<IUser>) : IUser {
+internal open class User(raw: UserResponse<IUser>) : IUser {
     final override val avatar: String? = raw.avatar
 
     final override val mfaEnabled: Boolean = raw.mfa_enabled ?: false
@@ -70,7 +70,7 @@ open class User(raw: UserResponse<IUser>) : IUser {
     override val mention: String = "<@${id.asString()}>"
 }
 
-class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
+internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     override fun joinIntoDM(to: Snowflake): IO<IPrivateChannel> = rest.call {
         userService.joinToDM(DMCreateBuilder().apply {
             recipientId = to

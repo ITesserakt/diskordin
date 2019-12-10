@@ -6,7 +6,7 @@ import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.ConnectionResponse
 import org.tesserakt.diskordin.core.entity.IConnection
 
-class Connection(raw: ConnectionResponse) : IConnection {
+internal class Connection(raw: ConnectionResponse) : IConnection {
     override val type: String = raw.type
 
     override val isRevoked: Boolean = raw.revoked

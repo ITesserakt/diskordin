@@ -26,7 +26,7 @@ import kotlin.time.seconds
 private var lastHeartbeat: Instant? = null
 private val logger = KotlinLogging.logger("[Gateway]")
 
-fun <F> EventDispatcher<F>.heartbeatHandler(
+internal fun <F> EventDispatcher<F>.heartbeatHandler(
     sequenceId: () -> Int?,
     compiler: FunctionK<ForGatewayAPIF, F>,
     A: Async<F>

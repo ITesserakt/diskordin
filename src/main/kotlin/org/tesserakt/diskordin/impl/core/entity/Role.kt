@@ -21,7 +21,7 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
-class Role constructor(
+internal class Role constructor(
     raw: RoleResponse,
     guildId: Snowflake
 ) : IRole {

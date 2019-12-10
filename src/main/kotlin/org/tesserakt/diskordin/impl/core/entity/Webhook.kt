@@ -14,7 +14,7 @@ import org.tesserakt.diskordin.core.entity.IWebhook
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.core.entity.rest
 
-class Webhook(raw: WebhookResponse) : IWebhook {
+internal class Webhook(raw: WebhookResponse) : IWebhook {
     override fun delete(reason: String?) = rest.effect {
         webhookService.deleteWebhook(id)
     }.fix()

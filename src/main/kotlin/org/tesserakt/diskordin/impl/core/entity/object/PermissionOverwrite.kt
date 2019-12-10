@@ -11,7 +11,7 @@ import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.not
 
-class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
+internal class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
     override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.of(raw.type)
 
     override val targetId: Either<RoleId, MemberId> = Either.cond(type == IPermissionOverwrite.Type.Role,

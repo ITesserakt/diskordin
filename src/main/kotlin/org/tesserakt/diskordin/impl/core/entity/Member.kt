@@ -19,7 +19,7 @@ import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import java.time.Instant
 
-class Member constructor(
+internal class Member constructor(
     raw: MemberResponse<*>,
     guildId: Snowflake
 ) : User(raw.user), IMember {
