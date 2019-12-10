@@ -1,13 +1,17 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.*
+import arrow.core.Id
+import arrow.core.ListK
+import arrow.core.NonEmptyList
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.extensions.listk.functor.map
+import arrow.core.fix
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.applicative.map
+import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.fix
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.Permissions
@@ -20,10 +24,13 @@ import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
-import org.tesserakt.diskordin.core.entity.builder.*
+import org.tesserakt.diskordin.core.entity.builder.PermissionEditBuilder
+import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
+import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
+import org.tesserakt.diskordin.core.entity.builder.instance
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
 import org.tesserakt.diskordin.util.enums.not
-import kotlin.time.ExperimentalTime
 
 sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     private val logger = KotlinLogging.logger { }
@@ -38,12 +45,6 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
         channelService.deleteChannel(id, reason)
     }.map { Unit }
 
-    @ExperimentalTime
-    override fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IInvite> = rest.call(Id.functor()) {
-        val inst = builder.instance()
-        channelService.createChannelInvite(id, inst.create(), inst.reason)
-    }.map { it.extract() }
-
     override fun toString(): String {
         return StringBuilder("Channel(")
             .appendln("type=$type, ")
@@ -56,15 +57,13 @@ sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     override val invites: IO<ListK<IInvite>> = rest.call(ListK.functor()) {
         channelService.getChannelInvites(id)
-    }.map { it.fix() }
+    }.map { it.fix() }.flatTap { list -> GlobalInviteCache += list.associateBy { it.code }; just() }
 }
 
 sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), IGuildChannel {
     final override val position: Int = raw.position!!
 
-    final override val permissionOverwrites = raw.permission_overwrites!!.map {
-        it.unwrap()
-    }.k().just()
+    final override val permissionOverwrites = raw.permission_overwrites!!.map { it.unwrap() }
 
     final override val parentCategory: Snowflake? = raw.parent_id
 
@@ -77,11 +76,6 @@ sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), I
     final override val invites: IO<ListK<IGuildInvite>> = rest.call(ListK.functor()) {
         channelService.getChannelInvites(id)
     }.map { list -> list.map { it as IGuildInvite } }
-
-    @ExperimentalTime
-    final override fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IGuildInvite> = rest.call(Id.functor()) {
-        channelService.createChannelInvite(id, builder.build(), null)
-    }.map { it.extract() as IGuildInvite }
 
     final override fun editPermissions(
         overwrite: IPermissionOverwrite,
@@ -134,7 +128,7 @@ class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), IText
     @ExperimentalUnsignedTypes
     override fun toString(): String {
         return StringBuilder("TextChannel(")
-            .appendln("messages=$messages, ")
+            .appendln("messages=$cachedMessages, ")
             .appendln("isNSFW=$isNSFW, ")
             .appendln("topic=$topic, ")
             .appendln("rateLimit=$rateLimit")
@@ -169,7 +163,7 @@ class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuild
 class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw), IAnnouncementChannel {
     override fun toString(): String {
         return StringBuilder("AnnouncementChannel(")
-            .appendln("messages=$messages")
+            .appendln("messages=$cachedMessages")
             .appendln(") ${super.toString()}")
             .toString()
     }
@@ -182,7 +176,7 @@ open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw),
         return StringBuilder("PrivateChannel(")
             .appendln("recipient=$recipient, ")
             .appendln("owner=$owner, ")
-            .appendln("messages=$messages")
+            .appendln("messages=$cachedMessages")
             .appendln(") ${super.toString()}")
             .toString()
     }
@@ -200,7 +194,7 @@ class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : PrivateC
             .appendln("recipient=$recipient, ")
             .appendln("owner=$owner, ")
             .appendln("icon=$icon, ")
-            .appendln("messages=$messages")
+            .appendln("messages=$cachedMessages")
             .appendln(") ${super.toString()}")
             .toString()
     }

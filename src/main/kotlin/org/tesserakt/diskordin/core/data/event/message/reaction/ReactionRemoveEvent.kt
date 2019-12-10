@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.core.data.event.message.reaction
 
 import arrow.core.toOption
-import arrow.fx.extensions.io.monad.flatMap
+import arrow.fx.extensions.io.monad.map
 import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -16,11 +16,7 @@ class ReactionRemoveEvent(raw: Reaction) : IEvent {
     val channel = raw.channelId identify { client.getChannel(it).map { it as IMessageChannel } }
     val guild = raw.guildId?.identify { client.getGuild(it) }
     val message = raw.messageId identify { id ->
-        channel()
-            .flatMap { it.messages }
-            .map {
-                it.first { message -> message.id == id }
-            }
+        channel().map { channel -> channel.cachedMessages.first { it.id == id } }
     }
     val emoji = raw.emoji.unwrap(guild?.id.toOption())
 

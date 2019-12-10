@@ -7,7 +7,9 @@ import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.io.monad.map
+import arrow.fx.extensions.io.applicative.just
+import arrow.fx.extensions.io.functor.map
+import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Permissions
@@ -20,8 +22,11 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.MessagesQuery
+import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.*
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
+import kotlin.time.ExperimentalTime
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
@@ -49,16 +54,19 @@ interface IChannel : IMentioned, IDeletable {
         } as T
     }
 
-    fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IInvite>
+    @ExperimentalTime
+    fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IInvite> = rest.call {
+        val inst = builder.instance()
+        channelService.createChannelInvite(id, inst.create(), inst.reason)
+    }.fix()
 }
 
 interface IGuildChannel : IChannel, IGuildObject, INamed {
     val position: Int
-    val permissionOverwrites: IO<ListK<IPermissionOverwrite>>
+    val permissionOverwrites: List<IPermissionOverwrite>
     val parentCategory: Snowflake?
     override val invites: IO<ListK<IGuildInvite>>
 
-    override fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IGuildInvite>
     fun removePermissions(toRemove: IPermissionOverwrite, reason: String?): IO<Unit>
     fun editPermissions(
         overwrite: IPermissionOverwrite,
@@ -102,16 +110,18 @@ interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel
 }
 
 interface IMessageChannel : IChannel {
-    val messages
-        get() = rest.call(ListK.functor()) {
-            channelService.getMessages(id, MessagesQuery().apply {
-                +limit(100)
-            }.create())
-        }.map { it.fix() }
+    val cachedMessages
+        get() = GlobalEntityCache.values.filterIsInstance<IMessage>()
 
     fun typing() = rest.effect {
         channelService.triggerTyping(id)
     }.fix()
+
+    fun getMessages(query: MessagesQuery.() -> Unit) = rest.call(ListK.functor()) {
+        channelService.getMessages(id, query.query())
+    }.map { it.fix() }.flatTap { list -> GlobalEntityCache += list.associateBy { it.id }; just() }
+
+    fun getMessage(messageId: Snowflake) = client.getMessage(id, messageId)
 
     fun createMessage(content: String) = createMessage(content.leftIor())
 

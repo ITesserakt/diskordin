@@ -26,10 +26,7 @@ import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.entity.IChannel
-import org.tesserakt.diskordin.core.entity.IGuild
-import org.tesserakt.diskordin.core.entity.ISelf
-import org.tesserakt.diskordin.core.entity.IUser
+import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
@@ -88,7 +85,7 @@ class DiscordClient : IDiscordClient {
 
     override val gateway: Gateway = Gateway()
 
-    override val users get() = GlobalEntityCache.values.filterIsInstance<IUser>()
+    override val users get() = (GlobalEntityCache + GlobalMemberCache).values.filterIsInstance<IUser>()
     override val guilds get() = GlobalEntityCache.values.filterIsInstance<IGuild>()
 
     @ExperimentalTime
@@ -180,4 +177,12 @@ class DiscordClient : IDiscordClient {
         GlobalMemberCache[guildId to userId]?.just() ?: getUser(userId).flatMap { it.asMember(guildId) }.flatTap {
             GlobalMemberCache[guildId to userId] = it; just()
         }
+
+    override fun getMessage(channelId: Snowflake, messageId: Snowflake): IO<IMessage> =
+        GlobalEntityCache.values.filterIsInstance<IMessage>()
+            .filter { it.channel.id == channelId }
+            .find { it.id == messageId }?.just()
+            ?: rest.call {
+                channelService.getMessage(channelId, messageId)
+            }.flatTap { GlobalEntityCache += it.id to it; just() }
 }

@@ -39,7 +39,7 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
     val user = raw.user.id identify { raw.user.unwrap().just() }
 
     init {
-        GlobalEntityCache[user.id] = user().extract()
+        GlobalEntityCache.putIfAbsent(user.id, user().extract())
     }
 }
 

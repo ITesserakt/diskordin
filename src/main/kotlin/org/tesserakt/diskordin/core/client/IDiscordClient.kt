@@ -51,6 +51,7 @@ interface IDiscordClient : IDiscordObject {
     fun getInvite(code: String): IO<IInvite>
     fun deleteInvite(code: String, reason: String?): IO<Unit>
     fun getRegions(): IO<ListK<IRegion>>
+    fun getMessage(channelId: Snowflake, messageId: Snowflake): IO<IMessage>
 
     val users: List<IUser>
     val guilds: List<IGuild>
