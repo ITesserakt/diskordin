@@ -42,7 +42,7 @@ fun <F> EventDispatcher<F>.heartbeatACKHandler(
     A: Async<F>
 ) = A.fx.async {
     val interval = subscribeOn<HelloEvent>().bind().heartbeatInterval
-    val (_) = subscribeOn<HeartbeatACKEvent>()
+    !subscribeOn<HeartbeatACKEvent>()
     val now = !effect { Instant.now() }
     val diff = lastHeartbeat
         ?.toEpochMilli()

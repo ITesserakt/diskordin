@@ -46,7 +46,6 @@ import org.tesserakt.diskordin.gateway.json.token.NoConnection
 import org.tesserakt.diskordin.impl.gateway.handler.handleHello
 import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
 import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
-import org.tesserakt.diskordin.impl.gateway.handler.restartHandler
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
@@ -120,8 +119,6 @@ class DiscordClient : IDiscordClient {
         handleHello(token, gateway::sequenceId, compiler, FlowableK.concurrent()).fix().flowable.subscribe()
         heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async()).fix().flowable.subscribe()
         heartbeatACKHandler(webSocketStateHolder, FlowableK.async()).fix().flowable.subscribe()
-        restartHandler(token, gateway::sequenceId, webSocketStateHolder, compiler, FlowableK.async()).fix()
-            .flowable.subscribe()
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {

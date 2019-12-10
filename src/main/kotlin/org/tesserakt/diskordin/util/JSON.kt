@@ -8,10 +8,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.util.typeAdapter.IdTypeAdapter
-import org.tesserakt.diskordin.util.typeAdapter.InstantTypeAdapter
-import org.tesserakt.diskordin.util.typeAdapter.ListKTypeAdapter
-import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
+import org.tesserakt.diskordin.gateway.json.Payload
+import org.tesserakt.diskordin.util.typeAdapter.*
 import java.time.Instant
 
 val gson: Gson = GsonBuilder()
@@ -20,6 +18,8 @@ val gson: Gson = GsonBuilder()
     .registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
     .registerTypeAdapter(ListK::class.java, ListKTypeAdapter())
     .registerTypeAdapter(Id::class.java, IdTypeAdapter())
+    .registerTypeAdapter(Payload::class.java, PayloadSerializer())
+    .serializeNulls()
     .create()
 
 fun <T> T.toJson(): String = gson.toJson(this)
