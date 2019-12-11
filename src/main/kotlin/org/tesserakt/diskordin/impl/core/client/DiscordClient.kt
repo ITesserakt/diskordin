@@ -6,10 +6,12 @@ import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
+import arrow.fx.Ref
 import arrow.fx.extensions.fx
 import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.functor.map
 import arrow.fx.extensions.io.monad.flatTap
+import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
@@ -18,7 +20,8 @@ import arrow.fx.rx2.extensions.flowablek.applicative.applicative
 import arrow.fx.rx2.extensions.flowablek.async.async
 import arrow.fx.rx2.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
-import mu.KLogging
+import mu.KotlinLogging
+import org.koin.core.context.stopKoin
 import org.koin.core.inject
 import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -50,17 +53,26 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
 import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
-import kotlin.system.exitProcess
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.ExperimentalTime
 
-internal class DiscordClient : IDiscordClient {
+internal class DiscordClient private constructor() : IDiscordClient {
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = getKoin().getProperty("token")!!
     override val self: IdentifiedF<ForIO, ISelf>
     override val rest: RestClient<ForIO> by inject()
+    private val gatewayContext = getKoin().getProperty<CoroutineContext>("gatewayContext")!!
+    private val logger = KotlinLogging.logger("[Discord client]")
 
-    private companion object : KLogging()
+    companion object {
+        internal val client = Ref.unsafe<ForIO, DiscordClient?>(null, IO.monadDefer())
+
+        operator fun invoke() = client.updateAndGet {
+            if (it != null) throw IllegalStateException("Discord client already created")
+            DiscordClient()
+        }.map { it!! }
+    }
 
     init {
         self = token.verify(Either.monadError())
@@ -80,9 +92,6 @@ internal class DiscordClient : IDiscordClient {
         }
     }
 
-    override var isConnected: Boolean = false
-        private set
-
     override val gateway: Gateway = Gateway()
 
     override val users get() = (GlobalEntityCache + GlobalMemberCache).values.filterIsInstance<IUser>()
@@ -97,15 +106,15 @@ internal class DiscordClient : IDiscordClient {
             gatewayUrl.url,
             "zlib-stream"
         )
-        isConnected = true
 
         GlobalGatewayLifecycle.start()
-        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative()).fix().map { payload ->
-            if (payload.opcode() == Opcode.UNDERLYING)
-                webSocketStateHolder.update(payload as Payload<in IToken>)
-            else
-                eventDispatcher.publish(payload as Payload<IRawEvent>)
-        }.flowable.subscribe()
+        gateway.run(impl.flowableInterpreter).fold(FlowableK.applicative())
+            .fix().continueOn(gatewayContext).map { payload ->
+                if (payload.opcode() == Opcode.UNDERLYING)
+                    webSocketStateHolder.update(payload as Payload<in IToken>)
+                else
+                    eventDispatcher.publish(payload as Payload<IRawEvent>)
+            }.flowable.subscribe()
 
         launchDefaultEventHandlers(impl.flowableInterpreter)
         Unit
@@ -119,7 +128,6 @@ internal class DiscordClient : IDiscordClient {
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
-        isConnected = true
         this.block(this@DiscordClient)
         logout()
     }
@@ -129,7 +137,8 @@ internal class DiscordClient : IDiscordClient {
             logger.info("Shutting down gateway")
             GlobalGatewayLifecycle.stop()
         }
-        exitProcess(0)
+        stopKoin()
+        DiscordClient.client.set(null).fix().unsafeRunSync()
     }
 
     override fun createGuild(

@@ -19,7 +19,6 @@ interface IDiscordClient : IDiscordObject {
     val webSocketStateHolder: WebSocketStateHolder
     val token: String
     val self: IdentifiedF<ForIO, ISelf>
-    val isConnected: Boolean
     val gateway: Gateway
     val rest: RestClient<ForIO>
 

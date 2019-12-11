@@ -5,12 +5,13 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.fx.ForIO
 import arrow.fx.IO
+import arrow.fx.fix
 import org.koin.core.KoinComponent
-import org.koin.core.get
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
+import org.tesserakt.diskordin.impl.core.client.DiscordClient
 import org.tesserakt.diskordin.rest.RestClient
 
 interface IEntity : IDiscordObject {
@@ -19,8 +20,15 @@ interface IEntity : IDiscordObject {
 
 interface IDiscordObject : KoinComponent
 
+/**
+ * **Note:**
+ * We cannot get client without starting it, excluding reflection and explicit implementation.
+ * On its start [DiscordClient.client] becomes not null
+ */
 val IDiscordObject.client: IDiscordClient
-    inline get() = get()
+    get() = DiscordClient.client.get().fix().unsafeRunSync()!!
+
+
 val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 

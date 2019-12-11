@@ -5,17 +5,16 @@ import arrow.fx.extensions.io.async.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.koin.core.context.loadKoinModules
-import org.koin.dsl.bind
+import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.rest.RestClient
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 @Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder private constructor() {
     private var token: String = "Invalid"
-    private var gatewayContext: CoroutineContext = Dispatchers.Default + Job()
+    private var gatewayContext: CoroutineContext = Dispatchers.IO + Job()
 
     operator fun String.unaryPlus() {
         token = this
@@ -29,21 +28,18 @@ class DiscordClientBuilder private constructor() {
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
 
     companion object {
-        private val isEnabled = AtomicBoolean(false)
-
         operator fun invoke(init: DiscordClientBuilder.() -> Unit): IDiscordClient {
             val builder = DiscordClientBuilder().apply(init)
-            check(isEnabled.compareAndSet(false, true)) { "Discord client already started" }
 
+            stopKoin()
             val koin = setupKoin()
             if (koin.getProperty<String>("token") == null)
                 koin.setProperty("token", builder.token)
             koin.setProperty("gatewayContext", builder.gatewayContext)
 
-            return DiscordClient().also { client ->
+            return DiscordClient().unsafeRunSync().also { client ->
                 loadKoinModules(module {
-                    single { client } bind IDiscordClient::class
-                    single { client.setupHttpClient(get()) }
+                    single { client.setupHttpClient(client) }
                     single {
                         setupRetrofit(
                             koin.getProperty<String>("API_url")
