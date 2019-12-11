@@ -47,15 +47,15 @@ libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "{version}"
 Just logging into Discord as simple as possible
 ```kotlin
 fun main() = DiscordClientBuilder {
-    token = "Put your bot`s token here"
-}.login()
+    +token("Put your bot`s token here")
+}.login().unsafeRunSync()
 ```
 In DiscordClientBuilder lambda you can put other config options.
  Like other builders, type `this.` keyword in a lambda to see all of them.
  
  If your token is in env variables the syntax will even more simple:
  ```kotlin
-fun main() = DiscordClientBuilder{}.login()
+fun main() = DiscordClientBuilder{}.login().unsafeRunSync()
 ```
 
 Most wrappers block main forever after `login`.
@@ -67,10 +67,10 @@ Currently, a type of `readyEvent` is Kind<ForFlowable, ReadyEvent> because of li
 To repair it use `fix` and `flowable` after it.
 In the future, this will change to S\<ReadyEvent\> where `S` is a concrete streamable type of the Gateway.
  ```kotlin
- fun main() {
-    val client = DiscordClientBuilder {}
-    client.login()
-    val readyEvents = client.eventDispatcher.subscribeOn<ReadyEvent>()
+ fun main() = with(DiscordClientBuilder{}) {
+    login().unsafeRunSync()
+    val readyEvents = eventDispatcher.subscribeOn<ReadyEvent>()
+    ...
 }
 ```
 

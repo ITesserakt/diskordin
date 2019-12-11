@@ -28,7 +28,6 @@ interface IDiscordObject : KoinComponent
 val IDiscordObject.client: IDiscordClient
     get() = DiscordClient.client.get().fix().unsafeRunSync()!!
 
-
 val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 
