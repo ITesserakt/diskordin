@@ -61,7 +61,7 @@ interface IChannel : IMentioned, IDeletable {
     }.fix()
 }
 
-interface IGuildChannel : IChannel, IGuildObject, INamed {
+interface IGuildChannel : IChannel, IGuildObject<ForIO>, INamed {
     val position: Int
     val permissionOverwrites: List<IPermissionOverwrite>
     val parentCategory: Snowflake?

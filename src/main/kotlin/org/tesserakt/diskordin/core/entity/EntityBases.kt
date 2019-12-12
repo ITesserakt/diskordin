@@ -31,8 +31,8 @@ val IDiscordObject.client: IDiscordClient
 val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 
-interface IGuildObject : IDiscordObject {
-    val guild: IdentifiedF<ForIO, IGuild>
+interface IGuildObject<F> : IDiscordObject {
+    val guild: IdentifiedF<F, IGuild>
 }
 
 interface IMentioned : IEntity {

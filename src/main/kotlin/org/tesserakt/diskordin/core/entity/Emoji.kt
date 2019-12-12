@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
 import arrow.core.ListK
+import arrow.fx.ForIO
 import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -20,7 +21,8 @@ interface IEmoji : INamed {
     }
 }
 
-interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject, IEditable<ICustomEmoji, EmojiEditBuilder> {
+interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject<ForIO>,
+    IEditable<ICustomEmoji, EmojiEditBuilder> {
     val roles: IO<ListK<IRole>>
     val creator: IdentifiedF<ForId, IUser>
     val requireColons: Boolean

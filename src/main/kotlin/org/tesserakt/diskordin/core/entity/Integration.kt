@@ -7,7 +7,8 @@ import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import java.time.Instant
 
-interface IIntegration : IEntity, INamed, IGuildObject, IDeletable, IEditable<IIntegration, IntegrationEditBuilder> {
+interface IIntegration : IEntity, INamed, IGuildObject<ForIO>, IDeletable,
+    IEditable<IIntegration, IntegrationEditBuilder> {
     val type: String
     val enabled: Boolean
     val syncing: Boolean

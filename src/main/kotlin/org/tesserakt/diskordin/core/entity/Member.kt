@@ -1,12 +1,13 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ListK
+import arrow.fx.ForIO
 import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import java.time.Instant
 
-interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject {
+interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject<ForIO> {
     val nickname: String?
     override val name: String
         get() = nickname ?: username
