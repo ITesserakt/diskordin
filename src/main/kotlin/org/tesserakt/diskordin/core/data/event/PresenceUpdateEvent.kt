@@ -2,14 +2,17 @@
 
 package org.tesserakt.diskordin.core.data.event
 
+import arrow.core.ForId
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.list.traverse.sequence
 import arrow.core.extensions.listk.monadFilter.filterMap
 import arrow.core.identity
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
 import arrow.fx.extensions.io.applicative.map
+import org.tesserakt.diskordin.core.data.event.guild.IGuildEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.client
@@ -17,8 +20,8 @@ import org.tesserakt.diskordin.gateway.json.events.PresenceUpdate
 import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import kotlin.time.ExperimentalTime
 
-class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
-    val guild = raw.guildId identify { client.getGuild(it) }
+class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<ForId> {
+    override val guild = raw.guildId identify { client.getGuild(it) }
     val roles = raw.roles.map { id ->
         guild().map { it.getRole(id) }
     }.sequence(IO.applicative()).map { it.filterMap(::identity) }
@@ -36,23 +39,9 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IEvent {
             ClientStatus.Web(UserStatus.valueOf(raw.clientStatus.web.toUpperCase()))
         else -> null
     }
-    val user = raw.user.id identify { raw.user.unwrap().just() }
+    override val user = raw.user.id identify { raw.user.unwrap().just() }
 
     init {
         GlobalEntityCache.putIfAbsent(user.id, user().extract())
     }
-}
-
-sealed class ClientStatus {
-    data class Desktop(val status: UserStatus) : ClientStatus()
-    data class Mobile(val status: UserStatus) : ClientStatus()
-    data class Web(val status: UserStatus) : ClientStatus()
-}
-
-enum class UserStatus {
-    IDLE,
-    ONLINE,
-    DND,
-    OFFLINE,
-    INVISIBLE;
 }

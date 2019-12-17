@@ -4,10 +4,10 @@ import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.list.traverse.sequence
 import arrow.core.extensions.listk.monadFilter.filterMap
 import arrow.core.identity
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
 import arrow.fx.extensions.io.applicative.map
-import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -17,8 +17,8 @@ import org.tesserakt.diskordin.impl.core.entity.Member
 import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
 import java.time.Instant
 
-class MemberUpdateEvent(raw: MemberUpdate) : IEvent {
-    val guild = raw.guildId identify { client.getGuild(it) }
+class MemberUpdateEvent(raw: MemberUpdate) : IGuildEvent<ForIO> {
+    override val guild = raw.guildId identify { client.getGuild(it) }
 
     val roles = raw.roles.map { id ->
         guild().map { it.getRole(id) }
