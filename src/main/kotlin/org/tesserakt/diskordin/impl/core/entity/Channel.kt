@@ -182,7 +182,7 @@ internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Chan
             .toString()
     }
 
-    override val owner = raw.owner_id!!.identify {
+    override val owner = raw.owner_id?.identify {
         client.getUser(it)
     }
 }

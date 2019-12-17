@@ -19,7 +19,7 @@ data class MessageResponse(
     val mention_everyone: Boolean,
     val mentions: Array<MessageUserResponse>,
     val mention_roles: Array<Long>? = null,
-    val attachments: Array<AttachmentResponse>,
+    val attachments: Array<AttachmentResponse>?,
     val embeds: Array<EmbedResponse>,
     val reactions: Array<ReactionResponse>? = null,
     val nonce: Long? = null,
@@ -28,7 +28,6 @@ data class MessageResponse(
     val type: Int
 ) : DiscordResponse<IMessage, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IMessage = Message(this)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -50,7 +49,10 @@ data class MessageResponse(
             if (other.mention_roles == null) return false
             if (!mention_roles.contentEquals(other.mention_roles)) return false
         } else if (other.mention_roles != null) return false
-        if (!attachments.contentEquals(other.attachments)) return false
+        if (attachments != null) {
+            if (other.attachments == null) return false
+            if (!attachments.contentEquals(other.attachments)) return false
+        } else if (other.attachments != null) return false
         if (!embeds.contentEquals(other.embeds)) return false
         if (reactions != null) {
             if (other.reactions == null) return false
@@ -68,8 +70,8 @@ data class MessageResponse(
         var result = id.hashCode()
         result = 31 * result + channel_id.hashCode()
         result = 31 * result + (guild_id?.hashCode() ?: 0)
-        result = 31 * result + author.hashCode()
-        result = 31 * result + member.hashCode()
+        result = 31 * result + (author?.hashCode() ?: 0)
+        result = 31 * result + (member?.hashCode() ?: 0)
         result = 31 * result + content.hashCode()
         result = 31 * result + timestamp.hashCode()
         result = 31 * result + (edited_timestamp?.hashCode() ?: 0)
@@ -77,7 +79,7 @@ data class MessageResponse(
         result = 31 * result + mention_everyone.hashCode()
         result = 31 * result + mentions.contentHashCode()
         result = 31 * result + (mention_roles?.contentHashCode() ?: 0)
-        result = 31 * result + attachments.contentHashCode()
+        result = 31 * result + (attachments?.contentHashCode() ?: 0)
         result = 31 * result + embeds.contentHashCode()
         result = 31 * result + (reactions?.contentHashCode() ?: 0)
         result = 31 * result + (nonce?.hashCode() ?: 0)

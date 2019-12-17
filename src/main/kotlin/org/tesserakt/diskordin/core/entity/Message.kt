@@ -14,7 +14,7 @@ interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder
     val author: IdentifiedF<ForId, IUser>?
     val content: String
     val isTTS: Boolean
-    val attachments: List<IAttachment>
+    val attachments: List<IAttachment>?
     val isPinned: Boolean
 
     fun pin(): IO<Unit>

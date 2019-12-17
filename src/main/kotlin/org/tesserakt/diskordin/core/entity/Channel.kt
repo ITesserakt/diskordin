@@ -101,7 +101,7 @@ interface IGuildCategory : IGuildChannel {
 interface IAnnouncementChannel : IGuildChannel, IMessageChannel
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
-    val owner: IdentifiedF<ForIO, IUser>
+    val owner: IdentifiedF<ForIO, IUser>?
     val recipient: NonEmptyList<IUser>
 }
 

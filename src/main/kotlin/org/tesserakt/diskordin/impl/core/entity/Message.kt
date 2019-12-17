@@ -69,7 +69,7 @@ internal class Message(raw: MessageResponse) : IMessage {
 
     override val isTTS: Boolean = raw.tts
 
-    override val attachments: List<IAttachment> = raw.attachments.map { it.unwrap() }
+    override val attachments: List<IAttachment>? = raw.attachments?.map { it.unwrap() }
 
     override val isPinned: Boolean = raw.pinned
 
