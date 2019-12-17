@@ -37,7 +37,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.0'
     implementation "com.tinder.scarlet:scarlet:$scarlet_version"
     implementation "com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version"
-    implementation "com.tinder.scarlet:message-adapter-gson:$scarlet_version"
 
     compile "io.github.microutils:kotlin-logging:$kotlin_logging_version"
 

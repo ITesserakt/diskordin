@@ -10,7 +10,7 @@ data class MessageResponse(
     val id: Snowflake,
     val channel_id: Snowflake,
     val guild_id: Snowflake? = null,
-    val author: UserResponse<IUser>,
+    val author: UserResponse<IUser>?,
     val member: GuildMemberResponse? = null,
     val content: String,
     val timestamp: String,

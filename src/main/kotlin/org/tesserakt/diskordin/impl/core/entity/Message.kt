@@ -13,8 +13,6 @@ import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -63,7 +61,7 @@ internal class Message(raw: MessageResponse) : IMessage {
         client.getChannel(it).map { it as IMessageChannel }
     }
 
-    override val author: IdentifiedF<ForId, IUser> = raw.author.id identify {
+    override val author: IdentifiedF<ForId, IUser>? = raw.author?.id?.identify {
         raw.author.unwrap().just()
     }
 
@@ -71,7 +69,7 @@ internal class Message(raw: MessageResponse) : IMessage {
 
     override val isTTS: Boolean = raw.tts
 
-    override val attachments: Flow<IAttachment>? = raw.attachments.map { Attachment(it) }.asFlow()
+    override val attachments: List<IAttachment> = raw.attachments.map { it.unwrap() }
 
     override val isPinned: Boolean = raw.pinned
 
