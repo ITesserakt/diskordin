@@ -23,7 +23,6 @@ import io.reactivex.Flowable
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.amshove.kluent.`should be in`
-import org.amshove.kluent.`should contain same`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.params.ParameterizedTest
@@ -31,7 +30,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.reactivestreams.Publisher
 import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.events.Hello
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
@@ -65,6 +63,7 @@ internal class GatewayTest {
         Unit
     }
 
+    @Suppress("unused")
     @ParameterizedTest
     @MethodSource("compilers")
     fun <G> `sended data should appear in a buffer`(
@@ -79,7 +78,7 @@ internal class GatewayTest {
                 override fun Boolean.combine(b: Boolean): Boolean = this or b
             }).shouldBeTrue()
 
-        buffer.map { it.opcode } `should contain same` arrayListOf(1)
+        buffer.size `should equal` 1
         buffer.clear()
         Unit
     }
@@ -112,15 +111,16 @@ internal class GatewayTest {
         )
 
         @JvmStatic
-        private val buffer: MutableList<Payload<*>> = mutableListOf()
+        private val buffer: MutableList<String> = mutableListOf()
 
         private val impl: Implementation = object : Implementation {
-            override fun send(data: Payload<out GatewayCommand>): Boolean = buffer.add(data)
+            override fun send(data: String): Boolean = buffer.add(data)
 
             override fun receive(): Stream<WebSocketEvent> = FlowableStream(innerFlowable)
         }
 
         @JvmStatic
+        @Suppress("unused")
         fun compilers() = arrayOf(
             Arguments.of(impl.listKInterpreter, ListK.applicative(), ListK.foldable()),
             Arguments.of(impl.flowableInterpreter, FlowableK.applicative(), FlowableK.foldable()),
