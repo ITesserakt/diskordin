@@ -58,9 +58,9 @@ class GuildEditBuilder : AuditLogging<GuildEditRequest>() {
         afkChannelId = this.v
     }
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-    operator fun Int.unaryPlus() {
-        afkTimeout = this
+
+    operator fun AfkTimeout.unaryPlus() {
+        afkTimeout = this.v
     }
 
     operator fun IconURL.unaryPlus() {
@@ -85,7 +85,7 @@ class GuildEditBuilder : AuditLogging<GuildEditRequest>() {
     inline fun GuildEditBuilder.messageNotificationLevel(level: IGuild.DefaultMessageNotificationLevel) = level
     inline fun GuildEditBuilder.explicitContentFilter(level: IGuild.ExplicitContentFilter) = level
     inline fun GuildEditBuilder.afkChannel(id: Snowflake) = AfkChannel(id)
-    inline fun GuildEditBuilder.afkTimeout(timeout: Int) = timeout
+    inline fun GuildEditBuilder.afkTimeout(timeout: Int) = AfkTimeout(timeout)
     inline fun GuildEditBuilder.icon(url: String) = IconURL(url)
     inline fun GuildEditBuilder.owner(id: Snowflake) = Owner(id)
     inline fun GuildEditBuilder.splash(url: String) = SplashURL(url)

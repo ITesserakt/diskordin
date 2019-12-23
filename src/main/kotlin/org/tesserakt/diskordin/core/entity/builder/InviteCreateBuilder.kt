@@ -27,9 +27,9 @@ class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
         maxAge = this
     }
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-    operator fun Int.unaryPlus() {
-        maxUses = this
+
+    operator fun MaxUses.unaryPlus() {
+        maxUses = this.v
     }
 
     operator fun Temporary.unaryPlus() {
@@ -43,7 +43,7 @@ class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
     @ExperimentalTime
     inline fun InviteCreateBuilder.maxAge(age: Duration = 86400.seconds) = age
 
-    inline fun InviteCreateBuilder.maxUses(value: Int) = value
+    inline fun InviteCreateBuilder.maxUses(value: Int) = MaxUses(value)
     inline fun InviteCreateBuilder.temporary(value: Boolean) = Temporary(value)
     inline fun InviteCreateBuilder.unique(value: Boolean) = value
 }

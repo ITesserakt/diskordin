@@ -2,7 +2,7 @@ package org.tesserakt.diskordin.core.entity.query
 
 import org.tesserakt.diskordin.core.data.Snowflake
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "NOTHING_TO_INLINE", "unused")
+@Suppress("NOTHING_TO_INLINE", "unused")
 class ReactedUsersQuery : IQuery {
     @Suppress("UNCHECKED_CAST")
     override fun create() = mapOf(
@@ -23,12 +23,12 @@ class ReactedUsersQuery : IQuery {
         after = this.v
     }
 
-    operator fun Int.unaryPlus() {
-        require(this in 1..100) { "Value must be in [1; 100) range" }
-        limit = this
+    operator fun Limit.unaryPlus() {
+        require(this.v in 1..100) { "Value must be in [1; 100) range" }
+        limit = this.v
     }
 
     inline fun ReactedUsersQuery.before(id: Snowflake) = Before(id)
     inline fun ReactedUsersQuery.after(id: Snowflake) = After(id)
-    inline fun ReactedUsersQuery.limit(value: Int = 50) = value
+    inline fun ReactedUsersQuery.limit(value: Int = 50) = Limit(value)
 }

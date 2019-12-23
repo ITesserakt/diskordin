@@ -2,7 +2,7 @@ package org.tesserakt.diskordin.core.entity.query
 
 import org.tesserakt.diskordin.core.data.Snowflake
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "NOTHING_TO_INLINE", "unused")
+@Suppress("NOTHING_TO_INLINE", "unused")
 class MessagesQuery : IQuery {
     @Suppress("UNCHECKED_CAST")
     override fun create() = mapOf(
@@ -29,9 +29,9 @@ class MessagesQuery : IQuery {
         after = this.v
     }
 
-    operator fun Byte.unaryPlus() {
-        require(this in 1..100) { "Value must be in [1; 100) range" }
-        limit = this
+    operator fun Limit.unaryPlus() {
+        require(this.v in 1..100) { "Value must be in [1; 100) range" }
+        limit = this.v.toByte()
     }
 
     inline fun MessagesQuery.around(id: Snowflake) = Around(id)

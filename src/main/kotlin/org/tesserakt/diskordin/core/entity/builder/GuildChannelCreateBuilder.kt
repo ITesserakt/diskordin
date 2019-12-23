@@ -21,7 +21,7 @@ abstract class GuildChannelCreateBuilder<C : IGuildChannel>(protected val name: 
     protected var permissionOverwrite: IPermissionOverwrite? = null
     protected var parentId: Snowflake? = null
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+
     operator fun Position.unaryPlus() {
         position = this.v
     }
@@ -51,9 +51,8 @@ class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<ITextCh
         topic = this
     }
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-    operator fun Int.unaryPlus() {
-        rateLimitPerUser = this
+    operator fun RateLimit.unaryPlus() {
+        rateLimitPerUser = this.v
     }
 
     operator fun Boolean.unaryPlus() {
@@ -61,7 +60,7 @@ class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<ITextCh
     }
 
     inline fun TextChannelCreateBuilder.topic(topic: String) = topic
-    inline fun TextChannelCreateBuilder.rateLimitPerUser(rateLimit: Int) = rateLimit
+    inline fun TextChannelCreateBuilder.rateLimitPerUser(rateLimit: Int) = RateLimit(rateLimit)
     inline fun TextChannelCreateBuilder.nsfw(isNsfw: Boolean) = isNsfw
 
     override fun create(): ChannelCreateRequest = ChannelCreateRequest(
@@ -77,7 +76,7 @@ class TextChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<ITextCh
 }
 
 @RequestBuilder
-@Suppress("NOTHING_TO_INLINE", "EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("NOTHING_TO_INLINE")
 class VoiceChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<IVoiceChannel>(name) {
     override val type: IChannel.Type = IChannel.Type.GuildVoice
     private var bitrate: Int? = null
@@ -87,12 +86,12 @@ class VoiceChannelCreateBuilder(name: String) : GuildChannelCreateBuilder<IVoice
         bitrate = this.v
     }
 
-    operator fun Int.unaryPlus() {
-        userLimit = this
+    operator fun UserLimit.unaryPlus() {
+        userLimit = this.v
     }
 
     inline fun VoiceChannelCreateBuilder.bitrate(value: Int) = Bitrate(value)
-    inline fun VoiceChannelCreateBuilder.userLimit(limit: Int) = limit
+    inline fun VoiceChannelCreateBuilder.userLimit(limit: Int) = UserLimit(limit)
 
     override fun create(): ChannelCreateRequest = ChannelCreateRequest(
         name,

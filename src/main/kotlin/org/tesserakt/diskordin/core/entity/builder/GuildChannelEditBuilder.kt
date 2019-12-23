@@ -21,7 +21,7 @@ abstract class GuildChannelEditBuilder<T : IGuildChannel> : AuditLogging<Channel
         name = this.v
     }
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+
     operator fun Position.unaryPlus() {
         position = this.v
     }
@@ -51,9 +51,9 @@ class TextChannelEditBuilder : GuildChannelEditBuilder<ITextChannel>() {
         topic = this
     }
 
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-    operator fun Int.unaryPlus() {
-        rateLimitPerUser = this
+
+    operator fun RateLimit.unaryPlus() {
+        rateLimitPerUser = this.v
     }
 
     operator fun Boolean.unaryPlus() {
@@ -61,7 +61,7 @@ class TextChannelEditBuilder : GuildChannelEditBuilder<ITextChannel>() {
     }
 
     inline fun TextChannelEditBuilder.topic(topic: String) = topic
-    inline fun TextChannelEditBuilder.rateLimitPerUser(rateLimit: Int) = rateLimit
+    inline fun TextChannelEditBuilder.rateLimitPerUser(rateLimit: Int) = RateLimit(rateLimit)
     inline fun TextChannelEditBuilder.nsfw(isNsfw: Boolean) = isNsfw
 
     override fun create(): ChannelEditRequest = ChannelEditRequest(
@@ -76,7 +76,7 @@ class TextChannelEditBuilder : GuildChannelEditBuilder<ITextChannel>() {
 }
 
 @RequestBuilder
-@Suppress("NOTHING_TO_INLINE", "EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("NOTHING_TO_INLINE")
 class VoiceChannelEditBuilder : GuildChannelEditBuilder<IVoiceChannel>() {
     private var bitrate: Int? = null
     private var userLimit: Int? = null
@@ -85,12 +85,12 @@ class VoiceChannelEditBuilder : GuildChannelEditBuilder<IVoiceChannel>() {
         bitrate = this.v
     }
 
-    operator fun Int.unaryPlus() {
-        userLimit = this
+    operator fun UserLimit.unaryPlus() {
+        userLimit = this.v
     }
 
     inline fun VoiceChannelEditBuilder.bitrate(value: Int) = Bitrate(value)
-    inline fun VoiceChannelEditBuilder.userLimit(limit: Int) = limit
+    inline fun VoiceChannelEditBuilder.userLimit(limit: Int) = UserLimit(limit)
 
     override fun create(): ChannelEditRequest = ChannelEditRequest(
         name,
