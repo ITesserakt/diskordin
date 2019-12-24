@@ -41,8 +41,7 @@ class DiscordClientBuilder private constructor() {
             val builder = DiscordClientBuilder().apply(init)
 
             val token = System.getenv("token") ?: builder.token
-            val libraryVersion = System.getenv("diskordin_version")
-            val httpClient = setupHttpClient(libraryVersion, token)
+            val httpClient = setupHttpClient(token)
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
             val rest = RestClient(retrofit, IO.async())
 

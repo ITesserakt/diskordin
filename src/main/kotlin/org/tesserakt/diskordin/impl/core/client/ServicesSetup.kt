@@ -23,7 +23,7 @@ internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Re
     .addCallAdapterFactory(CallKindAdapterFactory.create())
     .build()
 
-internal fun setupHttpClient(libraryVersion: String, token: String): OkHttpClient = OkHttpClient().newBuilder()
+internal fun setupHttpClient(token: String): OkHttpClient = OkHttpClient().newBuilder()
     .retryOnConnectionFailure(true)
     .connectTimeout(20, TimeUnit.SECONDS)
     .writeTimeout(20, TimeUnit.SECONDS)
@@ -32,7 +32,7 @@ internal fun setupHttpClient(libraryVersion: String, token: String): OkHttpClien
         val request = chain.request()
             .newBuilder()
             .addHeader("Authorization", "Bot $token")
-            .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
+            .addHeader("User-Agent", "Discord bot (Diskordin)")
             .build()
         chain.proceed(request)
     }.addInterceptor(

@@ -21,7 +21,6 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 internal val defaultToken = System.getenv("token")
-private val libraryVersion = System.getenv("lib-ver")
 
 internal val defaultHttpClient = OkHttpClient.Builder()
     .callTimeout(10, TimeUnit.SECONDS)
@@ -29,7 +28,7 @@ internal val defaultHttpClient = OkHttpClient.Builder()
         val request = chain.request()
             .newBuilder()
             .addHeader("Authorization", "Bot $defaultToken")
-            .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
+            .addHeader("User-Agent", "Discord bot (Diskordin, testing env)")
             .build()
         chain.proceed(request)
     }.addInterceptor(
