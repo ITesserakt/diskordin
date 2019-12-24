@@ -28,7 +28,7 @@ class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderB
         })
 
         return MessageCreateRequest(
-            content!!,
+            content,
             nonce?.asLong(),
             tts,
             embed?.create()

@@ -1,16 +1,14 @@
 package org.tesserakt.diskordin.gateway
 
 import arrow.core.FunctionK
-import arrow.core.ListK
-import arrow.core.extensions.listk.applicative.applicative
-import arrow.core.extensions.listk.foldable.foldable
 import arrow.core.extensions.monoid
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ObservableK
-import arrow.fx.rx2.extensions.flowablek.applicative.applicative
+import arrow.fx.rx2.extensions.flowablek.async.async
 import arrow.fx.rx2.extensions.flowablek.foldable.foldable
-import arrow.fx.rx2.extensions.observablek.applicative.applicative
+import arrow.fx.rx2.extensions.observablek.async.async
 import arrow.fx.rx2.extensions.observablek.foldable.foldable
+import arrow.fx.typeclasses.Async
 import arrow.typeclasses.Applicative
 import arrow.typeclasses.Foldable
 import arrow.typeclasses.Monoid
@@ -21,6 +19,7 @@ import com.tinder.scarlet.websocket.WebSocketEvent
 import io.mockk.mockk
 import io.reactivex.Flowable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.amshove.kluent.`should be in`
 import org.amshove.kluent.`should equal`
@@ -32,8 +31,8 @@ import org.reactivestreams.Publisher
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.events.Hello
+import org.tesserakt.diskordin.impl.core.client.GlobalGatewayLifecycle
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
-import org.tesserakt.diskordin.impl.gateway.interpreter.listKInterpreter
 import org.tesserakt.diskordin.impl.gateway.interpreter.observableInterpreter
 import org.tesserakt.diskordin.util.toJson
 import org.tesserakt.diskordin.util.toJsonTree
@@ -42,7 +41,7 @@ import kotlin.time.ExperimentalTime
 internal class GatewayTest {
     @ExperimentalCoroutinesApi
     @ExperimentalTime
-    val gateway = Gateway()
+    val gateway = Gateway(Dispatchers.Unconfined, GlobalGatewayLifecycle)
 
     @ExperimentalStdlibApi
     @ExperimentalCoroutinesApi
@@ -51,13 +50,13 @@ internal class GatewayTest {
     @MethodSource(value = ["compilers"])
     fun <G> `gateway on start should produce 5 events`(
         compiler: FunctionK<ForGatewayAPIF, G>,
-        AP: Applicative<G>,
+        A: Async<G>,
         FB: Foldable<G>
     ) = FB.run {
-        val events = gateway.run(compiler).fold(AP)
+        val events = gateway.run(compiler, A)
 
         events.size(Long.monoid()) `should equal` 5
-        AP.run {
+        A.run {
             events.map { it.opcode }.map { it `should be in` arrayListOf(-1, 10, 2, -1, -1) }
         }
         Unit
@@ -122,9 +121,8 @@ internal class GatewayTest {
         @JvmStatic
         @Suppress("unused")
         fun compilers() = arrayOf(
-            Arguments.of(impl.listKInterpreter, ListK.applicative(), ListK.foldable()),
-            Arguments.of(impl.flowableInterpreter, FlowableK.applicative(), FlowableK.foldable()),
-            Arguments.of(impl.observableInterpreter, ObservableK.applicative(), ObservableK.foldable())
+            Arguments.of(impl.flowableInterpreter, FlowableK.async(), FlowableK.foldable()),
+            Arguments.of(impl.observableInterpreter, ObservableK.async(), ObservableK.foldable())
         )
     }
 

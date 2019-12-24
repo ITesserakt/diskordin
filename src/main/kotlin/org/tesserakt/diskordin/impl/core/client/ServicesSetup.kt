@@ -6,24 +6,14 @@ import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.okhttp.OkHttpWebSocket
 import mu.KotlinLogging
-import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
-import org.koin.Logger.slf4jLogger
-import org.koin.core.KoinComponent
-import org.koin.core.context.startKoin
-import org.koin.core.logger.Level
-import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
 import java.util.concurrent.TimeUnit
-
-private val KoinComponent.libraryVersion: String
-    get() = getKoin().getProperty("diskordin_version", "Undefined")
 
 internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
     .client(httpClient)
@@ -33,14 +23,7 @@ internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Re
     .addCallAdapterFactory(CallKindAdapterFactory.create())
     .build()
 
-internal fun setupKoin() = startKoin {
-    fileProperties()
-    slf4jLogger(Level.ERROR)
-    environmentProperties()
-}.koin
-
-internal fun KoinComponent.setupHttpClient(client: IDiscordClient): OkHttpClient = OkHttpClient().newBuilder()
-    .cache(Cache(File.createTempFile("okHttpCache", null), 10 * 1024 * 1024))
+internal fun setupHttpClient(libraryVersion: String, token: String): OkHttpClient = OkHttpClient().newBuilder()
     .retryOnConnectionFailure(true)
     .connectTimeout(20, TimeUnit.SECONDS)
     .writeTimeout(20, TimeUnit.SECONDS)
@@ -48,7 +31,7 @@ internal fun KoinComponent.setupHttpClient(client: IDiscordClient): OkHttpClient
     .addInterceptor { chain ->
         val request = chain.request()
             .newBuilder()
-            .addHeader("Authorization", "Bot ${client.token}")
+            .addHeader("Authorization", "Bot $token")
             .addHeader("User-Agent", "Discord bot (Diskordin, $libraryVersion)")
             .build()
         chain.proceed(request)

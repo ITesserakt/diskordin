@@ -11,7 +11,6 @@ import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
-import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
@@ -19,7 +18,6 @@ interface IDiscordClient : IDiscordObject {
     val webSocketStateHolder: WebSocketStateHolder
     val token: String
     val self: IdentifiedF<ForIO, ISelf>
-    val gateway: Gateway
     val rest: RestClient<ForIO>
 
     /*

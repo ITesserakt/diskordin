@@ -1,15 +1,14 @@
 package org.tesserakt.diskordin.gateway
 
+import arrow.Kind
 import arrow.core.FunctionK
 import arrow.core.toT
-import arrow.free.FreeApplicative
-import arrow.syntax.function.andThen
+import arrow.fx.typeclasses.Async
 import com.tinder.scarlet.Message
-import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.websocket.WebSocketEvent
-import org.koin.core.KoinComponent
-import org.koin.core.get
-import org.koin.core.parameter.parametersOf
+import okhttp3.OkHttpClient
+import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.IGatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -17,19 +16,21 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosing
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
+import org.tesserakt.diskordin.impl.core.client.setupScarlet
 import org.tesserakt.diskordin.util.fromJson
 import org.tesserakt.diskordin.util.toJsonTree
+import kotlin.coroutines.CoroutineContext
 
-typealias Compiled<G, A> = FreeApplicative<G, A>
 typealias GatewayCompiler<G> = FunctionK<ForGatewayAPIF, G>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-class Gateway {
+class Gateway(private val scheduler: CoroutineContext, private val lifecycleRegistry: IGatewayLifecycleManager) {
     var sequenceId: Int? = null
         private set
 
     @ExperimentalStdlibApi
-    internal fun <G> run(compiler: GatewayCompiler<G>): Compiled<G, Payload<out IPayload>> {
+    internal fun <G> run(compiler: GatewayCompiler<G>, A: Async<G>): Kind<G, Payload<out IPayload>> {
+        lifecycleRegistry.start()
         val fromConnection = observeWebSocketEvents()
 
         fun parseMessage(message: Message) = when (message) {
@@ -67,10 +68,13 @@ class Gateway {
             )
         }
 
-        return fromConnection.map(::connectionMapping).compile(compiler)
+        val transformed = fromConnection.map(::connectionMapping).compile(compiler).fold(A)
+        A.run {
+            return transformed.continueOn(scheduler)
+        }
     }
 
-    companion object Factory : KoinComponent {
+    companion object Factory {
         private const val gatewayVersion = 6
         private const val encoding = "json"
 
@@ -78,13 +82,19 @@ class Gateway {
             "$start/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
         }
 
-        private val scarlet = gatewayUrl andThen {
-            get<Scarlet> { parametersOf(it) }
+        private val scarlet = { start: String, compression: String, httpClient: OkHttpClient ->
+            setupScarlet(gatewayUrl(start, compression), httpClient)
         }
 
-        private val impl = scarlet andThen { it.create<Implementation>() }
+        private val impl = { start: String, compression: String, httpClient: OkHttpClient ->
+            scarlet(start, compression, httpClient).create<Implementation>()
+        }
 
-        fun create(start: String, compression: String) =
-            Gateway() toT impl(start, compression)
+        fun create(context: BootstrapContext.Gateway) =
+            Gateway(context.scheduler, context.lifecycleRegistry) toT impl(
+                context.connectionContext.url,
+                context.connectionContext.compression,
+                context.httpClient
+            )
     }
 }

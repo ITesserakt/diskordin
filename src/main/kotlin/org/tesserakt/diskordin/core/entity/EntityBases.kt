@@ -6,7 +6,6 @@ package org.tesserakt.diskordin.core.entity
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.fix
-import org.koin.core.KoinComponent
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -18,7 +17,7 @@ interface IEntity : IDiscordObject {
     val id: Snowflake
 }
 
-interface IDiscordObject : KoinComponent
+interface IDiscordObject
 
 /**
  * **Note:**
