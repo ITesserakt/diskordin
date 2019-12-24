@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.data
 import arrow.Kind
 import arrow.core.ForId
 import arrow.mtl.Kleisli
+import arrow.typeclasses.Comonad
 import arrow.typeclasses.Functor
 import arrow.typeclasses.Monad
 import org.tesserakt.diskordin.core.entity.IEntity
@@ -12,6 +13,7 @@ data class IdentifiedF<F, E : IEntity>(
     private val render: Kleisli<F, Snowflake, E>
 ) {
     operator fun invoke() = render.run(id)
+    operator fun invoke(CM: Comonad<F>) = CM.run { invoke().extract() }
 
     fun <B : IEntity> map(FN: Functor<F>, f: (E) -> B) =
         id identify render.map(FN, f).run
@@ -25,4 +27,3 @@ typealias Identified<E> = IdentifiedF<ForId, E>
 
 infix fun <F, E : IEntity> Snowflake.identify(render: (Snowflake) -> Kind<F, E>) =
     IdentifiedF(this, Kleisli(render))
-
