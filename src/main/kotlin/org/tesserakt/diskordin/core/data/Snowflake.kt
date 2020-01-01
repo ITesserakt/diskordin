@@ -80,6 +80,7 @@ interface SnowflakeOrder : Order<Snowflake> {
     override fun Snowflake.compare(b: Snowflake): Int = this.compareTo(b)
 }
 
+@extension
 interface SnowflakeShow : Show<Snowflake> {
     override fun Snowflake.show(): String = asString()
 }

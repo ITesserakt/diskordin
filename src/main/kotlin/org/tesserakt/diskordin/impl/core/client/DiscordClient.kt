@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.core.*
 import arrow.core.extensions.either.monad.flatTap
 import arrow.core.extensions.either.monadError.monadError
+import arrow.core.extensions.list.foldable.find
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.ForIO
 import arrow.fx.IO
@@ -46,14 +47,11 @@ import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
-import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
-import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
 import org.tesserakt.diskordin.util.toJsonTree
 import kotlin.time.ExperimentalTime
 
 internal class DiscordClient private constructor(
-    private val context: BootstrapContext<ForIO>
+    internal val context: BootstrapContext<ForIO>
 ) : IDiscordClient {
     companion object {
         internal val client = Ref.unsafe<ForIO, DiscordClient?>(null, IO.monadDefer())
@@ -92,8 +90,8 @@ internal class DiscordClient private constructor(
         }
     }
 
-    override val users get() = (GlobalEntityCache + GlobalMemberCache).values.filterIsInstance<IUser>()
-    override val guilds get() = GlobalEntityCache.values.filterIsInstance<IGuild>()
+    override val users get() = cache.values.filterIsInstance<IUser>()
+    override val guilds get() = cache.values.filterIsInstance<IGuild>()
 
     @ExperimentalTime
     @Suppress("UNCHECKED_CAST")
@@ -168,37 +166,38 @@ internal class DiscordClient private constructor(
         guildService.createGuild(inst.create())
     }.fix()
 
-    override fun getInvite(code: String): IO<IInvite> = GlobalInviteCache[code]?.just()
-        ?: rest.call { inviteService.getInvite(code) }.flatTap { GlobalInviteCache[code] = it; just() }
+    override fun getInvite(code: String): IO<IInvite> = rest.call { inviteService.getInvite(code) }.fix()
 
     override fun deleteInvite(code: String, reason: String?) =
-        rest.effect { inviteService.deleteInvite(code) }.flatTap { GlobalInviteCache -= code; just() }
+        rest.effect { inviteService.deleteInvite(code) }.fix()
 
     override fun getRegions(): IO<ListK<IRegion>> = rest.call(ListK.functor()) {
         voiceService.getVoiceRegions()
     }.map { it.fix() }
 
-    override fun getChannel(id: Snowflake) = (GlobalEntityCache[id] as IChannel?)?.just()
-        ?: rest.call { channelService.getChannel(id) }.flatTap { GlobalEntityCache[id] = it; just() }
+    override fun getChannel(id: Snowflake) = (cache[id] as IChannel?)?.just()
+        ?: rest.call { channelService.getChannel(id) }.flatTap { cache[id] = it; just() }
 
-    override fun getGuild(id: Snowflake) = guilds.find { it.id == id }?.just()
-        ?: rest.call { guildService.getGuild(id) }.flatTap { GlobalEntityCache[id] = it; just() }
+    override fun getGuild(id: Snowflake) = guilds.find { it.id == id }.orNull()?.just()
+        ?: rest.call { guildService.getGuild(id) }.flatTap { cache[id] = it; just() }
 
     override fun getUser(id: Snowflake) =
-        users.find { it.id == id }?.just() ?: rest.call { userService.getUser(id) }.flatTap {
-            GlobalEntityCache[id] = it; just()
+        users.find { it.id == id }.orNull()?.just() ?: rest.call { userService.getUser(id) }.flatTap {
+            cache[id] = it; just()
         }
 
     override fun getMember(userId: Snowflake, guildId: Snowflake) =
-        GlobalMemberCache[guildId to userId]?.just() ?: getUser(userId).flatMap { it.asMember(guildId) }.flatTap {
-            GlobalMemberCache[guildId to userId] = it; just()
+        cache.values.filterIsInstance<IMember>()
+            .filter { it.guild.id == guildId }
+            .find { it.id == userId }.orNull()?.just() ?: getUser(userId).flatMap { it.asMember(guildId) }.flatTap {
+            cache[userId] = it; just()
         }
 
     override fun getMessage(channelId: Snowflake, messageId: Snowflake): IO<IMessage> =
-        GlobalEntityCache.values.filterIsInstance<IMessage>()
+        cache.values.filterIsInstance<IMessage>()
             .filter { it.channel.id == channelId }
-            .find { it.id == messageId }?.just()
+            .find { it.id == messageId }.orNull()?.just()
             ?: rest.call {
                 channelService.getMessage(channelId, messageId)
-            }.flatTap { GlobalEntityCache += it.id to it; just() }
+            }.flatTap { cache += it.id to it; just() }
 }

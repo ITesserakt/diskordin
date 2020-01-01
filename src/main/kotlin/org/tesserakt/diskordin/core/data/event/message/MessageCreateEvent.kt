@@ -11,7 +11,7 @@ import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IGuildChannel
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
+import org.tesserakt.diskordin.core.entity.cache
 
 class MessageCreateEvent(raw: MessageResponse) : IMessageEvent<ForId>, IChannelEvent<ForIO> {
     override val message = raw.id identify { raw.unwrap().just() }
@@ -22,6 +22,6 @@ class MessageCreateEvent(raw: MessageResponse) : IMessageEvent<ForId>, IChannelE
     }
 
     init {
-        GlobalEntityCache[message.id] = message().extract()
+        cache[message.id] = message().extract()
     }
 }

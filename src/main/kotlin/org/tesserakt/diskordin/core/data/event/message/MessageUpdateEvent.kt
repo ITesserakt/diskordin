@@ -6,12 +6,12 @@ import arrow.core.extensions.id.comonad.extract
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
+import org.tesserakt.diskordin.core.entity.cache
 
 class MessageUpdateEvent(raw: MessageResponse) : IMessageEvent<ForId> {
     override val message = raw.id identify { raw.unwrap().just() }
 
     init {
-        GlobalEntityCache[message.id] = message().extract()
+        cache[message.id] = message().extract()
     }
 }

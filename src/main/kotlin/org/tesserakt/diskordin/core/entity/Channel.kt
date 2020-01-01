@@ -25,7 +25,6 @@ import org.tesserakt.diskordin.core.entity.query.MessagesQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.*
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import kotlin.time.ExperimentalTime
 
 interface IChannel : IMentioned, IDeletable {
@@ -111,7 +110,7 @@ interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel
 
 interface IMessageChannel : IChannel {
     val cachedMessages
-        get() = GlobalEntityCache.values.filterIsInstance<IMessage>()
+        get() = cache.values.filterIsInstance<IMessage>()
 
     fun typing() = rest.effect {
         channelService.triggerTyping(id)
@@ -119,7 +118,7 @@ interface IMessageChannel : IChannel {
 
     fun getMessages(query: MessagesQuery.() -> Unit) = rest.call(ListK.functor()) {
         channelService.getMessages(id, query.query())
-    }.map { it.fix() }.flatTap { list -> GlobalEntityCache += list.associateBy { it.id }; just() }
+    }.map { it.fix() }.flatTap { list -> cache += list.associateBy { it.id }; just() }
 
     fun getMessage(messageId: Snowflake) = client.getMessage(id, messageId)
 

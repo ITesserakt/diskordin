@@ -102,7 +102,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
                 +field("huh", "Huh")
             }).bothIor()
         ).build {
-            +tts(true)
+            +enableTTS()
         })
     }, {
         it.isRight().shouldBeTrue()

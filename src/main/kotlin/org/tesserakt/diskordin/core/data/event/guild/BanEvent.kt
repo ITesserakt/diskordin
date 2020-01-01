@@ -7,15 +7,15 @@ import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.event.IUserEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.Ban
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 
 class BanEvent(raw: Ban) : IGuildEvent<ForIO>, IUserEvent<ForId> {
     override val guild = raw.guildId identify { client.getGuild(it) }
     override val user = raw.user.id identify { raw.user.unwrap().just() }
 
     init {
-        GlobalEntityCache[user.id] = user().extract()
+        cache[user.id] = user().extract()
     }
 }

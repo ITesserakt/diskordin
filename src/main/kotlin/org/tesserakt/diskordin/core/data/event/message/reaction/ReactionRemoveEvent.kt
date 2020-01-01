@@ -10,9 +10,9 @@ import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.ICustomEmoji
 import org.tesserakt.diskordin.core.entity.IMessageChannel
+import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.Reaction
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 
 class ReactionRemoveEvent(raw: Reaction) : IMessageEvent<ForIO>, IUserEvent<ForIO>, IChannelEvent<ForIO> {
     override val user = raw.userId identify { client.getUser(it) }
@@ -25,6 +25,6 @@ class ReactionRemoveEvent(raw: Reaction) : IMessageEvent<ForIO>, IUserEvent<ForI
 
     init {
         if (emoji is ICustomEmoji)
-            GlobalEntityCache[emoji.id] = emoji
+            cache[emoji.id] = emoji
     }
 }

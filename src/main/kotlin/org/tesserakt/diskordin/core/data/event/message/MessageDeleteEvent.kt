@@ -6,9 +6,9 @@ import org.tesserakt.diskordin.core.data.event.channel.IChannelEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.entity.IMessageChannel
 import org.tesserakt.diskordin.core.entity.ITextChannel
+import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.MessageDelete
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 
 class MessageDeleteEvent(raw: MessageDelete) : IChannelEvent<ForIO> {
     val messageId = raw.id
@@ -21,6 +21,6 @@ class MessageDeleteEvent(raw: MessageDelete) : IChannelEvent<ForIO> {
     }
 
     init {
-        GlobalEntityCache -= messageId
+        cache -= messageId
     }
 }

@@ -39,10 +39,10 @@ class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderB
         nonce = this
     }
 
-    operator fun Boolean.unaryPlus() {
-        tts = this
+    operator fun Unit.unaryPlus() {
+        tts = true
     }
 
     inline fun MessageCreateBuilder.nonce(id: Snowflake) = id
-    inline fun MessageCreateBuilder.tts(value: Boolean) = value
+    inline fun MessageCreateBuilder.enableTTS() = Unit
 }

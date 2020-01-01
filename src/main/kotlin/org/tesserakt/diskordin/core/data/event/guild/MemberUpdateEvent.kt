@@ -1,6 +1,8 @@
 package org.tesserakt.diskordin.core.data.event.guild
 
+import arrow.core.Id
 import arrow.core.extensions.id.applicative.just
+import arrow.core.extensions.id.comonad.comonad
 import arrow.core.extensions.list.traverse.sequence
 import arrow.core.extensions.listk.monadFilter.filterMap
 import arrow.core.identity
@@ -11,11 +13,12 @@ import arrow.fx.extensions.io.applicative.map
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.IMember
+import org.tesserakt.diskordin.core.entity.IUser
+import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.MemberUpdate
 import org.tesserakt.diskordin.impl.core.entity.Member
-import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
-import java.time.Instant
 
 class MemberUpdateEvent(raw: MemberUpdate) : IGuildEvent<ForIO> {
     override val guild = raw.guildId identify { client.getGuild(it) }
@@ -29,15 +32,19 @@ class MemberUpdateEvent(raw: MemberUpdate) : IGuildEvent<ForIO> {
     val nick = raw.nick
 
     init {
-        val cached = GlobalMemberCache[guild.id to user.id]
-        val bean = GuildMemberResponse(
-            raw.user,
-            nick,
-            raw.roles,
-            cached?.joinTime ?: Instant.now(),
-            deaf = false,
-            mute = false
-        )
-        GlobalMemberCache[guild.id to user.id] = Member(bean, guild.id)
+        when (val cached = cache[user.id]) {
+            is IMember -> { //if cached, just update fields
+                val bean = GuildMemberResponse(
+                    raw.user,
+                    cached.nickname ?: nick,
+                    raw.roles,
+                    cached.joinTime,
+                    deaf = false,
+                    mute = false
+                )
+                cache[user.id] = Member(bean, guild.id)
+            }
+            null, is IUser -> cache[user.id] = user(Id.comonad())
+        }
     }
 }
