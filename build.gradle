@@ -69,6 +69,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    failFast false
 }
 
 compileKotlin {

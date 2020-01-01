@@ -33,7 +33,7 @@ jobs:
         if: github.event_name != 'release'
         env:
           token: ${{secrets.discord_token}}
-        run: ./gradlew test --tests *
+        run: './gradlew test --tests *'
 
       - name: Publish to Bintray if release
         if: github.event_name == 'release'
