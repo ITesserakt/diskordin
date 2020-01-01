@@ -41,5 +41,4 @@ jobs:
           bintray.user: ${{secrets.bintray_user}}
           bintray.key: ${{secrets.bintray_key}}
           diskordin.version: ${{github.ref}}
-        run ./gradlew bintrayUpload -D$bintray.user -Dbintray.key -Ddiskordin.version
-      
+        run: ./gradlew bintrayUpload -D$bintray.user -Dbintray.key -Ddiskordin.version
