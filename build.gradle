@@ -6,7 +6,7 @@ plugins {
 apply plugin: 'kotlin-kapt'
 
 group 'org.tesserakt.diskordin'
-version diskordin_version
+version System.getProperty("diskordin.version", diskordin_version)
 
 bintray {
     user = System.getProperty("bintray.user")
@@ -20,7 +20,7 @@ bintray {
         vcsUrl = "https://github.com/ITesserakt/diskordin.git"
 
         version {
-            name = diskordin_version
+            name = version
             released = new Date()
         }
     }
