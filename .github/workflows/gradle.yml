@@ -33,12 +33,12 @@ jobs:
         if: github.event_name != 'release'
         env:
           token: ${{secrets.discord_token}}
-        run: ./gradlew test
+        run: ./gradlew test --tests *
 
       - name: Publish to Bintray if release
         if: github.event_name == 'release'
         env:
-          bintray.user: ${{secrets.bintray_user}}
-          bintray.key: ${{secrets.bintray_key}}
+          bintray_user: ${{secrets.bintray_user}}
+          bintray_key: ${{secrets.bintray_key}}
           diskordin.version: ${{github.ref}}
-        run: ./gradlew bintrayUpload -D$bintray.user -Dbintray.key -Ddiskordin.version
+        run: ./gradlew bintrayUpload -Dbintray.user=$bintray_user -Dbintray.key=$bintray_key
