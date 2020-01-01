@@ -1,5 +1,6 @@
 ![Tests status](https://github.com/ITesserakt/diskordin/workflows/Tests/badge.svg)
 [![JitPack](https://jitpack.io/v/ITesserakt/diskordin.svg)](https://jitpack.io/#ITesserakt/diskordin)
+[![Bintray](https://api.bintray.com/packages/itesserakt/diskordin/diskordin/images/download.svg)](https://bintray.com/itesserakt/diskordin/diskordin/_latestVersion)
 [![Github License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 
 # Diskordin
@@ -23,25 +24,27 @@ Diskordin gives us flexible builders, and we can choose a layer of abstraction.
 repositories {
     jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+dependencies {
+    implementation 'org.tesserakt.diskordin:diskordin:{version}'
+}
+```
+For snapshot versions use 
+``` groovy
+repositories {
+    jcenter()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'com.github.ITesserakt:diskordin:{version}'
+    implementation 'com.github.ITesserakt:diskordin:master-SNAPSHOT'
 }
-```
-#### SBT 
-```
-resolvers += "jitpack" at "https://jitpack.io"
-resolvers += "jcenter" at "https://jcenter.bintray.com/"
-resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-
-libraryDependencies += "com.github.ITesserakt" %% "diskordin" % "{version}"
 ```
 **Also, you must add a dependency for logger. The most simple is** 
 `'org.slf4j:slf4j-simple:1.7.26'`
 ## How can I use it? 
 **The future syntax may change!**
-
+ 
 #### Log on
 
 Just logging into Discord as simple as possible
