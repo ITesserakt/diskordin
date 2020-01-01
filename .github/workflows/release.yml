@@ -1,0 +1,22 @@
+name: Release to Bintray
+
+on: release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+
+      - name: Build and publish
+        env:
+          bintray_user: ${{secrets.bintray_user}}
+          bintray_key: ${{secrets.bintray_key}}
+          diskordin.version: ${{github.ref}}
+        run: |
+          chmod +x gradlew
+          ./gradlew bintrayUpload -Dbintray.user=$bintray_user -Dbintray.key=$bintray_key
+          echo "Successfully deployed new release!"

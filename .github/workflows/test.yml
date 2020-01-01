@@ -1,0 +1,24 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        jdk: [1.8, 11, 12]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          version: ${{matrix.jdk}}
+      - name: Build and test
+        env:
+          jvm: ${{matrix.jdk}}
+        run: |
+          ./gradlew clean build
+          ./gradlew check

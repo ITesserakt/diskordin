@@ -7,6 +7,7 @@ apply plugin: 'kotlin-kapt'
 
 group 'org.tesserakt.diskordin'
 version System.getProperty("diskordin.version", diskordin_version)
+def jvmVersion = System.getenv("jvm") ?: "1.8"
 
 bintray {
     user = System.getProperty("bintray.user")
@@ -74,12 +75,12 @@ test {
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = jvmVersion
         freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental"]
     }
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = jvmVersion
 }
 
 wrapper {
