@@ -1,4 +1,4 @@
-![Tests status](https://github.com/ITesserakt/diskordin/workflows/Test/badge.svg)
+![Tests status](https://github.com/ITesserakt/diskordin/workflows/Tests/badge.svg)
 [![JitPack](https://jitpack.io/v/ITesserakt/diskordin.svg)](https://jitpack.io/#ITesserakt/diskordin)
 [![Github License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 
