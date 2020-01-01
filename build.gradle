@@ -1,10 +1,31 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+    id "com.jfrog.bintray" version "1.8.4"
+    id "maven-publish"
 }
 apply plugin: 'kotlin-kapt'
 
 group 'org.tesserakt.diskordin'
-version diskordin_version
+version System.getProperty("diskordin.version", diskordin_version)
+def jvmVersion = System.getenv("jvm") ?: "1.8"
+
+bintray {
+    user = System.getProperty("bintray.user")
+    key = System.getProperty("bintray.key")
+    publications = ['mavenPublication']
+
+    pkg {
+        repo = "diskordin"
+        name = "diskordin"
+        licenses = ["Apache-2.0"]
+        vcsUrl = "https://github.com/ITesserakt/diskordin.git"
+
+        version {
+            name = version
+            released = new Date()
+        }
+    }
+}
 
 repositories {
     jcenter()
@@ -49,18 +70,68 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    failFast false
 }
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = jvmVersion
         freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental"]
     }
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = jvmVersion
 }
 
 wrapper {
     gradleVersion = '6.0.1'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.convention 'source'
+    archiveClassifier.set 'source'
+    from sourceSets.main.allSource
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.convention 'javadoc'
+    archiveClassifier.set 'javadoc'
+    from javadoc.destinationDir
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+
+    developers {
+        developer {
+            id "ITesserakt"
+            name "Vladimir Nikitin"
+            email "potryas66@mail.ru"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'A lightweight wrapper written in Kotlin for Discord API using Arrow')
+                root.appendNode('name', 'Diskordin')
+                root.appendNode('url', 'https://github.com/ITesserakt/diskordin')
+                root.children().last() + pomConfig
+            }
+        }
+    }
 }
