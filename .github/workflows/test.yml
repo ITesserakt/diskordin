@@ -20,5 +20,6 @@ jobs:
         env:
           jvm: ${{matrix.jdk}}
         run: |
+          chmod +x gradlew
           ./gradlew clean build
           ./gradlew check
