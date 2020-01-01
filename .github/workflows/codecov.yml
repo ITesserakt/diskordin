@@ -1,0 +1,16 @@
+name: codecov
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.5
+        with:
+          token: 27f1b611-df91-47a8-ab3f-3dc22bf7bbed
+          fail_ci_if_error: true
