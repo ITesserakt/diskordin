@@ -7,12 +7,12 @@ import org.tesserakt.diskordin.core.data.event.IEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
+import org.tesserakt.diskordin.core.entity.cache
 
 class GuildCreateEvent(raw: GuildResponse) : IEvent, IGuildEvent<ForId> {
     override val guild = raw.id identify { raw.unwrap().just() }
 
     init {
-        GlobalEntityCache[guild.id] = guild().extract()
+        cache[guild.id] = guild().extract()
     }
 }

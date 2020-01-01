@@ -9,9 +9,7 @@ import arrow.core.extensions.listk.functor.functor
 import arrow.core.extensions.listk.functor.map
 import arrow.core.fix
 import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.just
 import arrow.fx.extensions.io.applicative.map
-import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.fix
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.Permissions
@@ -29,7 +27,6 @@ import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.storage.GlobalInviteCache
 import org.tesserakt.diskordin.util.enums.not
 
 internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
@@ -57,7 +54,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     override val invites: IO<ListK<IInvite>> = rest.call(ListK.functor()) {
         channelService.getChannelInvites(id)
-    }.map { it.fix() }.flatTap { list -> GlobalInviteCache += list.associateBy { it.code }; just() }
+    }.map { it.fix() }
 }
 
 internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channel(raw), IGuildChannel {

@@ -15,9 +15,9 @@ import arrow.fx.extensions.io.applicative.map
 import org.tesserakt.diskordin.core.data.event.guild.IGuildEvent
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.PresenceUpdate
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
 import kotlin.time.ExperimentalTime
 
 class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<ForId> {
@@ -42,6 +42,6 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<
     override val user = raw.user.id identify { raw.user.unwrap().just() }
 
     init {
-        GlobalEntityCache.putIfAbsent(user.id, user().extract())
+        cache.putIfAbsent(user.id, user().extract())
     }
 }

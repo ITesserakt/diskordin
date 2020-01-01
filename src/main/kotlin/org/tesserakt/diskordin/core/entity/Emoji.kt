@@ -24,7 +24,7 @@ interface IEmoji : INamed {
 interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject<ForIO>,
     IEditable<ICustomEmoji, EmojiEditBuilder> {
     val roles: IO<ListK<IRole>>
-    val creator: IdentifiedF<ForId, IUser>
+    val creator: IdentifiedF<ForId, IUser>?
     val requireColons: Boolean
     val isManaged: Boolean
     val isAnimated: Boolean

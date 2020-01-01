@@ -26,8 +26,6 @@ import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.storage.GlobalEntityCache
-import org.tesserakt.diskordin.rest.storage.GlobalMemberCache
 import java.io.File
 import java.util.*
 import kotlin.time.Duration
@@ -173,7 +171,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     override fun getEveryoneRole() = id identify { getRole(it).orNull()!!.idJust() } //everyone role id == guild id
 
-    override fun <C : IGuildChannel> getChannel(id: Snowflake): C = GlobalEntityCache[id] as C
+    override fun <C : IGuildChannel> getChannel(id: Snowflake): C = cache[id] as C
 
     override val invites: IO<ListK<IGuildInvite>> = rest.call(ListK.functor()) {
         guildService.getInvites(id)
@@ -211,15 +209,15 @@ internal class Guild(raw: GuildResponse) : IGuild {
         IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }
 
     override val roles
-        get() = GlobalEntityCache
+        get() = cache
             .values.filterIsInstance<IRole>()
             .filter { it.guild.id == id }
 
     override fun getMembers(query: MemberQuery.() -> Unit) = rest.call(id, ListK.functor()) {
         guildService.getMembers(id, query.query())
-    }.map { it.fix() }.flatTap { list -> GlobalMemberCache += list.associateBy { id to it.id }; just() }
+    }.map { it.fix() }.flatTap { list -> cache += list.associateBy { it.id }; just() }
 
-    override val channels get() = GlobalEntityCache.values.filterIsInstance<IGuildChannel>().filter { it.guild.id == id }
+    override val channels get() = cache.values.filterIsInstance<IGuildChannel>().filter { it.guild.id == id }
 
     override val name: String = raw.name
 
@@ -269,10 +267,10 @@ internal class Guild(raw: GuildResponse) : IGuild {
     }
 
     init {
-        GlobalEntityCache += rest.call(ListK.functor()) { guildService.getGuildChannels(id) }
+        cache += rest.call(ListK.functor()) { guildService.getGuildChannels(id) }
             .fix().unsafeRunSync()
             .fix().associateBy { it.id }
 
-        GlobalEntityCache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
+        cache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
     }
 }
