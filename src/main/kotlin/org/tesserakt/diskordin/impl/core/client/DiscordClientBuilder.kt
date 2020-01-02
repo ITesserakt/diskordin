@@ -36,10 +36,17 @@ class DiscordClientBuilder private constructor() {
         else NoopMap()
     }
 
+    internal operator fun VerificationStub.unaryPlus() {
+        token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
     inline fun DiscordClientBuilder.useCompression() = Unit
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
+    internal inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
+
+    internal object VerificationStub
 
     companion object {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {

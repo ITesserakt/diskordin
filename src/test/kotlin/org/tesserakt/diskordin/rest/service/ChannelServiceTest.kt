@@ -11,9 +11,7 @@ import arrow.fx.typeclasses.Bracket
 import org.amshove.kluent.`should contain`
 import org.amshove.kluent.`should equal`
 import org.amshove.kluent.shouldBeTrue
-import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.tesserakt.diskordin.callAndExtract
 import org.tesserakt.diskordin.core.data.asSnowflake
@@ -27,7 +25,6 @@ import org.tesserakt.diskordin.withFinalize
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
-@TestMethodOrder(MethodOrderer.Random::class)
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 @EnabledIfEnvironmentVariable(named = "token", matches = ".*") //all this tests enabled if token presents
 internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
@@ -74,7 +71,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     fun `get 100 last messages from text channel`() {
         val messages = rest.callRaw {
             channelService.getMessages(constChannelId, MessagesQuery().apply {
-                +limit(100)
+                +before(constReactionsMessageId)
             }.create())
         }.attempt().fix().unsafeRunSync()
 

@@ -1,10 +1,12 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.*
-import arrow.core.extensions.either.monad.flatTap
+import arrow.core.Either
+import arrow.core.ListK
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.list.foldable.find
 import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
+import arrow.core.getOrHandle
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.Ref
@@ -73,7 +75,6 @@ internal class DiscordClient private constructor(
     private val logger = KotlinLogging.logger("[Discord client]")
 
     override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
-        .flatTap { logger.info("Token verified").right() }
         .getOrHandle {
             error(it.message)
         } identify {
