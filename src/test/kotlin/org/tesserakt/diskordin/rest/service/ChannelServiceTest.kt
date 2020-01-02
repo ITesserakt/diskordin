@@ -33,7 +33,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     private val constMessageId = 641979535235088405.asSnowflake()
     private val constEditMessageId = 642024602142244874.asSnowflake()
     private val constReactionsMessageId = 642070657303314442.asSnowflake()
-    private val rest = RestClient(defaultRetrofit, IO.async())
+    private val rest = RestClient.byRetrofit(defaultRetrofit, IO.async())
 
     @Test
     fun `retrieve existing channel from discord`() {

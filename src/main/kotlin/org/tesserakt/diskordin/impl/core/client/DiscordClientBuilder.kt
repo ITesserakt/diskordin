@@ -55,7 +55,7 @@ class DiscordClientBuilder private constructor() {
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
-            val rest = RestClient(retrofit, IO.async())
+            val rest = RestClient.byRetrofit(retrofit, IO.async())
 
             val connectionContext = BootstrapContext.Gateway.Connection(
                 "wss://gateway.discord.gg",

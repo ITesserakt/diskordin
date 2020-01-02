@@ -21,18 +21,30 @@ import retrofit2.Retrofit
 import retrofit2.create
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-class RestClient<F> internal constructor(
-    retrofit: Retrofit,
-    private val A: Async<F>
+class RestClient<F>(
+    private val A: Async<F>,
+    private val _channelService: ChannelService,
+    private val _emojiService: EmojiService,
+    private val _gatewayService: GatewayService,
+    private val _guildService: GuildService,
+    private val _inviteService: InviteService,
+    private val _userService: UserService,
+    private val _voiceService: VoiceService,
+    private val _webhookService: WebhookService
 ) {
-    private val _channelService = retrofit.create<ChannelService>()
-    private val _emojiService = retrofit.create<EmojiService>()
-    private val _gatewayService = retrofit.create<GatewayService>()
-    private val _guildService = retrofit.create<GuildService>()
-    private val _inviteService = retrofit.create<InviteService>()
-    private val _userService = retrofit.create<UserService>()
-    private val _voiceService = retrofit.create<VoiceService>()
-    private val _webhookService = retrofit.create<WebhookService>()
+    companion object {
+        fun <F> byRetrofit(retrofit: Retrofit, A: Async<F>) = RestClient(
+            A,
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create(),
+            retrofit.create()
+        )
+    }
 
     val RestClient<F>.channelService: ChannelService
         get() = _channelService
@@ -54,7 +66,7 @@ class RestClient<F> internal constructor(
     fun <R> callRaw(
         f: RestClient<F>.() -> CallK<out R>
     ) = A.run {
-        f().async(this).flatMap {
+        this@RestClient.f().async(this).flatMap {
             it.unwrapBody(this)
         }.handleErrorWith {
             if (it is HttpException && it.code() == 429)
