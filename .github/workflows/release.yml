@@ -1,6 +1,8 @@
 name: Release to Bintray
 
-on: release
+on: 
+  release:
+    types: [published]
 
 jobs:
   build:
