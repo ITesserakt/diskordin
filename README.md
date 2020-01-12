@@ -102,7 +102,6 @@ Here will more use cases as they will implement.
 | ----------------- | ------------------------------------------------------------- |
 | Arrow             | Functional approach in Kotlin                                 |
 | Kotlin coroutines | Dependency to Arrow.                                          |
-| Koin              | Dependency injection library                                  |
 | OkHTTP            | Http client implementation on which Rest and Gateway are based|
 | Scarlet           | Easy work with WebSockets                                     |
 | Kotlin logging    | Kotlin adapter for loggers                                    |
