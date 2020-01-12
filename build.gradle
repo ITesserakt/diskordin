@@ -21,7 +21,7 @@ bintray {
         vcsUrl = "https://github.com/ITesserakt/diskordin.git"
 
         version {
-            name = version
+            name = System.getProperty("diskordin.version", diskordin_version)
             released = new Date()
         }
     }
