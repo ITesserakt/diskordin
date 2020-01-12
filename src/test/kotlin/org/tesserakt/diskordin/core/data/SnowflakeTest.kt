@@ -38,10 +38,10 @@ internal class SnowflakeTest {
         { s1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "invalid cannot be represented as Snowflake"
         s2.asSnowflake() shouldEqual Snowflake.of(666666666666u);
 
-        { l1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater then 0"
+        { l1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater than 0"
         l2.asSnowflake() shouldEqual Snowflake.of(999999999999u);
 
-        { ul1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater then 4194304"
+        { ul1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater than 4194304"
     }
 
     @Test

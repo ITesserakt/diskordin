@@ -38,7 +38,7 @@ data class Snowflake private constructor(private val id: ULong) : Comparable<Sno
             })
 
         fun of(id: Long): Snowflake {
-            require(id >= 0) { "id must be greater then 0" }
+            require(id >= 0) { "id must be greater than 0" }
             return of(id.toULong())
         }
 
@@ -69,7 +69,7 @@ fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionErr
         NotANumber.raiseError()
     else {
         val raw = toULongOrNull()
-        if (raw == null || (raw shr 22) < 0u)
+        if (raw == null || (raw.toLong() shr 22) <= 0)
             LessThenDiscordEpoch.raiseError()
         else asSnowflake().just()
     }
