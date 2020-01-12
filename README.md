@@ -22,11 +22,12 @@ Diskordin gives us flexible builders, and we can choose a layer of abstraction.
 #### Gradle
 ```groovy
 repositories {
-    jcenter()
+    maven { url 'https://dl.bintray.com/itesserakt/diskordin' }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    jcenter()
 }
 dependencies {
-    implementation 'org.tesserakt.diskordin:diskordin:{version}'
+    compile 'org.tesserakt.diskordin:diskordin:{version}'
 }
 ```
 For snapshot versions use 
