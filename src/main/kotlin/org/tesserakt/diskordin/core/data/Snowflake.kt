@@ -43,14 +43,14 @@ data class Snowflake private constructor(private val id: ULong) : Comparable<Sno
         }
 
         fun of(id: ULong): Snowflake {
-            require((id.toLong() shr 22) > 0) { "id must be greater then ${1 shl 22}" }
+            require((id.toLong() shr 22) > 0) { "id must be greater than ${1 shl 22}" }
             return Snowflake(id)
         }
     }
 
     sealed class ConstructionError(val message: String) {
         object NotANumber : ConstructionError("Given string is not a number")
-        object LessThenDiscordEpoch : ConstructionError("Given number is less then $DISCORD_EPOCH")
+        object LessThenDiscordEpoch : ConstructionError("Given number is less than $DISCORD_EPOCH")
     }
 }
 
@@ -69,7 +69,7 @@ fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionErr
         NotANumber.raiseError()
     else {
         val raw = toULongOrNull()
-        if (raw == null || raw < DISCORD_EPOCH)
+        if (raw == null || (raw shr 22) < 0u)
             LessThenDiscordEpoch.raiseError()
         else asSnowflake().just()
     }
