@@ -4,75 +4,51 @@ import arrow.Kind
 import arrow.core.FunctionK
 import arrow.core.toT
 import arrow.fx.typeclasses.Async
-import com.tinder.scarlet.Message
-import com.tinder.scarlet.websocket.WebSocketEvent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.IGatewayLifecycleManager
+import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
+import org.tesserakt.diskordin.gateway.interceptor.*
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
+import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionClosing
-import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.impl.core.client.setupScarlet
-import org.tesserakt.diskordin.util.fromJson
-import org.tesserakt.diskordin.util.toJsonTree
 import kotlin.coroutines.CoroutineContext
 
 typealias GatewayCompiler<G> = FunctionK<ForGatewayAPIF, G>
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-class Gateway(private val scheduler: CoroutineContext, private val lifecycleRegistry: IGatewayLifecycleManager) {
-    var sequenceId: Int? = null
-        private set
-
+class Gateway(
+    private val scheduler: CoroutineContext,
+    private val lifecycleRegistry: GatewayLifecycleManager,
+    private val interceptors: List<Interceptor<Interceptor.Context>>
+) {
+    @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
-    internal fun <G> run(compiler: GatewayCompiler<G>, A: Async<G>): Kind<G, Payload<out IPayload>> {
+    internal fun <G> run(compiler: GatewayCompiler<G>, A: Async<G>): Kind<G, Payload<out IPayload>> = A.run {
         lifecycleRegistry.start()
-        val fromConnection = observeWebSocketEvents()
 
-        fun parseMessage(message: Message) = when (message) {
-            is Message.Text -> message.value
-            is Message.Bytes -> message.value.decodeToString()
-        }.fromJson<Payload<IRawEvent>>()
+        observeWebSocketEvents()
+            .map(WebSocketEventTransformer::transform)
+            .foldMap(compiler, this)
+            .continueOn(scheduler)
+            .flatTap { payload ->
+                if (payload.isTokenPayload) {
+                    val token = RawTokenTransformer.transform(payload as Payload<IToken>)
+                    interceptors
+                        .filter { it.selfContext == TokenInterceptor.Context::class }
+                        .forEach { it.intercept(TokenInterceptor.Context(token)) }
+                } else {
+                    val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
+                    interceptors
+                        .filter { it.selfContext == EventInterceptor.Context::class }
+                        .forEach { it.intercept(EventInterceptor.Context(event)) }
+                }
 
-        fun connectionMapping(state: WebSocketEvent) = when (state) {
-            is WebSocketEvent.OnConnectionOpened -> Payload<ConnectionOpened>(
-                -1,
-                null,
-                "CONNECTION_OPENED",
-                ConnectionOpened.toJsonTree()
-            )
-            is WebSocketEvent.OnMessageReceived -> parseMessage(state.message).also {
-                sequenceId = it.seq ?: sequenceId
+                Unit.just()
             }
-            is WebSocketEvent.OnConnectionClosing -> Payload<ConnectionClosing>(
-                -1,
-                null,
-                "CONNECTION_CLOSING",
-                ConnectionClosing(state.shutdownReason).toJsonTree()
-            )
-            is WebSocketEvent.OnConnectionClosed -> Payload<ConnectionClosed>(
-                -1,
-                null,
-                "CONNECTION_CLOSED",
-                ConnectionClosed(state.shutdownReason).toJsonTree()
-            )
-            is WebSocketEvent.OnConnectionFailed -> Payload<ConnectionFailed>(
-                -1,
-                null,
-                "CONNECTION_FAILED",
-                ConnectionFailed(state.throwable).toJsonTree()
-            )
-        }
-
-        val transformed = fromConnection.map(::connectionMapping).compile(compiler).fold(A)
-        A.run {
-            return transformed.continueOn(scheduler)
-        }
     }
+
 
     companion object Factory {
         private const val gatewayVersion = 6
@@ -91,7 +67,7 @@ class Gateway(private val scheduler: CoroutineContext, private val lifecycleRegi
         }
 
         fun create(context: BootstrapContext.Gateway) =
-            Gateway(context.scheduler, context.lifecycleRegistry) toT impl(
+            Gateway(context.scheduler, context.lifecycleRegistry, context.interceptors) toT impl(
                 context.connectionContext.url,
                 context.connectionContext.compression,
                 context.httpClient

@@ -6,6 +6,6 @@ private typealias Total = Int
 data class Shard(
     val sequenceId: Int?,
     val token: String,
-    val sessionId: Int,
+    val sessionId: String?,
     val shardData: Pair<Current, Total>
 )

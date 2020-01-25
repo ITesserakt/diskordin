@@ -22,7 +22,6 @@ Diskordin gives us flexible builders, and we can choose a layer of abstraction.
 #### Gradle
 ```groovy
 repositories {
-    maven { url 'https://dl.bintray.com/itesserakt/diskordin' }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     jcenter()
 }

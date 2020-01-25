@@ -18,9 +18,7 @@ import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
-import arrow.fx.rx2.extensions.concurrent
 import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.extensions.flowablek.async.continueOn
 import arrow.fx.rx2.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
 import mu.KotlinLogging
@@ -36,20 +34,14 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.GatewayCompiler
-import org.tesserakt.diskordin.gateway.json.*
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
-import org.tesserakt.diskordin.impl.gateway.handler.handleHello
-import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
-import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.util.toJsonTree
 import kotlin.time.ExperimentalTime
 
 internal class DiscordClient private constructor(
@@ -98,41 +90,30 @@ internal class DiscordClient private constructor(
     @Suppress("UNCHECKED_CAST")
     @ExperimentalStdlibApi
     override fun login() = IO.fx io@{
-        gateway.run(impl.flowableInterpreter, FlowableK.async()).fix().map { payload ->
-            if (payload.opcode() == Opcode.UNDERLYING)
-                webSocketStateHolder.update(payload as Payload<in IToken>)
-            else
-                eventDispatcher.publish(payload as Payload<IRawEvent>)
-        }.flowable.doOnError {
-            webSocketStateHolder.update(
-                Payload(
-                    Opcode.UNDERLYING.asInt(),
-                    null,
-                    "CONNECTION_FAILED",
-                    ConnectionFailed(it).toJsonTree()
-                )
-            )
-        }.subscribe()
+        gateway.run(impl.flowableInterpreter, FlowableK.async())
+            .fix().flowable
+            .doOnError { webSocketStateHolder.update(ConnectionFailed(it)) }
+            .subscribe()
 
-        launchDefaultEventHandlers(impl.flowableInterpreter)
+//        launchDefaultEventHandlers(impl.flowableInterpreter)
         Unit
     }
 
-    @ExperimentalTime
-    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = with(eventDispatcher) {
-        handleHello(
-            token,
-            context.gatewayContext.connectionContext.compression.isNotEmpty(),
-            webSocketStateHolder,
-            gateway::sequenceId,
-            compiler,
-            FlowableK.concurrent()
-        ).continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-        heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async())
-            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-        heartbeatACKHandler(webSocketStateHolder, FlowableK.async())
-            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-    }
+//    @ExperimentalTime
+//    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = with(eventDispatcher) {
+//        handleHello(
+//            token,
+//            context.gatewayContext.connectionContext.compression.isNotEmpty(),
+//            webSocketStateHolder,
+//            gateway::sequenceId,
+//            compiler,
+//            FlowableK.concurrent()
+//        ).continueOn(context.gatewayContext.scheduler).flowable.subscribe()
+//        heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async())
+//            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
+//        heartbeatACKHandler(webSocketStateHolder, FlowableK.async())
+//            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
+//    }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
         this.block(this@DiscordClient)

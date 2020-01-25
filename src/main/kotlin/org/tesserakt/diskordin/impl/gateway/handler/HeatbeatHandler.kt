@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.impl.gateway.handler
 
 import arrow.core.FunctionK
-import arrow.core.identity
 import arrow.fx.typeclasses.Async
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.EventDispatcher
@@ -10,13 +9,9 @@ import org.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import org.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatEvent
 import org.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import org.tesserakt.diskordin.gateway.ForGatewayAPIF
-import org.tesserakt.diskordin.gateway.json.Opcode
-import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.gateway.json.asInt
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.sendPayload
-import org.tesserakt.diskordin.util.toJsonTree
 import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -62,13 +57,8 @@ fun <F> EventDispatcher<F>.heartbeatACKHandler(
 
     if (diff > 20.seconds) {
         logger.error("Gateway does not responding. Attempt to restart")
-        !state.update(
-            Payload(
-                Opcode.UNDERLYING.asInt(),
-                null,
-                "CONNECTION_FAILED",
-                ConnectionFailed(IllegalStateException("Restart")).toJsonTree()
-            )
-        ).fromEither(::identity)
+        state.update(
+            ConnectionFailed(IllegalStateException("Restart"))
+        )
     }
 }
