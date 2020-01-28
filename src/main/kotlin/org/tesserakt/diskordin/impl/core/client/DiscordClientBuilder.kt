@@ -8,6 +8,7 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
+import org.tesserakt.diskordin.impl.gateway.interceptor.WebSocketStateInterceptor
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
 import java.util.concurrent.ConcurrentHashMap
@@ -66,8 +67,9 @@ class DiscordClientBuilder private constructor() {
 
     companion object {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
-            val builder = DiscordClientBuilder().apply(init)
-
+            val builder = DiscordClientBuilder().apply(init).apply {
+                +gatewayInterceptor(WebSocketStateInterceptor())
+            }
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)

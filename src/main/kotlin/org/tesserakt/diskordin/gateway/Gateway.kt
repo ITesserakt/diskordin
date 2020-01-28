@@ -33,22 +33,21 @@ class Gateway(
             .foldMap(compiler, this)
             .continueOn(scheduler)
             .flatTap { payload ->
-                if (payload.isTokenPayload) {
-                    val token = RawTokenTransformer.transform(payload as Payload<IToken>)
-                    interceptors
-                        .filter { it.selfContext == TokenInterceptor.Context::class }
-                        .forEach { it.intercept(TokenInterceptor.Context(token)) }
-                } else {
-                    val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
-                    interceptors
-                        .filter { it.selfContext == EventInterceptor.Context::class }
-                        .forEach { it.intercept(EventInterceptor.Context(event)) }
+                effect {
+                    if (payload.isTokenPayload) {
+                        val token = RawTokenTransformer.transform(payload as Payload<IToken>)
+                        interceptors
+                            .filter { it.selfContext == TokenInterceptor.Context::class }
+                            .forEach { it.intercept(TokenInterceptor.Context(token)) }
+                    } else {
+                        val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
+                        interceptors
+                            .filter { it.selfContext == EventInterceptor.Context::class }
+                            .forEach { it.intercept(EventInterceptor.Context(event)) }
+                    }
                 }
-
-                Unit.just()
             }
     }
-
 
     companion object Factory {
         private const val gatewayVersion = 6

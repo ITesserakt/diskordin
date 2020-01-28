@@ -34,9 +34,7 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
 import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
@@ -71,16 +69,6 @@ internal class DiscordClient private constructor(
             error(it.message)
         } identify {
         rest.call { userService.getCurrentUser() }
-    }
-
-    init {
-        webSocketStateHolder.observe { _, new ->
-            when (new) {
-                is ConnectionOpened -> logger.info("Gateway reached")
-                is ConnectionClosed -> logger.warn("Gateway closed: ${new.reason}")
-                is ConnectionFailed -> logger.error("Gateway met with error", new.error)
-            }
-        }
     }
 
     override val users get() = cache.values.filterIsInstance<IUser>()
