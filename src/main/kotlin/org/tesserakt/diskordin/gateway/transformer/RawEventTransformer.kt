@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway.interceptor
+package org.tesserakt.diskordin.gateway.transformer
 
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
@@ -18,14 +18,17 @@ import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
 
-object RawEventTransformer : Transformer<Payload<IRawEvent>, IEvent> {
+object RawEventTransformer :
+    Transformer<Payload<IRawEvent>, IEvent> {
     override fun transform(context: Payload<IRawEvent>): IEvent = when (context.opcode()) {
         Opcode.HEARTBEAT -> HeartbeatEvent(context.unwrap())
         Opcode.RECONNECT -> ReconnectEvent()
         Opcode.INVALID_SESSION -> InvalidSessionEvent(context.unwrapAsResponse())
         Opcode.HELLO -> HelloEvent(context.unwrap())
         Opcode.HEARTBEAT_ACK -> HeartbeatACKEvent()
-        Opcode.DISPATCH -> parseDispatch(context)
+        Opcode.DISPATCH -> parseDispatch(
+            context
+        )
         else -> throw IllegalStateException("Should never raises")
     }
 

@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway.interceptor
+package org.tesserakt.diskordin.gateway.transformer
 
 import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -7,7 +7,8 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionClosing
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 
-object RawTokenTransformer : Transformer<Payload<IToken>, IToken> {
+object RawTokenTransformer :
+    Transformer<Payload<IToken>, IToken> {
     override fun transform(context: Payload<IToken>): IToken = when (context.name) {
         "CONNECTION_OPENED" -> context.unwrap<ConnectionOpened>()
         "CONNECTION_CLOSING" -> context.unwrap<ConnectionClosing>()

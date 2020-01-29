@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway.interceptor
+package org.tesserakt.diskordin.gateway.transformer
 
 import com.tinder.scarlet.Message
 import com.tinder.scarlet.websocket.WebSocketEvent
@@ -14,7 +14,8 @@ import org.tesserakt.diskordin.util.toJsonTree
 import java.io.ByteArrayOutputStream
 import java.util.zip.InflaterInputStream
 
-object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayload>> {
+object WebSocketEventTransformer :
+    Transformer<WebSocketEvent, Payload<out IPayload>> {
     override fun transform(context: WebSocketEvent) = when (context) {
         is WebSocketEvent.OnConnectionOpened -> Payload<ConnectionOpened>(
             -1,
@@ -22,7 +23,9 @@ object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayl
             "CONNECTION_OPENED",
             ConnectionOpened.toJsonTree()
         )
-        is WebSocketEvent.OnMessageReceived -> parseTextMessage(context.message).fromJson<Payload<IRawEvent>>()
+        is WebSocketEvent.OnMessageReceived -> parseTextMessage(
+            context.message
+        ).fromJson<Payload<IRawEvent>>()
         is WebSocketEvent.OnConnectionClosing -> Payload<ConnectionClosing>(
             -1,
             null,
@@ -62,6 +65,8 @@ object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayl
 
     private fun parseTextMessage(message: Message): String = when (message) {
         is Message.Text -> message.value
-        is Message.Bytes -> decompressFromZLib(message.value)
+        is Message.Bytes -> decompressFromZLib(
+            message.value
+        )
     }
 }
