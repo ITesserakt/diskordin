@@ -11,9 +11,10 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.util.fromJson
 import org.tesserakt.diskordin.util.toJsonTree
+import java.io.ByteArrayOutputStream
+import java.util.zip.InflaterInputStream
 
 object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayload>> {
-    @UseExperimental(ExperimentalStdlibApi::class)
     override fun transform(context: WebSocketEvent) = when (context) {
         is WebSocketEvent.OnConnectionOpened -> Payload<ConnectionOpened>(
             -1,
@@ -21,10 +22,7 @@ object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayl
             "CONNECTION_OPENED",
             ConnectionOpened.toJsonTree()
         )
-        is WebSocketEvent.OnMessageReceived -> when (val ms = context.message) {
-            is Message.Text -> ms.value
-            is Message.Bytes -> ms.value.decodeToString()
-        }.fromJson<Payload<IRawEvent>>()
+        is WebSocketEvent.OnMessageReceived -> parseTextMessage(context.message).fromJson<Payload<IRawEvent>>()
         is WebSocketEvent.OnConnectionClosing -> Payload<ConnectionClosing>(
             -1,
             null,
@@ -43,5 +41,27 @@ object WebSocketEventTransformer : Transformer<WebSocketEvent, Payload<out IPayl
             "CONNECTION_FAILED",
             ConnectionFailed(context.throwable).toJsonTree()
         )
+    }
+
+    private fun decompressFromZLib(input: ByteArray): String {
+        val inflater = InflaterInputStream(input.inputStream())
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(1024)
+
+        while (true) {
+            val len = inflater.read(buffer)
+            if (len <= 0) break
+            output.write(buffer, 0, len)
+        }
+
+        output.close()
+        inflater.close()
+
+        return output.toString(Charsets.UTF_8.name())
+    }
+
+    private fun parseTextMessage(message: Message): String = when (message) {
+        is Message.Text -> message.value
+        is Message.Bytes -> decompressFromZLib(message.value)
     }
 }
