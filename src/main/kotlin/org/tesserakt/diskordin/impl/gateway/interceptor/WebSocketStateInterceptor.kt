@@ -10,7 +10,7 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 class WebSocketStateInterceptor : TokenInterceptor() {
     private val logger = KotlinLogging.logger("[Gateway]")
 
-    override fun intercept(context: Context) {
+    override suspend fun intercept(context: Context) {
         logStateUpdates(context.token)
     }
 

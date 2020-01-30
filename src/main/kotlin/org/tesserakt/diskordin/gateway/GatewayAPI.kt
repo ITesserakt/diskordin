@@ -19,8 +19,7 @@ sealed class GatewayAPIF<T> : GatewayAPIFOf<T> {
     companion object : FreeApplicativeApplicative<ForGatewayAPIF>
 }
 
-typealias GatewayAPI<A> = FreeApplicative<ForGatewayAPIF, A>
-
+@Deprecated("Remove Arrow.Free")
 fun sendPayload(data: GatewayCommand, lastSequenceId: Int?) = when (data) {
     is UpdateVoiceState -> data::wrapWith.partially1(Opcode.VOICE_STATUS_UPDATE)
     is RequestGuildMembers -> data::wrapWith.partially1(Opcode.REQUEST_GUILD_MEMBERS)
@@ -29,6 +28,3 @@ fun sendPayload(data: GatewayCommand, lastSequenceId: Int?) = when (data) {
     is InvalidSession -> data::wrapWith.partially1(Opcode.INVALID_SESSION)
     is Heartbeat -> data::wrapWith.partially1(Opcode.HEARTBEAT)
 }.andThen { FreeApplicative.liftF(GatewayAPIF.Send(it)) }.invoke(lastSequenceId)
-
-fun observeWebSocketEvents(): GatewayAPI<WebSocketEvent> =
-    FreeApplicative.liftF(GatewayAPIF.WebSocketEvents)

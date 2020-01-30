@@ -8,6 +8,8 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
+import org.tesserakt.diskordin.gateway.sequenceId
+import org.tesserakt.diskordin.impl.gateway.interceptor.HelloChain
 import org.tesserakt.diskordin.impl.gateway.interceptor.WebSocketStateInterceptor
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
@@ -57,7 +59,7 @@ class DiscordClientBuilder private constructor() {
     inline fun DiscordClientBuilder.gatewayInterceptor(value: Interceptor<*>) = value
     inline fun <reified C : Interceptor.Context> DiscordClientBuilder.gatewayInterceptor(crossinline f: (C) -> Unit): Interceptor<*> {
         val interceptor = object : Interceptor<C> {
-            override fun intercept(context: C) = f(context)
+            override suspend fun intercept(context: C) = f(context)
             override val selfContext: KClass<C> = C::class
         }
         return gatewayInterceptor(interceptor)
@@ -69,6 +71,13 @@ class DiscordClientBuilder private constructor() {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
             val builder = DiscordClientBuilder().apply(init).apply {
                 +gatewayInterceptor(WebSocketStateInterceptor())
+                val helloChain = HelloChain(
+                    compression != "",
+                    System.getenv("token") ?: token,
+                    ::sequenceId
+                )
+                +gatewayInterceptor(helloChain.ConnectionInterceptor())
+                +gatewayInterceptor(helloChain)
             }
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)

@@ -18,9 +18,9 @@ import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
 import arrow.fx.rx2.FlowableK
 import arrow.fx.rx2.ForFlowableK
-import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.EventDispatcher
@@ -34,13 +34,10 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
-import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
 import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
-import kotlin.time.ExperimentalTime
 
 internal class DiscordClient private constructor(
     internal val context: BootstrapContext<ForIO>
@@ -58,10 +55,8 @@ internal class DiscordClient private constructor(
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.token
     override val rest: RestClient<ForIO> = context.restClient
-    private val gatewayImplementation = Gateway.create(context.gatewayContext)
 
-    private val gateway = gatewayImplementation.a
-    private val impl = gatewayImplementation.b
+    private val gateway = Gateway.create(context.gatewayContext)
     private val logger = KotlinLogging.logger("[Discord client]")
 
     override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
@@ -74,34 +69,13 @@ internal class DiscordClient private constructor(
     override val users get() = cache.values.filterIsInstance<IUser>()
     override val guilds get() = cache.values.filterIsInstance<IGuild>()
 
-    @ExperimentalTime
+    @ExperimentalCoroutinesApi
+    @FlowPreview
     @Suppress("UNCHECKED_CAST")
-    @ExperimentalStdlibApi
-    override fun login() = IO.fx io@{
-        gateway.run(impl.flowableInterpreter, FlowableK.async())
-            .fix().flowable
-            .doOnError { webSocketStateHolder.update(ConnectionFailed(it)) }
-            .subscribe()
-
-//        launchDefaultEventHandlers(impl.flowableInterpreter)
-        Unit
+    override fun login(): IO<Unit> {
+        gateway.run()
+        return IO.unit
     }
-
-//    @ExperimentalTime
-//    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = with(eventDispatcher) {
-//        handleHello(
-//            token,
-//            context.gatewayContext.connectionContext.compression.isNotEmpty(),
-//            webSocketStateHolder,
-//            gateway::sequenceId,
-//            compiler,
-//            FlowableK.concurrent()
-//        ).continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-//        heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async())
-//            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-//        heartbeatACKHandler(webSocketStateHolder, FlowableK.async())
-//            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-//    }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
         this.block(this@DiscordClient)

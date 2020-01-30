@@ -1,16 +1,14 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.Kind
-import arrow.core.FunctionK
-import arrow.core.toT
-import arrow.fx.typeclasses.Async
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.reactive.asFlow
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
-import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
@@ -20,38 +18,42 @@ import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
 import org.tesserakt.diskordin.impl.core.client.setupScarlet
 import kotlin.coroutines.CoroutineContext
 
-typealias GatewayCompiler<G> = FunctionK<ForGatewayAPIF, G>
+internal var sequenceId: Int? = null
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class Gateway(
     private val scheduler: CoroutineContext,
     private val lifecycleRegistry: GatewayLifecycleManager,
-    private val interceptors: List<Interceptor<Interceptor.Context>>
+    private val interceptors: Flow<Interceptor<Interceptor.Context>>,
+    private val implementation: Implementation
 ) {
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     @Suppress("UNCHECKED_CAST")
-    @ExperimentalStdlibApi
-    internal fun <G> run(compiler: GatewayCompiler<G>, A: Async<G>): Kind<G, Payload<out IPayload>> = A.run {
+    internal fun run(): Job {
         lifecycleRegistry.start()
 
-        observeWebSocketEvents()
-            .map(WebSocketEventTransformer::transform)
-            .foldMap(compiler, this)
-            .continueOn(scheduler)
-            .flatTap { payload ->
-                effect {
-                    if (payload.isTokenPayload) {
-                        val token = RawTokenTransformer.transform(payload as Payload<IToken>)
-                        interceptors
-                            .filter { it.selfContext == TokenInterceptor.Context::class }
-                            .forEach { it.intercept(TokenInterceptor.Context(token)) }
-                    } else {
-                        val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
-                        interceptors
-                            .filter { it.selfContext == EventInterceptor.Context::class }
-                            .forEach { it.intercept(EventInterceptor.Context(event)) }
-                    }
+        val chain = implementation.receive().asFlow()
+            .map { WebSocketEventTransformer.transform(it) }
+            .onEach { sequenceId = it.seq ?: sequenceId }
+            .flowOn(scheduler)
+            .flatMapMerge { payload ->
+                if (payload.isTokenPayload) {
+                    val token = RawTokenTransformer.transform(payload as Payload<IToken>)
+                    interceptors
+                        .filter { it.selfContext == TokenInterceptor.Context::class }
+                        .map { it.intercept(TokenInterceptor.Context(implementation, token)) }
+                } else {
+                    val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
+                    interceptors
+                        .filter { it.selfContext == EventInterceptor.Context::class }
+                        .map { it.intercept(EventInterceptor.Context(implementation, event)) }
                 }
             }
+
+        return CoroutineScope(scheduler).launch {
+            chain.collect()
+        }
     }
 
     companion object Factory {
@@ -70,11 +72,12 @@ class Gateway(
             scarlet(start, compression, httpClient).create<Implementation>()
         }
 
-        fun create(context: BootstrapContext.Gateway) =
-            Gateway(context.scheduler, context.lifecycleRegistry, context.interceptors) toT impl(
+        fun create(context: BootstrapContext.Gateway) = Gateway(
+            context.scheduler, context.lifecycleRegistry, context.interceptors.asFlow(), impl(
                 context.connectionContext.url,
                 context.connectionContext.compression,
                 context.httpClient
             )
+        )
     }
 }
