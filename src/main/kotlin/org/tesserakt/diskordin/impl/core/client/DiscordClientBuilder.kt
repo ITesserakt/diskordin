@@ -9,6 +9,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.sequenceId
+import org.tesserakt.diskordin.impl.gateway.interceptor.HeartbeatInterceptor
 import org.tesserakt.diskordin.impl.gateway.interceptor.HelloChain
 import org.tesserakt.diskordin.impl.gateway.interceptor.WebSocketStateInterceptor
 import org.tesserakt.diskordin.rest.RestClient
@@ -78,6 +79,7 @@ class DiscordClientBuilder private constructor() {
                 )
                 +gatewayInterceptor(helloChain.ConnectionInterceptor())
                 +gatewayInterceptor(helloChain)
+                +gatewayInterceptor(HeartbeatInterceptor(::sequenceId))
             }
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
