@@ -78,10 +78,10 @@ class DiscordClientBuilder private constructor() {
                     System.getenv("token") ?: token,
                     ::sequenceId
                 )
-                +gatewayInterceptor(helloChain.ConnectionInterceptor())
-                +gatewayInterceptor(helloChain)
                 +gatewayInterceptor(HeartbeatInterceptor(::sequenceId))
                 +gatewayInterceptor(HeartbeatACKInterceptor())
+                +gatewayInterceptor(helloChain.ConnectionInterceptor())
+                +gatewayInterceptor(helloChain)
             }
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
