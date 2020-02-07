@@ -3,7 +3,6 @@ package org.tesserakt.diskordin.core.client
 import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.rx2.ForFlowableK
 import arrow.fx.typeclasses.ConcurrentSyntax
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -14,7 +13,6 @@ import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
-    val eventDispatcher: EventDispatcher<ForFlowableK>
     val webSocketStateHolder: WebSocketStateHolder
     val token: String
     val self: IdentifiedF<ForIO, ISelf>

@@ -16,14 +16,11 @@ import arrow.fx.extensions.io.functor.map
 import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
-import arrow.fx.rx2.FlowableK
-import arrow.fx.rx2.ForFlowableK
 import arrow.fx.typeclasses.ConcurrentSyntax
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.IdentifiedF
@@ -35,7 +32,6 @@ import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.json.token.NoConnection
-import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 
@@ -51,7 +47,6 @@ internal class DiscordClient private constructor(
         }.map { it!! }
     }
 
-    override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.token
     override val rest: RestClient<ForIO> = context.restClient
