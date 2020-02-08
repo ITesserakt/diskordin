@@ -27,11 +27,8 @@ class Gateway(
     internal fun run(): Job {
         context.lifecycleRegistry.start()
         val controller = ShardController(
-            context.connectionContext.shardCount,
-            implementation,
-            context.connectionContext.token,
-            context.connectionContext.compressionStrategy,
-            context.connectionContext.guildSubscriptionsStrategy
+            context.connectionContext.shardSettings,
+            implementation
         )
 
         val chain = implementation.receive().asFlow()
@@ -69,14 +66,10 @@ class Gateway(
             setupScarlet(gatewayUrl(start, compression), httpClient)
         }
 
-        private val impl = { start: String, compression: String, httpClient: OkHttpClient ->
-            scarlet(start, compression, httpClient).create<Implementation>()
+        private val impl = { context: BootstrapContext.Gateway.Connection ->
+            scarlet(context.url, context.compression, context.httpClient).create<Implementation>()
         }
 
-        fun create(context: BootstrapContext.Gateway) =
-            Gateway(
-                context,
-                impl(context.connectionContext.url, context.connectionContext.compression, context.httpClient)
-            )
+        fun create(context: BootstrapContext.Gateway) = Gateway(context, impl(context.connectionContext))
     }
 }

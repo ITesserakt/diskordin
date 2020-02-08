@@ -1,17 +1,17 @@
 package org.tesserakt.diskordin.impl.core.client
 
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow
+import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
-import org.tesserakt.diskordin.gateway.CompressionStrategy
-import org.tesserakt.diskordin.gateway.GuildSubscriptionsStrategy
+import org.tesserakt.diskordin.gateway.*
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
-import org.tesserakt.diskordin.gateway.sequenceId
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
@@ -32,6 +32,7 @@ class DiscordClientBuilder private constructor() {
         GuildSubscriptionsStrategy.SubscribeTo(emptyList())
     private var compressionStrategy: CompressionStrategy = CompressionStrategy.CompressOnly(emptyList())
     private var shardCount = 1
+    private var threshold = ShardThreshold(emptyMap())
 
     operator fun String.unaryPlus() {
         token = this
@@ -74,6 +75,16 @@ class DiscordClientBuilder private constructor() {
         shardCount = this.v
     }
 
+    operator fun Map<Int, Int>.unaryPlus() {
+        require(this.values.all { it in 50..250 }) {
+            "Invalid threshold value. It should be in the range [50; 250]"
+        }
+        require(this.keys.all { it < shardCount }) {
+            "Invalid shard index. It should be less than shard count"
+        }
+        threshold = ShardThreshold(this)
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
@@ -90,6 +101,8 @@ class DiscordClientBuilder private constructor() {
     inline fun DiscordClientBuilder.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
     inline fun DiscordClientBuilder.compressShards(vararg shardIndexes: Int) = shardIndexes
     inline fun DiscordClientBuilder.useShards(count: Int) = ShardCount(count)
+    inline fun DiscordClientBuilder.thresholdOverrides(vararg overrides: Pair<ShardIndex, LargeThreshold>) =
+        overrides.toMap()
 
     internal object VerificationStub
 
@@ -109,27 +122,53 @@ class DiscordClientBuilder private constructor() {
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
             val rest = RestClient.byRetrofit(retrofit, IO.async())
 
-            val connectionContext = BootstrapContext.Gateway.Connection(
-                token,
-                "wss://gateway.discord.gg",
-                builder.compression,
-                builder.shardCount,
-                builder.compressionStrategy,
-                builder.guildSubscriptionsStrategy
-            )
-            val gatewayContext = BootstrapContext.Gateway(
-                builder.gatewayContext,
-                httpClient,
-                GlobalGatewayLifecycle,
-                builder.interceptors.asFlow(),
-                connectionContext
-            )
-            val globalContext = BootstrapContext(
-                builder.cache,
-                rest,
-                gatewayContext
-            )
+            val shardSettings = formShardSettings(token, builder)
+            val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
+            val gatewayContext = formGatewaySettings(builder, connectionContext)
+            val globalContext = formBootstrapContext(builder, rest, gatewayContext)
             return DiscordClient(globalContext).unsafeRunSync()
         }
+
+        private fun formBootstrapContext(
+            builder: DiscordClientBuilder,
+            rest: RestClient<ForIO>,
+            gatewayContext: BootstrapContext.Gateway
+        ): BootstrapContext<ForIO> = BootstrapContext(
+            builder.cache,
+            rest,
+            gatewayContext
+        )
+
+        private fun formGatewaySettings(
+            builder: DiscordClientBuilder,
+            connectionContext: BootstrapContext.Gateway.Connection
+        ): BootstrapContext.Gateway = BootstrapContext.Gateway(
+            builder.gatewayContext,
+            GlobalGatewayLifecycle,
+            builder.interceptors.asFlow(),
+            connectionContext
+        )
+
+        private fun formConnectionSettings(
+            httpClient: OkHttpClient,
+            builder: DiscordClientBuilder,
+            shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
+        ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(
+            httpClient,
+            "wss://gateway.discord.gg",
+            builder.compression,
+            shardSettings
+        )
+
+        private fun formShardSettings(
+            token: String,
+            builder: DiscordClientBuilder
+        ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
+            token,
+            builder.shardCount,
+            builder.compressionStrategy,
+            builder.guildSubscriptionsStrategy,
+            builder.threshold
+        )
     }
 }

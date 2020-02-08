@@ -1,14 +1,12 @@
 package org.tesserakt.diskordin.gateway
 
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 
 class ShardController internal constructor(
-    private val shardCount: Int,
-    private val implementation: Implementation,
-    private val token: String,
-    private val compress: CompressionStrategy,
-    private val guildSubscriptions: GuildSubscriptionsStrategy
+    private val context: BootstrapContext.Gateway.Connection.ShardSettings,
+    private val implementation: Implementation
 ) {
     private val shards = mutableListOf<Shard>()
 
@@ -18,25 +16,25 @@ class ShardController internal constructor(
         "Diskordin"
     )
 
-    private fun isShardCompressed(shardIndex: Int) = when (compress) {
+    private fun isShardCompressed(shardIndex: Int) = when (context.compressionStrategy) {
         CompressionStrategy.CompressAll -> true
-        is CompressionStrategy.CompressOnly -> shardIndex in compress.shardIndexes
+        is CompressionStrategy.CompressOnly -> shardIndex in context.compressionStrategy.shardIndexes
     }
 
-    private fun isShardSubscribed(shardIndex: Int) = when (guildSubscriptions) {
+    private fun isShardSubscribed(shardIndex: Int) = when (context.guildSubscriptionsStrategy) {
         GuildSubscriptionsStrategy.SubscribeToAll -> true
-        is GuildSubscriptionsStrategy.SubscribeTo -> shardIndex in guildSubscriptions.shardIndexes
+        is GuildSubscriptionsStrategy.SubscribeTo -> shardIndex in context.guildSubscriptionsStrategy.shardIndexes
     }
 
     suspend fun openShard(shardIndex: Int) {
-        require(shardIndex < shardCount) { "Given index of shard less than count" }
+        require(shardIndex < context.shardCount) { "Given index of shard less than count" }
 
         val identify = Identify(
-            token,
+            context.token,
             connectionProperties,
             isShardCompressed(shardIndex),
-            50, //TODO: Add threshold settings
-            arrayOf(shardIndex, shardCount),
+            context.shardThresholdOverrides.overrides[shardIndex] ?: 50,
+            arrayOf(shardIndex, context.shardCount),
             isShardSubscribed(shardIndex)
         )
 
@@ -45,13 +43,13 @@ class ShardController internal constructor(
 
     internal fun approveShard(shardIndex: Int, sessionId: String) {
         shards += Shard(
-            token, sessionId, shardIndex to shardCount
+            context.token, sessionId, shardIndex to context.shardCount
         )
     }
 
     internal suspend fun resumeShard(shardIndex: Int) {
         val shard = shards.first { it.shardData.first == shardIndex }
-        val resume = Resume(token, shard.sessionId, sequenceId)
+        val resume = Resume(context.token, shard.sessionId, sequenceId)
 
         implementation.sendPayload(resume, sequenceId)
     }
