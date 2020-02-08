@@ -6,6 +6,6 @@ import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 
 class HeartbeatInterceptor(private val sequenceId: () -> Int?) : EventInterceptor() {
     override suspend fun Context.heartbeat(event: HeartbeatEvent) {
-        sendPayload(Heartbeat(event.v), sequenceId())
+        sendPayload(Heartbeat(event.v))
     }
 }

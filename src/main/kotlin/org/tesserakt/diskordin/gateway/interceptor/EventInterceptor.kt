@@ -15,13 +15,16 @@ import org.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemo
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
 import org.tesserakt.diskordin.gateway.Implementation
+import org.tesserakt.diskordin.gateway.ShardController
+import org.tesserakt.diskordin.gateway.sequenceId
 import kotlin.reflect.KClass
 
 abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
     class Context(
         impl: Implementation,
-        val event: IEvent
-    ) : Interceptor.Context(impl)
+        val event: IEvent,
+        controller: ShardController
+    ) : Interceptor.Context(impl, controller, ::sequenceId)
 
     override val selfContext: KClass<Context> = Context::class
 

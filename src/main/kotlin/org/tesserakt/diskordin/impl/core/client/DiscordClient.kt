@@ -48,7 +48,7 @@ internal class DiscordClient private constructor(
     }
 
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
-    override val token: String = context.token
+    override val token: String = context.gatewayContext.connectionContext.token
     override val rest: RestClient<ForIO> = context.restClient
 
     private val gateway = Gateway.create(context.gatewayContext)

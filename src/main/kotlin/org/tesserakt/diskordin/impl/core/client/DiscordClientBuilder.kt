@@ -9,10 +9,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.sequenceId
-import org.tesserakt.diskordin.impl.gateway.interceptor.HeartbeatACKInterceptor
-import org.tesserakt.diskordin.impl.gateway.interceptor.HeartbeatInterceptor
-import org.tesserakt.diskordin.impl.gateway.interceptor.HelloChain
-import org.tesserakt.diskordin.impl.gateway.interceptor.WebSocketStateInterceptor
+import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
 import java.util.concurrent.ConcurrentHashMap
@@ -73,15 +70,12 @@ class DiscordClientBuilder private constructor() {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
             val builder = DiscordClientBuilder().apply(init).apply {
                 +gatewayInterceptor(WebSocketStateInterceptor())
-                val helloChain = HelloChain(
-                    compression != "",
-                    System.getenv("token") ?: token,
-                    ::sequenceId
-                )
+                val helloChain = HelloChain()
                 +gatewayInterceptor(HeartbeatInterceptor(::sequenceId))
                 +gatewayInterceptor(HeartbeatACKInterceptor())
                 +gatewayInterceptor(helloChain.ConnectionInterceptor())
                 +gatewayInterceptor(helloChain)
+                +gatewayInterceptor(ShardApprover())
             }
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
@@ -89,6 +83,7 @@ class DiscordClientBuilder private constructor() {
             val rest = RestClient.byRetrofit(retrofit, IO.async())
 
             val connectionContext = BootstrapContext.Gateway.Connection(
+                token,
                 "wss://gateway.discord.gg",
                 builder.compression
             )
@@ -100,7 +95,6 @@ class DiscordClientBuilder private constructor() {
                 connectionContext
             )
             val globalContext = BootstrapContext(
-                token,
                 builder.cache,
                 rest,
                 gatewayContext

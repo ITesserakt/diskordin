@@ -20,18 +20,25 @@ import kotlin.coroutines.CoroutineContext
 
 internal var sequenceId: Int? = null
 
-@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class Gateway(
     private val scheduler: CoroutineContext,
     private val lifecycleRegistry: GatewayLifecycleManager,
     private val interceptors: Flow<Interceptor<Interceptor.Context>>,
-    private val implementation: Implementation
+    private val implementation: Implementation,
+    private val token: String
 ) {
     @FlowPreview
     @ExperimentalCoroutinesApi
     @Suppress("UNCHECKED_CAST")
     internal fun run(): Job {
         lifecycleRegistry.start()
+        val controller = ShardController(
+            1,
+            implementation,
+            token,
+            CompressionStrategy.CompressAll,
+            GuildSubscriptionsStrategy.SubscribeToAll
+        )
 
         val chain = implementation.receive().asFlow()
             .map { WebSocketEventTransformer.transform(it) }
@@ -42,12 +49,12 @@ class Gateway(
                     val token = RawTokenTransformer.transform(payload as Payload<IToken>)
                     interceptors
                         .filter { it.selfContext == TokenInterceptor.Context::class }
-                        .map { it.intercept(TokenInterceptor.Context(implementation, token)) }
+                        .map { it.intercept(TokenInterceptor.Context(implementation, token, controller)) }
                 } else {
                     val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
                     interceptors
                         .filter { it.selfContext == EventInterceptor.Context::class }
-                        .map { it.intercept(EventInterceptor.Context(implementation, event)) }
+                        .map { it.intercept(EventInterceptor.Context(implementation, event, controller)) }
                 }
             }
 
@@ -77,7 +84,7 @@ class Gateway(
                 context.connectionContext.url,
                 context.connectionContext.compression,
                 context.httpClient
-            )
+            ), context.connectionContext.token
         )
     }
 }

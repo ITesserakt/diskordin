@@ -8,7 +8,6 @@ import org.tesserakt.diskordin.rest.RestClient
 import kotlin.coroutines.CoroutineContext
 
 data class BootstrapContext<F>(
-    val token: String,
     val cache: MutableMap<Snowflake, IEntity>,
     val restClient: RestClient<F>,
     val gatewayContext: Gateway
@@ -21,6 +20,7 @@ data class BootstrapContext<F>(
         val connectionContext: Connection
     ) {
         data class Connection(
+            val token: String,
             val url: String,
             val compression: String
         )
