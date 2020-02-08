@@ -3,10 +3,13 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
+import org.tesserakt.diskordin.gateway.CompressionStrategy
+import org.tesserakt.diskordin.gateway.GuildSubscriptionsStrategy
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.sequenceId
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
@@ -16,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
+inline class ShardCount(val v: Int)
+
 @Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder private constructor() {
     private var token: String = "Invalid"
@@ -23,6 +28,10 @@ class DiscordClientBuilder private constructor() {
     private var compression = ""
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
     private val interceptors = mutableListOf<Interceptor<Interceptor.Context>>()
+    private var guildSubscriptionsStrategy: GuildSubscriptionsStrategy =
+        GuildSubscriptionsStrategy.SubscribeTo(emptyList())
+    private var compressionStrategy: CompressionStrategy = CompressionStrategy.CompressOnly(emptyList())
+    private var shardCount = 1
 
     operator fun String.unaryPlus() {
         token = this
@@ -30,10 +39,6 @@ class DiscordClientBuilder private constructor() {
 
     operator fun CoroutineContext.unaryPlus() {
         gatewayContext = this
-    }
-
-    operator fun Unit.unaryPlus() {
-        compression = "zlib-stream"
     }
 
     operator fun Boolean.unaryPlus() {
@@ -50,8 +55,26 @@ class DiscordClientBuilder private constructor() {
         interceptors.add(this as Interceptor<Interceptor.Context>)
     }
 
+    operator fun List<Int>.unaryPlus() {
+        guildSubscriptionsStrategy = if (this.isNotEmpty())
+            GuildSubscriptionsStrategy.SubscribeTo(this)
+        else
+            GuildSubscriptionsStrategy.SubscribeToAll
+    }
+
+    operator fun IntArray.unaryPlus() {
+        compression = "zlib-stream"
+        compressionStrategy = if (this.isNotEmpty())
+            CompressionStrategy.CompressOnly(this.toList())
+        else
+            CompressionStrategy.CompressAll
+    }
+
+    operator fun ShardCount.unaryPlus() {
+        shardCount = this.v
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
-    inline fun DiscordClientBuilder.useCompression() = Unit
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
     internal inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
@@ -63,6 +86,10 @@ class DiscordClientBuilder private constructor() {
         }
         return gatewayInterceptor(interceptor)
     }
+
+    inline fun DiscordClientBuilder.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
+    inline fun DiscordClientBuilder.compressShards(vararg shardIndexes: Int) = shardIndexes
+    inline fun DiscordClientBuilder.useShards(count: Int) = ShardCount(count)
 
     internal object VerificationStub
 
@@ -85,13 +112,16 @@ class DiscordClientBuilder private constructor() {
             val connectionContext = BootstrapContext.Gateway.Connection(
                 token,
                 "wss://gateway.discord.gg",
-                builder.compression
+                builder.compression,
+                builder.shardCount,
+                builder.compressionStrategy,
+                builder.guildSubscriptionsStrategy
             )
             val gatewayContext = BootstrapContext.Gateway(
                 builder.gatewayContext,
                 httpClient,
                 GlobalGatewayLifecycle,
-                builder.interceptors,
+                builder.interceptors.asFlow(),
                 connectionContext
             )
             val globalContext = BootstrapContext(
