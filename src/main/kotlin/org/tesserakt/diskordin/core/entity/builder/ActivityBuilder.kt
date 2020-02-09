@@ -20,8 +20,13 @@ class ActivityBuilder(
     private var party: ActivityResponse.PartyResponse? = null
     private var assets: ActivityResponse.AssetsResponse? = null
     private var secrets: ActivityResponse.SecretsResponse? = null
-    private var isGameInstance: Boolean = false
+    private val isGameInstance: Boolean?
+        get() {
+            return if (type == IActivity.Type.Game) true
+            else null
+        }
     private var flags: ValuedEnum<IActivity.Flags, Short>? = null
+    private var emoji: ActivityResponse.EmojiResponse? = null
 
     operator fun URL.unaryPlus() {
         url = this.v
@@ -49,12 +54,17 @@ class ActivityBuilder(
         }
     }
 
+    internal operator fun Name.unaryPlus() {
+        emoji = ActivityResponse.EmojiResponse(v)
+    }
+
     inline fun ActivityBuilder.url(value: String) = URL(value)
     inline fun ActivityBuilder.timestamps(builder: TimestampBuilder.() -> Unit) = TimestampBuilder().apply(builder)
     inline fun ActivityBuilder.application(id: Snowflake) = id
     inline fun ActivityBuilder.details(value: String) = value
     inline fun ActivityBuilder.state(value: String) = State(value)
     inline fun ActivityBuilder.flags(vararg flag: IActivity.Flags) = flag
+    internal inline fun ActivityBuilder.emoji(name: String) = Name(name)
 
     @RequestBuilder
     class TimestampBuilder {
@@ -86,6 +96,7 @@ class ActivityBuilder(
         details,
         state,
         party,
+        emoji,
         assets,
         secrets,
         isGameInstance,

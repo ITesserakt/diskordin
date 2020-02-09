@@ -14,6 +14,7 @@ data class ActivityResponse(
     val details: String? = null,
     val state: String? = null,
     val party: PartyResponse? = null,
+    val emoji: EmojiResponse? = null,
     val assets: AssetsResponse? = null,
     val secrets: SecretsResponse? = null,
     val instance: Boolean? = false,
@@ -21,6 +22,15 @@ data class ActivityResponse(
 ) : DiscordResponse<IActivity, UnwrapContext.EmptyContext>() {
     @ExperimentalTime
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity = Activity(this)
+
+    data class EmojiResponse(
+        val name: String,
+        val id: Snowflake? = null,
+        val animated: Boolean? = null
+    ) : DiscordResponse<IActivity.IEmoji, UnwrapContext.EmptyContext>() {
+        @ExperimentalTime
+        override fun unwrap(ctx: UnwrapContext.EmptyContext): IActivity.IEmoji = Activity.Emoji(this)
+    }
 
     data class TimestampsResponse(
         val start: Long? = null,
