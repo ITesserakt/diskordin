@@ -29,12 +29,17 @@ class ShardController internal constructor(
     suspend fun openShard(shardIndex: Int) {
         require(shardIndex < context.shardCount) { "Given index of shard less than count" }
 
+        val needUpdatedPresence = if (shardIndex == 0)
+            context.initialPresence
+        else null
+
         val identify = Identify(
             context.token,
             connectionProperties,
             isShardCompressed(shardIndex),
             context.shardThresholdOverrides.overrides[shardIndex] ?: 50,
             arrayOf(shardIndex, context.shardCount),
+            needUpdatedPresence,
             isShardSubscribed(shardIndex)
         )
 

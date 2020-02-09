@@ -9,7 +9,10 @@ import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.IEntity
+import org.tesserakt.diskordin.core.entity.builder.PresenceBuilder
+import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.*
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
@@ -21,6 +24,7 @@ import kotlin.reflect.KClass
 
 inline class ShardCount(val v: Int)
 
+@RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder private constructor() {
     private var token: String = "Invalid"
@@ -33,6 +37,7 @@ class DiscordClientBuilder private constructor() {
     private var compressionStrategy: CompressionStrategy = CompressionStrategy.CompressOnly(emptyList())
     private var shardCount = 1
     private var threshold = ShardThreshold(emptyMap())
+    private var request: UserStatusUpdateRequest? = null
 
     operator fun String.unaryPlus() {
         token = this
@@ -85,6 +90,10 @@ class DiscordClientBuilder private constructor() {
         threshold = ShardThreshold(this)
     }
 
+    operator fun PresenceBuilder.unaryPlus() {
+        this@DiscordClientBuilder.request = this@unaryPlus.create()
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
@@ -103,6 +112,9 @@ class DiscordClientBuilder private constructor() {
     inline fun DiscordClientBuilder.useShards(count: Int) = ShardCount(count)
     inline fun DiscordClientBuilder.thresholdOverrides(vararg overrides: Pair<ShardIndex, LargeThreshold>) =
         overrides.toMap()
+
+    inline fun DiscordClientBuilder.initialPresence(builder: PresenceBuilder.() -> Unit) =
+        PresenceBuilder().apply(builder)
 
     internal object VerificationStub
 
@@ -168,7 +180,8 @@ class DiscordClientBuilder private constructor() {
             builder.shardCount,
             builder.compressionStrategy,
             builder.guildSubscriptionsStrategy,
-            builder.threshold
+            builder.threshold,
+            builder.request
         )
     }
 }

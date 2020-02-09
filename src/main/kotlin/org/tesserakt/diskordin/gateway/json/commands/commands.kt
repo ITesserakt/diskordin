@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.gateway.json.commands
 
 import com.google.gson.annotations.SerializedName
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 
@@ -58,6 +59,7 @@ data class Identify(
     val compress: Boolean = false,
     val largeThreshold: Int = 50,
     val shard: Array<Int> = emptyArray(),
+    val presence: UserStatusUpdateRequest? = null,
     val guildSubscriptions: Boolean = true
 ) : GatewayCommand() {
     data class ConnectionProperties(

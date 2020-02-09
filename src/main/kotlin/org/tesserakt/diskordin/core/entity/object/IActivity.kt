@@ -62,6 +62,6 @@ interface IActivity : IDiscordObject {
         Streaming,
         Listening,
         Watching,
-        Unknown;
+        Custom;
     }
 }
