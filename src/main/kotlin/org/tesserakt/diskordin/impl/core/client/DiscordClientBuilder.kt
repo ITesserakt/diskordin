@@ -13,11 +13,14 @@ import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.core.entity.builder.PresenceBuilder
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
-import org.tesserakt.diskordin.gateway.*
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
+import org.tesserakt.diskordin.gateway.sequenceId
+import org.tesserakt.diskordin.gateway.shard.*
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
+import org.tesserakt.diskordin.util.enums.IValued
+import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
@@ -38,6 +41,7 @@ class DiscordClientBuilder private constructor() {
     private var shardCount = 1
     private var threshold = ShardThreshold(emptyMap())
     private var request: UserStatusUpdateRequest? = null
+    private var intents: IntentsStrategy = IntentsStrategy.EnableAll
 
     operator fun String.unaryPlus() {
         token = this
@@ -94,6 +98,16 @@ class DiscordClientBuilder private constructor() {
         this@DiscordClientBuilder.request = this@unaryPlus.create()
     }
 
+    operator fun Pair<Int, Short>.unaryPlus() {
+        intents = when (intents) {
+            IntentsStrategy.EnableAll -> IntentsStrategy.EnableOnly(mapOf(this))
+            is IntentsStrategy.EnableOnly -> {
+                val saved = (intents as IntentsStrategy.EnableOnly).enabled
+                IntentsStrategy.EnableOnly(saved + this)
+            }
+        }
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
@@ -115,6 +129,12 @@ class DiscordClientBuilder private constructor() {
 
     inline fun DiscordClientBuilder.initialPresence(builder: PresenceBuilder.() -> Unit) =
         PresenceBuilder().apply(builder)
+
+    inline fun DiscordClientBuilder.featureOverrides(shardIndex: Int, value: ValuedEnum<Intents, Short>) =
+        shardIndex to value.code
+
+    inline fun DiscordClientBuilder.featureOverrides(shardIndex: Int, value: IValued<Intents, Short>) =
+        shardIndex to value.value
 
     internal object VerificationStub
 
@@ -181,7 +201,8 @@ class DiscordClientBuilder private constructor() {
             builder.compressionStrategy,
             builder.guildSubscriptionsStrategy,
             builder.threshold,
-            builder.request
+            builder.request,
+            builder.intents
         )
     }
 }

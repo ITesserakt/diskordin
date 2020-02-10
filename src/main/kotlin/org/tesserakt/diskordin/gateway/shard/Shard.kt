@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway
+package org.tesserakt.diskordin.gateway.shard
 
 private typealias Current = Int
 private typealias Total = Int

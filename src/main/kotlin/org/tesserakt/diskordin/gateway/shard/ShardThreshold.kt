@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway
+package org.tesserakt.diskordin.gateway.shard
 
 typealias ShardIndex = Int
 typealias LargeThreshold = Int

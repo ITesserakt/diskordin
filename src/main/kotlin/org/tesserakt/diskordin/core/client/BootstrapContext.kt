@@ -5,10 +5,11 @@ import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.IEntity
-import org.tesserakt.diskordin.gateway.CompressionStrategy
-import org.tesserakt.diskordin.gateway.GuildSubscriptionsStrategy
-import org.tesserakt.diskordin.gateway.ShardThreshold
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
+import org.tesserakt.diskordin.gateway.shard.CompressionStrategy
+import org.tesserakt.diskordin.gateway.shard.GuildSubscriptionsStrategy
+import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
+import org.tesserakt.diskordin.gateway.shard.ShardThreshold
 import org.tesserakt.diskordin.rest.RestClient
 import kotlin.coroutines.CoroutineContext
 
@@ -35,7 +36,8 @@ data class BootstrapContext<F>(
                 val compressionStrategy: CompressionStrategy,
                 val guildSubscriptionsStrategy: GuildSubscriptionsStrategy,
                 val shardThresholdOverrides: ShardThreshold,
-                val initialPresence: UserStatusUpdateRequest?
+                val initialPresence: UserStatusUpdateRequest?,
+                val intents: IntentsStrategy
             )
         }
     }

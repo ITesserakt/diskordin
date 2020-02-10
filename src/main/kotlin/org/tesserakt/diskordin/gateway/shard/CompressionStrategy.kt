@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.gateway
+package org.tesserakt.diskordin.gateway.shard
 
 sealed class CompressionStrategy {
     object CompressAll : CompressionStrategy()

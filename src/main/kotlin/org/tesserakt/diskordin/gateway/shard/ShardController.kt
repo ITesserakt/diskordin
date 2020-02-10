@@ -1,8 +1,11 @@
-package org.tesserakt.diskordin.gateway
+package org.tesserakt.diskordin.gateway.shard
 
 import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.gateway.Implementation
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
+import org.tesserakt.diskordin.gateway.sendPayload
+import org.tesserakt.diskordin.gateway.sequenceId
 
 class ShardController internal constructor(
     private val context: BootstrapContext.Gateway.Connection.ShardSettings,
@@ -26,6 +29,11 @@ class ShardController internal constructor(
         is GuildSubscriptionsStrategy.SubscribeTo -> shardIndex in context.guildSubscriptionsStrategy.shardIndexes
     }
 
+    private fun getShardIntents(shardIndex: Int) = when (context.intents) {
+        IntentsStrategy.EnableAll -> Short.MAX_VALUE
+        is IntentsStrategy.EnableOnly -> context.intents.enabled[shardIndex] ?: Short.MAX_VALUE
+    }
+
     suspend fun openShard(shardIndex: Int) {
         require(shardIndex < context.shardCount) { "Given index of shard less than count" }
 
@@ -40,6 +48,7 @@ class ShardController internal constructor(
             context.shardThresholdOverrides.overrides[shardIndex] ?: 50,
             arrayOf(shardIndex, context.shardCount),
             needUpdatedPresence,
+            getShardIntents(shardIndex),
             isShardSubscribed(shardIndex)
         )
 
@@ -54,7 +63,10 @@ class ShardController internal constructor(
 
     internal suspend fun resumeShard(shardIndex: Int) {
         val shard = shards.first { it.shardData.first == shardIndex }
-        val resume = Resume(context.token, shard.sessionId, sequenceId)
+        val resume = Resume(
+            context.token, shard.sessionId,
+            sequenceId
+        )
 
         implementation.sendPayload(resume, sequenceId)
     }

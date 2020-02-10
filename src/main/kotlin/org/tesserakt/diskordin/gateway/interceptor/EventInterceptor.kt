@@ -15,8 +15,8 @@ import org.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemo
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
 import org.tesserakt.diskordin.gateway.Implementation
-import org.tesserakt.diskordin.gateway.ShardController
 import org.tesserakt.diskordin.gateway.sequenceId
+import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
 abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {

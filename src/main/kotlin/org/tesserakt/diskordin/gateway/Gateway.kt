@@ -10,6 +10,7 @@ import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
+import org.tesserakt.diskordin.gateway.shard.ShardController
 import org.tesserakt.diskordin.gateway.transformer.RawEventTransformer
 import org.tesserakt.diskordin.gateway.transformer.RawTokenTransformer
 import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
