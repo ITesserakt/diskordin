@@ -21,6 +21,10 @@ data class IdentifiedF<F, E : IEntity>(
     fun <B : IEntity> flatMap(M: Monad<F>, f: (E) -> IdentifiedF<F, B>) = id identify render.flatMap(M) {
         f(it).render
     }.run
+
+    override fun toString(): String {
+        return "{$id -> thunk()}"
+    }
 }
 
 typealias Identified<E> = IdentifiedF<ForId, E>
