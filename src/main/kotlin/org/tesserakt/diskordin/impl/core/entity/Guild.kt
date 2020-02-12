@@ -232,38 +232,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     @ExperimentalTime
     override fun toString(): String {
-        return StringBuilder("Guild(")
-            .appendln("region=$region, ")
-            .appendln("isEmbedEnabled=$isEmbedEnabled, ")
-            .appendln("defaultMessageNotificationLevel=$defaultMessageNotificationLevel, ")
-            .appendln("explicitContentFilter=$explicitContentFilter, ")
-            .appendln("mfaLevel=$mfaLevel, ")
-            .appendln("isWidgetEnabled=$isWidgetEnabled, ")
-            .appendln("widgetChannel=$widgetChannel, ")
-            .appendln("systemChannel=$systemChannel, ")
-            .appendln("maxMembers=$maxMembers, ")
-            .appendln("maxPresences=$maxPresences, ")
-            .appendln("description=$description, ")
-            .appendln("bannerHash=$bannerHash, ")
-            .appendln("premiumTier=$premiumTier, ")
-            .appendln("premiumSubscriptions=$premiumSubscriptions, ")
-            .appendln("features=$features, ")
-            .appendln("id=$id, ")
-            .appendln("invites=$invites, ")
-            .appendln("emojis=$emojis, ")
-            .appendln("bans=$bans, ")
-            .appendln("integrations=$integrations, ")
-            .appendln("iconHash=$iconHash, ")
-            .appendln("splashHash=$splashHash, ")
-            .appendln("owner=$owner, ")
-            .appendln("afkChannel=$afkChannel, ")
-            .appendln("afkChannelTimeout=$afkChannelTimeout, ")
-            .appendln("verificationLevel=$verificationLevel, ")
-            .appendln("roles=$roles, ")
-            .appendln("channels=$channels, ")
-            .appendln("name='$name'")
-            .appendln(")")
-            .toString()
+        return "Guild(region=$region, isEmbedEnabled=$isEmbedEnabled, defaultMessageNotificationLevel=$defaultMessageNotificationLevel, explicitContentFilter=$explicitContentFilter, mfaLevel=$mfaLevel, isWidgetEnabled=$isWidgetEnabled, widgetChannel=$widgetChannel, systemChannel=$systemChannel, maxMembers=$maxMembers, maxPresences=$maxPresences, description=$description, bannerHash=$bannerHash, premiumTier=$premiumTier, premiumSubscriptions=$premiumSubscriptions, features=$features, id=$id, invites=$invites, emojis=$emojis, bans=$bans, integrations=$integrations, iconHash=$iconHash, splashHash=$splashHash, owner=$owner, afkChannel=$afkChannel, afkChannelTimeout=$afkChannelTimeout, verificationLevel=$verificationLevel, name='$name')"
     }
 
     init {

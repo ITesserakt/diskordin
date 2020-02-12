@@ -54,19 +54,7 @@ internal class Role constructor(
         guildService.deleteRole(guild.id, id, reason)
     }.fix()
 
-    @ExperimentalUnsignedTypes
     override fun toString(): String {
-        return StringBuilder("Role(")
-            .appendln("permissions=$permissions, ")
-            .appendln("color=$color, ")
-            .appendln("isHoisted=$isHoisted, ")
-            .appendln("isMentionable=$isMentionable, ")
-            .appendln("id=$id, ")
-            .appendln("isEveryone=$isEveryone, ")
-            .appendln("guild=$guild, ")
-            .appendln("mention='$mention', ")
-            .appendln("name='$name'")
-            .appendln(")")
-            .toString()
+        return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
     }
 }

@@ -31,11 +31,7 @@ internal class IdUser(raw: IDUserResponse) : IUser {
     override fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
 
     override fun toString(): String {
-        return StringBuilder("IdUser(")
-            .appendln("id=$id, ")
-            .appendln("mention='$mention'")
-            .appendln(")")
-            .toString()
+        return "IdUser(id=$id, mention='$mention')"
     }
 
     override val id: Snowflake = raw.id

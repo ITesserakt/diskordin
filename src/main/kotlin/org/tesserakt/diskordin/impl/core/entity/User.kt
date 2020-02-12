@@ -51,20 +51,7 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
     }.map { it.extract() }
 
     override fun toString(): String {
-        return "User(" +
-                "avatar=$avatar, " +
-                "mfaEnabled=$mfaEnabled, " +
-                "locale=$locale, " +
-                "verified=$verified, " +
-                "email=$email, " +
-                "flags=$flags, " +
-                "premiumType=$premiumType, " +
-                "username='$username', " +
-                "discriminator=$discriminator, " +
-                "isBot=$isBot, " +
-                "id=$id, " +
-                "mention='$mention'" +
-                ")"
+        return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
     }
 
     override val mention: String = "<@${id.asString()}>"
@@ -106,11 +93,8 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     }.map { it.extract() }
 
     override fun toString(): String {
-        return StringBuilder("Self(")
-            .appendln("guilds=$guilds, ")
-            .appendln("privateChannels=$privateChannels, ")
-            .appendln("connections=$connections")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) " +
+                "\n   ${super.toString()}"
     }
+
 }

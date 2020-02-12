@@ -112,11 +112,6 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>> = delegate.getMembers(query)
 
     override fun toString(): String {
-        return StringBuilder("PartialGuild(")
-            .appendln("iconHash=$iconHash, ")
-            .appendln("id=$id, ")
-            .appendln("name='$name'")
-            .appendln(")")
-            .toString()
+        return "PartialGuild(iconHash=$iconHash, id=$id, name='$name')"
     }
 }

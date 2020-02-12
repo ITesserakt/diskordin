@@ -43,13 +43,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
     }.map { Unit }
 
     override fun toString(): String {
-        return StringBuilder("Channel(")
-            .appendln("type=$type, ")
-            .appendln("id=$id, ")
-            .appendln("mention='$mention', ")
-            .appendln("invites=$invites")
-            .appendln(")")
-            .toString()
+        return "Channel(type=$type, id=$id, mention='$mention', invites=$invites)"
     }
 
     override val invites: IO<ListK<IInvite>> = rest.call(ListK.functor()) {
@@ -93,15 +87,8 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
     }.fix()
 
     override fun toString(): String {
-        return StringBuilder("GuildChannel(")
-            .appendln("position=$position, ")
-            .appendln("permissionOverwrites=$permissionOverwrites, ")
-            .appendln("parentCategory=$parentCategory, ")
-            .appendln("guild=$guild, ")
-            .appendln("name='$name', ")
-            .appendln("invites=$invites")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "GuildChannel(position=$position, permissionOverwrites=$permissionOverwrites, parentCategory=$parentCategory, guild=$guild, name='$name', invites=$invites) " +
+                "\n   ${super.toString()}"
     }
 }
 
@@ -124,13 +111,8 @@ internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(ra
 
     @ExperimentalUnsignedTypes
     override fun toString(): String {
-        return StringBuilder("TextChannel(")
-            .appendln("messages=$cachedMessages, ")
-            .appendln("isNSFW=$isNSFW, ")
-            .appendln("topic=$topic, ")
-            .appendln("rateLimit=$rateLimit")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "TextChannel(isNSFW=$isNSFW, topic=$topic, rateLimit=$rateLimit) " +
+                "\n   ${super.toString()}"
     }
 }
 
@@ -145,11 +127,8 @@ internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(
     }.map { it.extract() as IVoiceChannel }
 
     override fun toString(): String {
-        return StringBuilder("VoiceChannel(")
-            .appendln("bitrate=$bitrate, ")
-            .appendln("userLimit=$userLimit")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "VoiceChannel(bitrate=$bitrate, userLimit=$userLimit) " +
+                "\n   ${super.toString()}"
     }
 }
 
@@ -160,27 +139,20 @@ internal class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw
 internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw),
     IAnnouncementChannel {
     override fun toString(): String {
-        return StringBuilder("AnnouncementChannel(")
-            .appendln("messages=$cachedMessages")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "AnnouncementChannel() " +
+                "\n   ${super.toString()}"
     }
 }
 
 internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
-    override fun toString(): String {
-        return StringBuilder("PrivateChannel(")
-            .appendln("recipient=$recipient, ")
-            .appendln("owner=$owner, ")
-            .appendln("messages=$cachedMessages")
-            .appendln(") ${super.toString()}")
-            .toString()
-    }
-
     override val owner = raw.owner_id?.identify {
         client.getUser(it)
+    }
+
+    override fun toString(): String {
+        return "PrivateChannel(recipient=$recipient, owner=$owner)\n    ${super.toString()}"
     }
 }
 
@@ -189,12 +161,6 @@ internal class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) :
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override fun toString(): String {
-        return StringBuilder("GroupPrivateChannel(")
-            .appendln("recipient=$recipient, ")
-            .appendln("owner=$owner, ")
-            .appendln("icon=$icon, ")
-            .appendln("messages=$cachedMessages")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "GroupPrivateChannel(icon=$icon)\n   ${super.toString()}"
     }
 }

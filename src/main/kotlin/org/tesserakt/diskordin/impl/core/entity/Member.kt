@@ -48,14 +48,8 @@ internal class Member constructor(
     }.flatMap { client.getMember(id, guild.id) }
 
     override fun toString(): String {
-        return StringBuilder("Member(")
-            .appendln("guild=$guild, ")
-            .appendln("nickname=$nickname, ")
-            .appendln("roles=$roles, ")
-            .appendln("joinTime=$joinTime, ")
-            .appendln("mention='$mention'")
-            .appendln(") ${super.toString()}")
-            .toString()
+        return "Member(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime, mention='$mention') " +
+                "   ${super.toString()}"
     }
 
     override val nickname: String? = raw.nick

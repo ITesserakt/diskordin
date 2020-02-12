@@ -64,12 +64,6 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override fun edit(builder: MemberEditBuilder.() -> Unit): IO<IMember> = delegate.edit(builder)
 
     override fun toString(): String {
-        return StringBuilder("MessageMember(")
-            .appendln("guild=$guild, ")
-            .appendln("nickname=$nickname, ")
-            .appendln("roles=$roles, ")
-            .appendln("joinTime=$joinTime")
-            .appendln(")")
-            .toString()
+        return "MessageMember(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime)"
     }
 }
