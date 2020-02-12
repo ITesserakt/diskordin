@@ -3,7 +3,7 @@ package org.tesserakt.diskordin.util.enums
 import org.tesserakt.diskordin.util.typeclass.Integral
 
 class ValuedEnum<E, I>(val code: I, val integral: Integral<I>) : Integral<I> by integral
-        where E : Enum<E>, E : IValued<E, I> {
+        where E : Enum<E>, E : IValued<E, I>, I : Any {
     infix fun and(other: IValued<E, I>) =
         ValuedEnum<E, I>(code and other.value, integral)
 
