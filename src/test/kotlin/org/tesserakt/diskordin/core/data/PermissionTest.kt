@@ -34,10 +34,10 @@ internal class PermissionTest {
     }
 }
 
-private infix fun <E, I> ValuedEnum<E, I>.shouldContain(data: IValued<E, I>)
+private infix fun <E, I : Any> ValuedEnum<E, I>.shouldContain(data: IValued<E, I>)
         where E : Enum<E>, E : IValued<E, I> =
     (data in this) `should be` true
 
-private infix fun <E, I> ValuedEnum<E, I>.shouldNotContain(data: IValued<E, I>)
+private infix fun <E, I : Any> ValuedEnum<E, I>.shouldNotContain(data: IValued<E, I>)
         where E : Enum<E>, E : IValued<E, I> =
     (data in this) `should be` false
