@@ -99,6 +99,7 @@ class DiscordClientBuilder private constructor() {
     }
 
     operator fun Pair<Int, Short>.unaryPlus() {
+        +cache(false)
         intents = when (intents) {
             IntentsStrategy.EnableAll -> IntentsStrategy.EnableOnly(mapOf(this))
             is IntentsStrategy.EnableOnly -> {
