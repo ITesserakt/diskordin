@@ -24,4 +24,25 @@ class ValuedEnum<E, I>(val code: I, val integral: Integral<I>) : Integral<I> by 
 
     operator fun contains(other: IValued<E, I>) = code and other.value == other.value
     operator fun contains(other: ValuedEnum<E, I>) = code and other.code == other.code
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ValuedEnum<*, *>
+
+        if (code != other.code) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return code.hashCode()
+    }
+
+    override fun toString(): String {
+        return "ValuedEnum(code=$code)"
+    }
+
+
 }
