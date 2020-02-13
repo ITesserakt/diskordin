@@ -30,9 +30,11 @@ class ShardController internal constructor(
     }
 
     private fun getShardIntents(shardIndex: Int) = when (context.intents) {
-        IntentsStrategy.EnableAll -> Short.MAX_VALUE
-        is IntentsStrategy.EnableOnly -> context.intents.enabled[shardIndex] ?: Short.MAX_VALUE
+        IntentsStrategy.EnableAll -> null
+        is IntentsStrategy.EnableOnly -> context.intents.enabled[shardIndex]
     }
+
+    private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
     suspend fun openShard(shardIndex: Int) {
         require(shardIndex < context.shardCount) { "Given index of shard less than count" }
@@ -45,7 +47,7 @@ class ShardController internal constructor(
             context.token,
             connectionProperties,
             isShardCompressed(shardIndex),
-            context.shardThresholdOverrides.overrides[shardIndex] ?: 50,
+            getShardThreshold(shardIndex),
             arrayOf(shardIndex, context.shardCount),
             needUpdatedPresence,
             getShardIntents(shardIndex),

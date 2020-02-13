@@ -60,7 +60,7 @@ data class Identify(
     val largeThreshold: Int = 50,
     val shard: Array<Int> = emptyArray(),
     val presence: UserStatusUpdateRequest? = null,
-    val intents: Short = Short.MAX_VALUE,
+    val intents: Short? = null,
     val guildSubscriptions: Boolean = true
 ) : GatewayCommand() {
     data class ConnectionProperties(
