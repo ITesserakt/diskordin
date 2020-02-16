@@ -17,7 +17,7 @@ class WebSocketStateInterceptor : TokenInterceptor() {
     private fun logStateUpdates(state: IToken) = when (state) {
         is ConnectionOpened -> logger.info("Gateway reached")
         is ConnectionClosed -> logger.warn("Gateway closed: ${state.reason}")
-        is ConnectionFailed -> logger.error("Gateway met with error: ${state.error}")
+        is ConnectionFailed -> logger.error("Gateway met with error: ${state.error} ${state.error.localizedMessage}")
         else -> Unit
     }
 }
