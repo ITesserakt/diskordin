@@ -114,7 +114,7 @@ class DiscordClientBuilder private constructor() {
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
     internal inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
     inline fun DiscordClientBuilder.gatewayInterceptor(value: Interceptor<*>) = value
-    inline fun <reified C : Interceptor.Context> DiscordClientBuilder.gatewayInterceptor(crossinline f: (C) -> Unit): Interceptor<*> {
+    inline fun <reified C : Interceptor.Context> DiscordClientBuilder.gatewayInterceptor(crossinline f: suspend (C) -> Unit): Interceptor<*> {
         val interceptor = object : Interceptor<C> {
             override suspend fun intercept(context: C) = f(context)
             override val selfContext: KClass<C> = C::class
