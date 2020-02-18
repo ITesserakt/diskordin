@@ -44,17 +44,17 @@ internal class CustomEmoji constructor(
         client.getGuild(it)
     }
 
-    override val roles = raw.roles!!.map { id ->
+    override val roles = raw.roles.orEmpty().map { id ->
         guild().map { it.getRole(id) }
     }.sequence(IO.applicative()).map { it.filterMap(::identity) }
 
-    override val creator: IdentifiedF<ForId, IUser> = raw.user!!.id identify { raw.user.unwrap().just() }
+    override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identify { raw.user.unwrap().just() }
 
-    override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
+    override val requireColons: Boolean = raw.require_colons
 
-    override val isManaged: Boolean = raw.managed ?: throw NotCustomEmojiException()
+    override val isManaged: Boolean = raw.managed
 
-    override val isAnimated: Boolean = raw.animated ?: throw NotCustomEmojiException()
+    override val isAnimated: Boolean = raw.animated
 
     override val id: Snowflake = raw.id ?: throw NotCustomEmojiException()
 

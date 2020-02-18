@@ -4,15 +4,14 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEmoji
 import org.tesserakt.diskordin.core.entity.IUser
 
-
 data class EmojiResponse<out E : IEmoji>(
     val id: Snowflake?,
-    val name: String,
+    val name: String = "",
     val roles: Array<Snowflake>? = null,
     val user: UserResponse<IUser>? = null,
-    val require_colons: Boolean? = null,
-    val managed: Boolean? = null,
-    val animated: Boolean? = null
+    val require_colons: Boolean = false,
+    val managed: Boolean = false,
+    val animated: Boolean = false
 ) : DiscordResponse<E, UnwrapContext.PartialGuildContext>() {
     override fun unwrap(ctx: UnwrapContext.PartialGuildContext): E = IEmoji.typed(this, ctx.guildId)
 
@@ -41,9 +40,9 @@ data class EmojiResponse<out E : IEmoji>(
         result = 31 * result + name.hashCode()
         result = 31 * result + (roles?.contentHashCode() ?: 0)
         result = 31 * result + (user?.hashCode() ?: 0)
-        result = 31 * result + (require_colons?.hashCode() ?: 0)
-        result = 31 * result + (managed?.hashCode() ?: 0)
-        result = 31 * result + (animated?.hashCode() ?: 0)
+        result = 31 * result + require_colons.hashCode()
+        result = 31 * result + managed.hashCode()
+        result = 31 * result + animated.hashCode()
         return result
     }
 }
