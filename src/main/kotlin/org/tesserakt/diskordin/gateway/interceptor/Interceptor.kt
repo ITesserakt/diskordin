@@ -10,7 +10,8 @@ interface Interceptor<T : Interceptor.Context> {
     abstract class Context(
         internal val implementation: Implementation,
         val controller: ShardController,
-        internal val sequenceId: () -> Int?
+        internal val sequenceId: () -> Int?,
+        val shardIndex: Int
     )
 
     val selfContext: KClass<T>
@@ -18,5 +19,5 @@ interface Interceptor<T : Interceptor.Context> {
     suspend fun intercept(context: T)
 
     suspend fun Context.sendPayload(data: GatewayCommand) =
-        implementation.sendPayload(data, sequenceId())
+        implementation.sendPayload(data, sequenceId(), shardIndex)
 }

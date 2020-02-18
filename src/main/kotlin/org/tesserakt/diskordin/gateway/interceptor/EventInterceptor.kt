@@ -23,8 +23,9 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
     class Context(
         impl: Implementation,
         val event: IEvent,
-        controller: ShardController
-    ) : Interceptor.Context(impl, controller, ::sequenceId)
+        controller: ShardController,
+        shardIndex: Int
+    ) : Interceptor.Context(impl, controller, ::sequenceId, shardIndex)
 
     override val selfContext: KClass<Context> = Context::class
 

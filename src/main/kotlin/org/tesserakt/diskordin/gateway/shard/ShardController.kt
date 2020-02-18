@@ -1,16 +1,19 @@
 package org.tesserakt.diskordin.gateway.shard
 
+import kotlinx.coroutines.delay
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.Implementation
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload
 import org.tesserakt.diskordin.gateway.sequenceId
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ShardController internal constructor(
     private val context: BootstrapContext.Gateway.Connection.ShardSettings,
-    private val implementation: Implementation
+    private val implementation: List<Implementation>
 ) {
+    private val anotherShardOpens = AtomicBoolean(false)
     private val shards = mutableListOf<Shard>()
 
     private val connectionProperties = Identify.ConnectionProperties(
@@ -37,7 +40,7 @@ class ShardController internal constructor(
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
     suspend fun openShard(shardIndex: Int) {
-        require(shardIndex < context.shardCount) { "Given index of shard less than count" }
+        delay(5500 * shardIndex.toLong())
 
         val needUpdatedPresence = if (shardIndex == 0)
             context.initialPresence
@@ -54,13 +57,14 @@ class ShardController internal constructor(
             isShardSubscribed(shardIndex)
         )
 
-        implementation.sendPayload(identify, sequenceId)
+        implementation[shardIndex].sendPayload(identify, sequenceId, shardIndex)
     }
 
     internal fun approveShard(shardIndex: Int, sessionId: String) {
         shards += Shard(
             context.token, sessionId, shardIndex to context.shardCount
         )
+        anotherShardOpens.set(false)
     }
 
     internal suspend fun resumeShard(shardIndex: Int) {
@@ -70,6 +74,10 @@ class ShardController internal constructor(
             sequenceId
         )
 
-        implementation.sendPayload(resume, sequenceId)
+        implementation[shardIndex].sendPayload(resume, sequenceId, shardIndex)
+    }
+
+    override fun toString(): String {
+        return "ShardController { Opened: ${shards.size}, total: ${context.shardCount} })"
     }
 }

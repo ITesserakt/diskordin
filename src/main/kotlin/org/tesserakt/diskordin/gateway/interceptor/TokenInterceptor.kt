@@ -10,8 +10,9 @@ abstract class TokenInterceptor : Interceptor<TokenInterceptor.Context> {
     class Context(
         impl: Implementation,
         val token: IToken,
-        controller: ShardController
-    ) : Interceptor.Context(impl, controller, ::sequenceId)
+        controller: ShardController,
+        shardIndex: Int
+    ) : Interceptor.Context(impl, controller, ::sequenceId, shardIndex)
 
     override val selfContext: KClass<Context> = Context::class
 }

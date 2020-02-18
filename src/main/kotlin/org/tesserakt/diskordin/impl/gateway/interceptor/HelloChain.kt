@@ -21,7 +21,7 @@ class HelloChain : EventInterceptor() {
 
     override suspend fun Context.hello(event: HelloEvent) {
         val interval = event.heartbeatInterval
-        controller.openShard(0)
+        controller.openShard(shardIndex)
 
         while (webSocketState is ConnectionOpened) {
             sendPayload(Heartbeat(sequenceId()))
