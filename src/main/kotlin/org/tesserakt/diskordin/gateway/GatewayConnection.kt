@@ -14,7 +14,7 @@ import org.tesserakt.diskordin.gateway.json.commands.*
 import org.tesserakt.diskordin.gateway.json.wrapWith
 import org.tesserakt.diskordin.util.toJson
 
-interface Implementation {
+interface GatewayConnection {
     @Send
     fun send(data: String): Boolean
 
@@ -22,7 +22,7 @@ interface Implementation {
     fun receive(): Stream<WebSocketEvent>
 }
 
-suspend fun Implementation.sendPayload(data: GatewayCommand, sequenceId: Int?, shardIndex: Int) =
+suspend fun GatewayConnection.sendPayload(data: GatewayCommand, sequenceId: Int?, shardIndex: Int) =
     withContext(Dispatchers.IO) {
         val logger = KotlinLogging.logger("[Shard #$shardIndex]")
 

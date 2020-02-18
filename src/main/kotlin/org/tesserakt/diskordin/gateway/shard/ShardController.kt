@@ -2,7 +2,7 @@ package org.tesserakt.diskordin.gateway.shard
 
 import kotlinx.coroutines.delay
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.gateway.Implementation
+import org.tesserakt.diskordin.gateway.GatewayConnection
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ShardController internal constructor(
     private val context: BootstrapContext.Gateway.Connection.ShardSettings,
-    private val implementation: List<Implementation>
+    private val connection: List<GatewayConnection>
 ) {
     private val anotherShardOpens = AtomicBoolean(false)
     private val shards = mutableListOf<Shard>()
@@ -57,7 +57,7 @@ class ShardController internal constructor(
             isShardSubscribed(shardIndex)
         )
 
-        implementation[shardIndex].sendPayload(identify, sequenceId, shardIndex)
+        connection[shardIndex].sendPayload(identify, sequenceId, shardIndex)
     }
 
     internal fun approveShard(shardIndex: Int, sessionId: String) {
@@ -74,7 +74,7 @@ class ShardController internal constructor(
             sequenceId
         )
 
-        implementation[shardIndex].sendPayload(resume, sequenceId, shardIndex)
+        connection[shardIndex].sendPayload(resume, sequenceId, shardIndex)
     }
 
     override fun toString(): String {

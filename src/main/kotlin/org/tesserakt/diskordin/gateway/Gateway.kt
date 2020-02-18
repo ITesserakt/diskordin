@@ -21,7 +21,7 @@ internal var sequenceId: Int? = null
 
 class Gateway(
     private val context: BootstrapContext.Gateway,
-    private val connections: List<Implementation>
+    private val connections: List<GatewayConnection>
 ) {
 
     @FlowPreview
@@ -74,7 +74,7 @@ class Gateway(
         }
 
         private val impl = { context: BootstrapContext.Gateway.Connection ->
-            scarlet(context.url, context.compression, context.httpClient).create<Implementation>()
+            scarlet(context.url, context.compression, context.httpClient).create<GatewayConnection>()
         }
 
         private val connections = { context: BootstrapContext.Gateway.Connection ->

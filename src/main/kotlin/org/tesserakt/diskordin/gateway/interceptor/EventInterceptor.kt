@@ -14,14 +14,14 @@ import org.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemoveEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
-import org.tesserakt.diskordin.gateway.Implementation
+import org.tesserakt.diskordin.gateway.GatewayConnection
 import org.tesserakt.diskordin.gateway.sequenceId
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
 abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
     class Context(
-        impl: Implementation,
+        impl: GatewayConnection,
         val event: IEvent,
         controller: ShardController,
         shardIndex: Int
