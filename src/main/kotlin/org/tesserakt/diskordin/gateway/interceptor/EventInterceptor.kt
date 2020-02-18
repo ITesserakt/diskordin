@@ -14,20 +14,23 @@ import org.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.AllReactionsRemoveEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionAddEvent
 import org.tesserakt.diskordin.core.data.event.message.reaction.ReactionRemoveEvent
-import org.tesserakt.diskordin.gateway.GatewayConnection
-import org.tesserakt.diskordin.gateway.sequenceId
+import org.tesserakt.diskordin.gateway.json.commands.GatewayCommand
+import org.tesserakt.diskordin.gateway.sendPayload
+import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
 abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
     class Context(
-        impl: GatewayConnection,
         val event: IEvent,
         controller: ShardController,
-        shardIndex: Int
-    ) : Interceptor.Context(impl, controller, ::sequenceId, shardIndex)
+        shard: Shard
+    ) : Interceptor.Context(controller, shard)
 
     override val selfContext: KClass<Context> = Context::class
+
+    suspend fun Context.sendPayload(data: GatewayCommand) =
+        shard.connection.sendPayload(data, shard.sequence, shard.shardData.first)
 
     open suspend fun Context.allReactionsRemove(event: AllReactionsRemoveEvent) {}
     open suspend fun Context.ban(event: BanEvent) {}

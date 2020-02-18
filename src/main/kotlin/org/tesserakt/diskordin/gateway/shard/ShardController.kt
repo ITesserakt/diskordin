@@ -4,16 +4,12 @@ import kotlinx.coroutines.delay
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.GatewayConnection
 import org.tesserakt.diskordin.gateway.json.commands.Identify
-import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload
-import org.tesserakt.diskordin.gateway.sequenceId
-import java.util.concurrent.atomic.AtomicBoolean
 
 class ShardController internal constructor(
     private val context: BootstrapContext.Gateway.Connection.ShardSettings,
     private val connection: List<GatewayConnection>
 ) {
-    private val anotherShardOpens = AtomicBoolean(false)
     private val shards = mutableListOf<Shard>()
 
     private val connectionProperties = Identify.ConnectionProperties(
@@ -39,12 +35,8 @@ class ShardController internal constructor(
 
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
-    suspend fun openShard(shardIndex: Int) {
+    suspend fun openShard(shardIndex: Int, sequence: () -> Int?) {
         delay(5500 * shardIndex.toLong())
-
-        val needUpdatedPresence = if (shardIndex == 0)
-            context.initialPresence
-        else null
 
         val identify = Identify(
             context.token,
@@ -52,32 +44,16 @@ class ShardController internal constructor(
             isShardCompressed(shardIndex),
             getShardThreshold(shardIndex),
             arrayOf(shardIndex, context.shardCount),
-            needUpdatedPresence,
+            context.initialPresence,
             getShardIntents(shardIndex),
             isShardSubscribed(shardIndex)
         )
 
-        connection[shardIndex].sendPayload(identify, sequenceId, shardIndex)
+        connection[shardIndex].sendPayload(identify, sequence(), shardIndex)
     }
 
-    internal fun approveShard(shardIndex: Int, sessionId: String) {
-        shards += Shard(
-            context.token, sessionId, shardIndex to context.shardCount
-        )
-        anotherShardOpens.set(false)
-    }
-
-    internal suspend fun resumeShard(shardIndex: Int) {
-        val shard = shards.first { it.shardData.first == shardIndex }
-        val resume = Resume(
-            context.token, shard.sessionId,
-            sequenceId
-        )
-
-        connection[shardIndex].sendPayload(resume, sequenceId, shardIndex)
-    }
-
-    override fun toString(): String {
-        return "ShardController { Opened: ${shards.size}, total: ${context.shardCount} })"
+    fun approveShard(shard: Shard, sessionId: String) {
+        shard.sessionId = sessionId
+        shards += shard
     }
 }

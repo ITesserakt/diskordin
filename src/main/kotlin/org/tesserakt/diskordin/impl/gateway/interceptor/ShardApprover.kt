@@ -9,8 +9,7 @@ class ShardApprover : EventInterceptor() {
 
     override suspend fun Context.ready(event: ReadyEvent) {
         val (shardIndex, shardCount) = event.shardData
-
+        controller.approveShard(shard, event.sessionId)
         logger.debug("Shard #${shardIndex + 1}/${shardCount} ready!")
-        controller.approveShard(shardIndex, event.sessionId)
     }
 }
