@@ -31,7 +31,6 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.json.token.NoConnection
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 
@@ -78,10 +77,7 @@ internal class DiscordClient private constructor(
     }
 
     override fun logout() {
-        if (webSocketStateHolder.getState() != NoConnection) {
-            logger.info("Shutting down gateway")
-            GlobalGatewayLifecycle.stop()
-        }
+        gateway.close()
         DiscordClient.client.set(null).fix().unsafeRunSync()
     }
 

@@ -38,7 +38,7 @@ class Gateway(
         val chain = transformed.flatMapMerge { (index, connection) ->
             val shard = Shard(
                 context.connectionContext.shardSettings.token,
-                index to context.connectionContext.shardSettings.shardCount,
+                Shard.ShardData(index, context.connectionContext.shardSettings.shardCount),
                 connections[index]
             )
 
@@ -57,6 +57,13 @@ class Gateway(
         return CoroutineScope(context.scheduler).launch {
             chain.retry { it !is CancellationException }.collect()
         }
+    }
+
+    internal fun close() {
+        for (it in 0 until context.connectionContext.shardSettings.shardCount) {
+            controller.closeShard(it)
+        }
+        context.lifecycleRegistry.stop()
     }
 
     private fun composeToken(

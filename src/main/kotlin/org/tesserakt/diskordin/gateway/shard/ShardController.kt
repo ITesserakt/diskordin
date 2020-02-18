@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.gateway.shard
 
 import kotlinx.coroutines.delay
+import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.GatewayConnection
 import org.tesserakt.diskordin.gateway.json.commands.Identify
@@ -10,6 +11,7 @@ class ShardController internal constructor(
     private val context: BootstrapContext.Gateway.Connection.ShardSettings,
     private val connection: List<GatewayConnection>
 ) {
+    private val logger = KotlinLogging.logger { }
     private val shards = mutableListOf<Shard>()
 
     private val connectionProperties = Identify.ConnectionProperties(
@@ -55,5 +57,10 @@ class ShardController internal constructor(
     fun approveShard(shard: Shard, sessionId: String) {
         shard.sessionId = sessionId
         shards += shard
+    }
+
+    fun closeShard(shardIndex: Int) {
+        logger.info("Closing shard #$shardIndex")
+        shards.removeIf { it.shardData.current == shardIndex }
     }
 }

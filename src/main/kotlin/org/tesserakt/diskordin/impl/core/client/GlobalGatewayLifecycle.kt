@@ -9,7 +9,7 @@ private val registry: LifecycleRegistry = LifecycleRegistry()
 
 internal object GlobalGatewayLifecycle : GatewayLifecycleManager, Lifecycle by registry {
     override fun start() = registry.onNext(LifecycleState.Started)
-    override fun stop() = registry.onComplete()
+    override fun stop() = registry.onNext(LifecycleState.Stopped)
     override fun restart() {
         registry.onNext(LifecycleState.Stopped)
         registry.onNext(LifecycleState.Started)

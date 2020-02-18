@@ -10,14 +10,16 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 class WebSocketStateInterceptor : TokenInterceptor() {
     private val logger = KotlinLogging.logger("[Gateway]")
 
-    override suspend fun intercept(context: Context) {
+    override suspend fun intercept(context: Context) = context.run {
         logStateUpdates(context.token)
     }
 
-    private fun logStateUpdates(state: IToken) = when (state) {
-        is ConnectionOpened -> logger.info("Gateway reached")
-        is ConnectionClosed -> logger.warn("Gateway closed: ${state.reason}")
-        is ConnectionFailed -> logger.error("Gateway met with error: ${state.error} ${state.error.localizedMessage}")
+    private fun Context.logStateUpdates(state: IToken) = when (state) {
+        is ConnectionOpened -> logger.info("Shard #${shard.shardData.current} reached")
+        is ConnectionClosed -> logger.warn("Shard #${shard.shardData.current} closed: ${state.reason}")
+        is ConnectionFailed -> logger.error(
+            "Shard #${shard.shardData.current} met with error:", state.error
+        )
         else -> Unit
     }
 }
