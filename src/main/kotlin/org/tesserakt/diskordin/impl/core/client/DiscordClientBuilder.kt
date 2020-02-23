@@ -15,10 +15,7 @@ import org.tesserakt.diskordin.core.entity.builder.PresenceBuilder
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.shard.*
-import org.tesserakt.diskordin.impl.gateway.interceptor.HeartbeatInterceptor
-import org.tesserakt.diskordin.impl.gateway.interceptor.HelloChain
-import org.tesserakt.diskordin.impl.gateway.interceptor.ShardApprover
-import org.tesserakt.diskordin.impl.gateway.interceptor.WebSocketStateInterceptor
+import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.IValued
@@ -146,7 +143,7 @@ class DiscordClientBuilder private constructor() {
             val builder = DiscordClientBuilder().apply(init).apply {
                 +gatewayInterceptor(WebSocketStateInterceptor())
                 +gatewayInterceptor(HeartbeatInterceptor())
-                //+gatewayInterceptor(HeartbeatACKInterceptor())
+                +gatewayInterceptor(HeartbeatACKInterceptor())
                 +gatewayInterceptor(HelloChain())
                 +gatewayInterceptor(ShardApprover())
             }
