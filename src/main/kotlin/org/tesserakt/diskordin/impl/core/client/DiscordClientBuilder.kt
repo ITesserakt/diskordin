@@ -145,11 +145,9 @@ class DiscordClientBuilder private constructor() {
         operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
             val builder = DiscordClientBuilder().apply(init).apply {
                 +gatewayInterceptor(WebSocketStateInterceptor())
-                val helloChain = HelloChain()
                 +gatewayInterceptor(HeartbeatInterceptor())
                 //+gatewayInterceptor(HeartbeatACKInterceptor())
-                +gatewayInterceptor(helloChain.ConnectionInterceptor())
-                +gatewayInterceptor(helloChain)
+                +gatewayInterceptor(HelloChain())
                 +gatewayInterceptor(ShardApprover())
             }
             val token = System.getenv("token") ?: builder.token
@@ -179,7 +177,6 @@ class DiscordClientBuilder private constructor() {
             connectionContext: BootstrapContext.Gateway.Connection
         ): BootstrapContext.Gateway = BootstrapContext.Gateway(
             builder.gatewayContext,
-            GlobalGatewayLifecycle,
             builder.interceptors.asFlow(),
             connectionContext
         )

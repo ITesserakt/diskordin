@@ -1,11 +1,15 @@
 package org.tesserakt.diskordin.gateway
 
 import arrow.syntax.function.memoize
+import com.tinder.scarlet.Lifecycle
+import com.tinder.scarlet.LifecycleState
+import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.json.IPayload
@@ -22,23 +26,25 @@ import org.tesserakt.diskordin.impl.core.client.setupScarlet
 @Suppress("UNCHECKED_CAST")
 class Gateway(
     private val context: BootstrapContext.Gateway,
-    private val connections: List<GatewayConnection>
+    private val connections: List<GatewayConnection>,
+    private val lifecycles: List<GatewayLifecycleManager>
 ) {
     private val controller = ShardController(
         context.connectionContext.shardSettings,
-        connections
+        connections,
+        lifecycles
     )
 
     @FlowPreview
     @ExperimentalCoroutinesApi
     internal fun run(): Job {
-        context.lifecycleRegistry.start()
+        lifecycles.forEach { it.start() }
 
         val transformed = connections.mapIndexed { index, c -> index to c.receive().asFlow() }.asFlow()
         val chain = transformed.flatMapMerge { (index, connection) ->
             val shard = Shard(
                 context.connectionContext.shardSettings.token,
-                Shard.ShardData(index, context.connectionContext.shardSettings.shardCount),
+                Shard.Data(index, context.connectionContext.shardSettings.shardCount),
                 connections[index]
             )
 
@@ -63,7 +69,6 @@ class Gateway(
         for (it in 0 until context.connectionContext.shardSettings.shardCount) {
             controller.closeShard(it)
         }
-        context.lifecycleRegistry.stop()
     }
 
     private fun composeToken(
@@ -98,18 +103,41 @@ class Gateway(
             "$start/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
         }.memoize()
 
-        private val scarlet = { start: String, compression: String, httpClient: OkHttpClient ->
-            setupScarlet(gatewayUrl(start, compression), httpClient)
+        private val lifecycle = { registry: LifecycleRegistry ->
+            object : GatewayLifecycleManager, Lifecycle by registry {
+                override fun start() {
+                    registry.onNext(LifecycleState.Started)
+                }
+
+                override fun stop() {
+                    registry.onNext(LifecycleState.Stopped)
+                }
+
+                override fun restart() {
+                    registry.onNext(LifecycleState.Stopped)
+                    registry.onNext(LifecycleState.Started)
+                }
+            }
         }
 
-        private val impl = { context: BootstrapContext.Gateway.Connection ->
-            scarlet(context.url, context.compression, context.httpClient).create<GatewayConnection>()
+        private val scarlet = { start: String, compression: String, lifecycle: Lifecycle, httpClient: OkHttpClient ->
+            setupScarlet(gatewayUrl(start, compression), lifecycle, httpClient)
+        }
+
+        private val connection = { context: BootstrapContext.Gateway.Connection, lifecycle: Lifecycle ->
+            scarlet(context.url, context.compression, lifecycle, context.httpClient).create<GatewayConnection>()
         }
 
         private val connections = { context: BootstrapContext.Gateway.Connection ->
-            (0 until context.shardSettings.shardCount).map { impl(context) }
+            (0 until context.shardSettings.shardCount).map {
+                val lifecycle: GatewayLifecycleManager = lifecycle(LifecycleRegistry())
+                connection(context, lifecycle) to lifecycle
+            }
         }
 
-        fun create(context: BootstrapContext.Gateway) = Gateway(context, connections(context.connectionContext))
+        fun create(context: BootstrapContext.Gateway): Gateway {
+            val connections = connections(context.connectionContext)
+            return Gateway(context, connections.map { it.first }, connections.map { it.second })
+        }
     }
 }

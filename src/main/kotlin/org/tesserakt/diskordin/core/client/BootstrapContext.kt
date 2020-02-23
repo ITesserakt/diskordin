@@ -20,7 +20,6 @@ data class BootstrapContext<F>(
 ) {
     data class Gateway(
         val scheduler: CoroutineContext,
-        val lifecycleRegistry: GatewayLifecycleManager,
         val interceptors: Flow<Interceptor<Interceptor.Context>>,
         val connectionContext: Connection
     ) {

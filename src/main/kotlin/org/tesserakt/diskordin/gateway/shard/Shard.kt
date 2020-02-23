@@ -4,12 +4,19 @@ import org.tesserakt.diskordin.gateway.GatewayConnection
 
 data class Shard(
     val token: String,
-    val shardData: ShardData,
+    val shardData: Data,
     val connection: GatewayConnection
 ) {
-    data class ShardData(val current: Int, val total: Int)
+    data class Data(val current: Int, val total: Int)
+    enum class State {
+        Disconnected, Connecting, Connected, Handshaking
+    }
 
     lateinit var sessionId: String internal set
     var sequence: Int? = null
         internal set
+    var state: State = State.Disconnected
+        internal set
+
+    fun isReady() = this::sessionId.isInitialized
 }

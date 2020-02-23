@@ -6,12 +6,21 @@ import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
+import org.tesserakt.diskordin.gateway.shard.Shard
 
 class WebSocketStateInterceptor : TokenInterceptor() {
     private val logger = KotlinLogging.logger("[Gateway]")
 
     override suspend fun intercept(context: Context) = context.run {
         logStateUpdates(context.token)
+
+        if (context.token is ConnectionFailed && context.shard.isReady())
+            context.controller.resumeShard(context.shard)
+
+        when (context.token) {
+            is ConnectionOpened -> shard.state = Shard.State.Connecting
+            is ConnectionFailed, is ConnectionClosed -> shard.state = Shard.State.Disconnected
+        }
     }
 
     private fun Context.logStateUpdates(state: IToken) = when (state) {

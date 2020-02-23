@@ -2,43 +2,23 @@ package org.tesserakt.diskordin.impl.gateway.interceptor
 
 import kotlinx.coroutines.delay
 import org.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
+import org.tesserakt.diskordin.gateway.HeartbeatProcess
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
-import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
-import org.tesserakt.diskordin.gateway.json.IToken
-import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
-import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
-import org.tesserakt.diskordin.gateway.json.token.NoConnection
-import java.time.Duration
-import java.time.Instant
+import org.tesserakt.diskordin.gateway.shard.Shard
 
 class HelloChain : EventInterceptor() {
-    private var webSocketState: IToken = NoConnection
-    private var lastWSErrorTime = Instant.MIN
-
-    private fun isErrorHappened(from: Instant, to: Instant) =
-        lastWSErrorTime in from..to
-
     override suspend fun Context.hello(event: HelloEvent) {
         val interval = event.heartbeatInterval
-        controller.openShard(shard.shardData.current, shard::sequence)
+        shard.state = Shard.State.Handshaking
 
-        while (webSocketState is ConnectionOpened) {
-            sendPayload(Heartbeat(shard.sequence))
-            delay(interval)
-
-            val now = Instant.now()
-            //because while delay gateway may restart and this heartbeat will continue
-            if (isErrorHappened(now - Duration.ofMillis(interval), now))
-                break
+        delay(5500 * shard.shardData.current.toLong())
+        if (shard.isReady())
+            controller.resumeShard(shard)
+        else {
+            controller.openShard(shard.shardData.current, shard::sequence)
         }
-    }
 
-    inner class ConnectionInterceptor : TokenInterceptor() {
-        override suspend fun intercept(context: Context) {
-            webSocketState = context.token
-            if (context.token is ConnectionFailed)
-                lastWSErrorTime = Instant.now()
-        }
+        while (!shard.isReady()) delay(100)
+        HeartbeatProcess(interval).run(this)
     }
 }

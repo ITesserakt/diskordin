@@ -29,7 +29,7 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
 
     override val selfContext: KClass<Context> = Context::class
 
-    suspend fun Context.sendPayload(data: GatewayCommand) =
+    suspend inline fun Context.sendPayload(data: GatewayCommand) =
         shard.connection.sendPayload(data, shard.sequence, shard.shardData.current)
 
     open suspend fun Context.allReactionsRemove(event: AllReactionsRemoveEvent) {}
