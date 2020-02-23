@@ -50,7 +50,7 @@ internal class DiscordClient private constructor(
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
     override val rest: RestClient<ForIO> = context.restClient
 
-    private val gateway = Gateway.create(context.gatewayContext)
+    private lateinit var gateway: Gateway
     private val logger = KotlinLogging.logger("[Discord client]")
 
     override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
@@ -67,6 +67,7 @@ internal class DiscordClient private constructor(
     @FlowPreview
     @Suppress("UNCHECKED_CAST")
     override fun login(): IO<Unit> {
+        gateway = Gateway.create(context.gatewayContext)
         gateway.run()
         return IO.unit
     }
@@ -77,7 +78,8 @@ internal class DiscordClient private constructor(
     }
 
     override fun logout() {
-        gateway.close()
+        if (::gateway.isInitialized)
+            gateway.close()
         DiscordClient.client.set(null).fix().unsafeRunSync()
     }
 
