@@ -3,10 +3,13 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.Kind
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.io.async.async
+import arrow.fx.Schedule
 import arrow.fx.extensions.io.concurrent.concurrent
+import arrow.fx.extensions.io.monad.monad
+import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
 import arrow.fx.typeclasses.Concurrent
+import arrow.fx.typeclasses.seconds
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -27,6 +30,9 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
     private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
     private var isIntentsEnabled = false
+    private var restSchedule: Schedule<ForIO, Throwable, *> = Schedule.withMonad(IO.monad()) {
+        (spaced<Throwable>(1.seconds) and recurs(5)).jittered(IO.monadDefer())
+    }
 
     operator fun String.unaryPlus() {
         token = this
@@ -47,11 +53,17 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             this@DiscordClientBuilder.isIntentsEnabled = true
     }
 
+    operator fun Schedule<ForIO, Throwable, *>.unaryPlus() {
+        restSchedule = this
+    }
+
     inline fun DiscordClientBuilder<F>.token(value: String) = value
     inline fun DiscordClientBuilder<F>.cache(value: Boolean) = value
     internal inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
     inline fun <F> DiscordClientBuilder<F>.gatewaySettings(f: GatewayBuilder<F>.() -> Unit) =
         GatewayBuilder(CC).apply(f)
+
+    inline fun DiscordClientBuilder<F>.restRetrySchedule(value: Schedule<ForIO, Throwable, *>) = value
 
     internal object VerificationStub
 
@@ -65,7 +77,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
-            val rest = RestClient.byRetrofit(retrofit, IO.async())
+            val rest = RestClient.byRetrofit(retrofit, builder.restSchedule, IO.concurrent())
 
             val shardSettings = formShardSettings(token, builder)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
