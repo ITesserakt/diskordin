@@ -1,7 +1,8 @@
 package org.tesserakt.diskordin.gateway.interceptor
 
 import arrow.Kind
-import arrow.fx.typeclasses.Async
+import arrow.fx.typeclasses.Concurrent
+import arrow.typeclasses.ApplicativeError
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
@@ -22,8 +23,9 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
-@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "NOTHING_TO_INLINE")
-abstract class EventInterceptor<F>(A: Async<F>) : Interceptor<EventInterceptor.Context, F>, Async<F> by A {
+@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
+abstract class EventInterceptor<F>(AE: ApplicativeError<F, Throwable>) : Interceptor<EventInterceptor.Context, F>,
+    ApplicativeError<F, Throwable> by AE {
     class Context(
         val event: IEvent,
         controller: ShardController,
@@ -31,9 +33,6 @@ abstract class EventInterceptor<F>(A: Async<F>) : Interceptor<EventInterceptor.C
     ) : Interceptor.Context(controller, shard)
 
     override val selfContext: KClass<Context> = Context::class
-
-    inline fun Context.sendPayload(data: GatewayCommand) =
-        shard.connection.sendPayload(data, shard.sequence, shard.shardData.current, this@EventInterceptor)
 
     open fun Context.allReactionsRemove(event: AllReactionsRemoveEvent): Kind<F, Unit> = Unit.just()
     open fun Context.ban(event: BanEvent): Kind<F, Unit> = Unit.just()
@@ -117,3 +116,7 @@ abstract class EventInterceptor<F>(A: Async<F>) : Interceptor<EventInterceptor.C
         }
     }
 }
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <F> EventInterceptor.Context.sendPayload(data: GatewayCommand, CC: Concurrent<F>) =
+    shard.connection.sendPayload(data, shard.sequence, shard.shardData.current, CC)

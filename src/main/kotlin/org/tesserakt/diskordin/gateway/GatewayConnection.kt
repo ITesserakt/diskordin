@@ -1,6 +1,9 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.fx.typeclasses.Async
+import arrow.fx.Schedule
+import arrow.fx.retry
+import arrow.fx.typeclasses.Concurrent
+import arrow.fx.typeclasses.milliseconds
 import arrow.syntax.function.partially1
 import com.tinder.scarlet.Stream
 import com.tinder.scarlet.websocket.WebSocketEvent
@@ -25,8 +28,8 @@ fun <F> GatewayConnection.sendPayload(
     data: GatewayCommand,
     sequenceId: Int?,
     shardIndex: Int,
-    A: Async<F>
-) = A.fx.async {
+    CC: Concurrent<F>
+) = CC.fx.async {
     val connection = this@sendPayload
     val logger = KotlinLogging.logger("[Shard #$shardIndex]")
 
@@ -40,8 +43,9 @@ fun <F> GatewayConnection.sendPayload(
     }.invoke(sequenceId)
     val json = payload.toJson()
 
-    continueOn(Dispatchers.IO)
-    val result = !effect { connection.send(json) }
-    if (result) !effect { logger.debug("---> SENT ${payload.opcode()}") }
-    else !raiseError<Unit>(IllegalStateException("Payload was not sent"))
+    !effect(Dispatchers.IO) { connection.send(json) }
+        .flatMap {
+            if (it) logger.debug("---> SENT ${payload.opcode()}").just()
+            else raiseError(IllegalStateException("Payload was not send"))
+        }.retry(CC, Schedule.exponential<F, Throwable>(CC, 500.milliseconds).jittered(CC))
 }
