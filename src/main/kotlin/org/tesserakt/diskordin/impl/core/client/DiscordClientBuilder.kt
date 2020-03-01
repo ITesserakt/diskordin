@@ -4,6 +4,8 @@ import arrow.Kind
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
+import arrow.fx.extensions.io.concurrent.concurrent
+import arrow.fx.fix
 import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -118,5 +120,8 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             builder.gatewaySettings.initialPresence,
             builder.gatewaySettings.intents
         )
+
+        inline fun default(noinline init: DiscordClientBuilder<ForIO>.() -> Unit) =
+            invoke(IO.concurrent(), { it.fix().suspended() }, init)
     }
 }
