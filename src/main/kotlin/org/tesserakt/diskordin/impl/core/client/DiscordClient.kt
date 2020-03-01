@@ -19,7 +19,6 @@ import arrow.fx.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
@@ -34,13 +33,13 @@ import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
 
-internal class DiscordClient private constructor(
-    internal val context: BootstrapContext<ForIO>
+internal class DiscordClient<F> private constructor(
+    internal val context: BootstrapContext<ForIO, F>
 ) : IDiscordClient {
     companion object {
-        internal val client = Ref.unsafe<ForIO, DiscordClient?>(null, IO.monadDefer())
+        internal val client = Ref.unsafe<ForIO, DiscordClient<*>?>(null, IO.monadDefer())
 
-        operator fun invoke(context: BootstrapContext<ForIO>) = client.updateAndGet {
+        operator fun <F> invoke(context: BootstrapContext<ForIO, F>) = client.updateAndGet {
             if (it != null) throw IllegalStateException("Discord client already created")
             DiscordClient(context)
         }.map { it!! }
@@ -50,8 +49,7 @@ internal class DiscordClient private constructor(
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
     override val rest: RestClient<ForIO> = context.restClient
 
-    private lateinit var gateway: Gateway
-    private val logger = KotlinLogging.logger("[Discord client]")
+    private lateinit var gateway: Gateway<F>
 
     override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
         .getOrHandle {
@@ -66,10 +64,9 @@ internal class DiscordClient private constructor(
     @ExperimentalCoroutinesApi
     @FlowPreview
     @Suppress("UNCHECKED_CAST")
-    override fun login(): IO<Unit> {
+    override fun login() {
         gateway = Gateway.create(context.gatewayContext)
         gateway.run()
-        return IO.unit
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {

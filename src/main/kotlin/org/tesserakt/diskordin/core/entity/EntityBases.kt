@@ -31,7 +31,7 @@ val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 
 internal val IDiscordObject.cache: MutableMap<Snowflake, IEntity>
-    get() = (client as DiscordClient).context.cache
+    get() = (client as DiscordClient<*>).context.cache
 
 interface IGuildObject<F> : IDiscordObject {
     val guild: IdentifiedF<F, IGuild>

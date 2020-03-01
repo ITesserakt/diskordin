@@ -1,5 +1,8 @@
 package org.tesserakt.diskordin.gateway.shard
 
+import arrow.fx.IO
+import arrow.fx.extensions.io.async.async
+import arrow.fx.fix
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
@@ -54,7 +57,9 @@ class ShardController internal constructor(
             isShardSubscribed(shardIndex)
         )
 
-        connection[shardIndex].sendPayload(identify, sequence(), shardIndex)
+        connection[shardIndex]
+            .sendPayload(identify, sequence(), shardIndex, IO.async())
+            .fix().suspended()
     }
 
     fun approveShard(shard: Shard, sessionId: String) {
@@ -75,6 +80,8 @@ class ShardController internal constructor(
 
     suspend fun resumeShard(shard: Shard) {
         val resume = Resume(shard.token, shard.sessionId, shard.sequence)
-        connection[shard.shardData.current].sendPayload(resume, shard.sequence, shard.shardData.current)
+        connection[shard.shardData.current]
+            .sendPayload(resume, shard.sequence, shard.shardData.current, IO.async())
+            .fix().suspended()
     }
 }

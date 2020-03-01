@@ -1,5 +1,7 @@
 package org.tesserakt.diskordin.gateway.interceptor
 
+import arrow.Kind
+import arrow.fx.typeclasses.Async
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
@@ -20,7 +22,8 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
-abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
+@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "NOTHING_TO_INLINE")
+abstract class EventInterceptor<F>(A: Async<F>) : Interceptor<EventInterceptor.Context, F>, Async<F> by A {
     class Context(
         val event: IEvent,
         controller: ShardController,
@@ -29,49 +32,49 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
 
     override val selfContext: KClass<Context> = Context::class
 
-    suspend inline fun Context.sendPayload(data: GatewayCommand) =
-        shard.connection.sendPayload(data, shard.sequence, shard.shardData.current)
+    inline fun Context.sendPayload(data: GatewayCommand) =
+        shard.connection.sendPayload(data, shard.sequence, shard.shardData.current, this@EventInterceptor)
 
-    open suspend fun Context.allReactionsRemove(event: AllReactionsRemoveEvent) {}
-    open suspend fun Context.ban(event: BanEvent) {}
-    open suspend fun Context.chanelCreate(event: ChannelCreateEvent) {}
-    open suspend fun Context.channelDelete(event: ChannelDeleteEvent) {}
-    open suspend fun Context.channelUpdate(event: ChannelUpdateEvent) {}
-    open suspend fun Context.unban(event: UnbanEvent) {}
-    open suspend fun Context.channelPinsUpdate(event: ChannelPinsUpdateEvent) {}
-    open suspend fun Context.emojisUpdate(event: EmojisUpdateEvent) {}
-    open suspend fun Context.guildCreate(event: GuildCreateEvent) {}
-    open suspend fun Context.guildDelete(event: GuildDeleteEvent) {}
-    open suspend fun Context.guildUpdate(event: GuildUpdateEvent) {}
-    open suspend fun Context.heartbeatACK(event: HeartbeatACKEvent) {}
-    open suspend fun Context.heartbeat(event: HeartbeatEvent) {}
-    open suspend fun Context.invalidSession(event: InvalidSessionEvent) {}
-    open suspend fun Context.reconnect(event: ReconnectEvent) {}
-    open suspend fun Context.resumed(event: ResumedEvent) {}
-    open suspend fun Context.messageCreate(event: MessageCreateEvent) {}
-    open suspend fun Context.messageUpdate(event: MessageUpdateEvent) {}
-    open suspend fun Context.hello(event: HelloEvent) {}
-    open suspend fun Context.integrationsUpdate(event: IntegrationsUpdateEvent) {}
-    open suspend fun Context.memberChunk(event: MemberChunkEvent) {}
-    open suspend fun Context.memberJoin(event: MemberJoinEvent) {}
-    open suspend fun Context.memberRemove(event: MemberRemoveEvent) {}
-    open suspend fun Context.memberUpdate(event: MemberUpdateEvent) {}
-    open suspend fun Context.messageBulkDelete(event: MessageBulkDeleteEvent) {}
-    open suspend fun Context.messageDelete(event: MessageDeleteEvent) {}
-    open suspend fun Context.presenceUpdate(event: PresenceUpdateEvent) {}
-    open suspend fun Context.reactionAdd(event: ReactionAddEvent) {}
-    open suspend fun Context.reactionRemove(event: ReactionRemoveEvent) {}
-    open suspend fun Context.ready(event: ReadyEvent) {}
-    open suspend fun Context.roleCreate(event: RoleCreateEvent) {}
-    open suspend fun Context.roleDelete(event: RoleDeleteEvent) {}
-    open suspend fun Context.roleUpdate(event: RoleUpdateEvent) {}
-    open suspend fun Context.typing(event: TypingEvent) {}
-    open suspend fun Context.userUpdate(event: UserUpdateEvent) {}
-    open suspend fun Context.voiceServerUpdate(event: VoiceServerUpdateEvent) {}
-    open suspend fun Context.voiceStateUpdate(event: VoiceStateUpdateEvent) {}
-    open suspend fun Context.webhooksUpdate(event: WebhooksUpdateEvent) {}
+    open fun Context.allReactionsRemove(event: AllReactionsRemoveEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.ban(event: BanEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.chanelCreate(event: ChannelCreateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.channelDelete(event: ChannelDeleteEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.channelUpdate(event: ChannelUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.unban(event: UnbanEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.channelPinsUpdate(event: ChannelPinsUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.emojisUpdate(event: EmojisUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.guildCreate(event: GuildCreateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.guildDelete(event: GuildDeleteEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.guildUpdate(event: GuildUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.heartbeatACK(event: HeartbeatACKEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.heartbeat(event: HeartbeatEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.invalidSession(event: InvalidSessionEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.reconnect(event: ReconnectEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.resumed(event: ResumedEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.messageCreate(event: MessageCreateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.messageUpdate(event: MessageUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.hello(event: HelloEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.integrationsUpdate(event: IntegrationsUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.memberChunk(event: MemberChunkEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.memberJoin(event: MemberJoinEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.memberRemove(event: MemberRemoveEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.memberUpdate(event: MemberUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.messageBulkDelete(event: MessageBulkDeleteEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.messageDelete(event: MessageDeleteEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.presenceUpdate(event: PresenceUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.reactionAdd(event: ReactionAddEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.reactionRemove(event: ReactionRemoveEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.ready(event: ReadyEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.roleCreate(event: RoleCreateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.roleDelete(event: RoleDeleteEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.roleUpdate(event: RoleUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.typing(event: TypingEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.userUpdate(event: UserUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.voiceServerUpdate(event: VoiceServerUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.voiceStateUpdate(event: VoiceStateUpdateEvent): Kind<F, Unit> = Unit.just()
+    open fun Context.webhooksUpdate(event: WebhooksUpdateEvent): Kind<F, Unit> = Unit.just()
 
-    override suspend fun intercept(context: Context) = context.run {
+    override fun intercept(context: Context) = context.run {
         when (val e = context.event) {
             is AllReactionsRemoveEvent -> allReactionsRemove(e)
             is BanEvent -> ban(e)
@@ -110,7 +113,7 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
             is VoiceServerUpdateEvent -> voiceServerUpdate(e)
             is VoiceStateUpdateEvent -> voiceStateUpdate(e)
             is WebhooksUpdateEvent -> webhooksUpdate(e)
-            else -> throw IllegalStateException("Should never raises")
+            else -> raiseError(IllegalStateException("Unexpected event happened: $e"))
         }
     }
 }

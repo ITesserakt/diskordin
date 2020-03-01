@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.core.client
 
-import kotlinx.coroutines.flow.Flow
+import arrow.Kind
+import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
@@ -13,14 +14,16 @@ import org.tesserakt.diskordin.gateway.shard.ShardThreshold
 import org.tesserakt.diskordin.rest.RestClient
 import kotlin.coroutines.CoroutineContext
 
-data class BootstrapContext<F>(
+data class BootstrapContext<F, G>(
     val cache: MutableMap<Snowflake, IEntity>,
     val restClient: RestClient<F>,
-    val gatewayContext: Gateway
+    val gatewayContext: Gateway<G>
 ) {
-    data class Gateway(
+    data class Gateway<F>(
         val scheduler: CoroutineContext,
-        val interceptors: Flow<Interceptor<Interceptor.Context>>,
+        val interceptors: List<Interceptor<out Interceptor.Context, F>>,
+        val CC: Concurrent<F>,
+        val runner: suspend (Kind<F, *>) -> Unit,
         val connectionContext: Connection
     ) {
         data class Connection(

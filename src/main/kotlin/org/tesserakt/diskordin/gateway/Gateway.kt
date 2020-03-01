@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
+import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.json.IPayload
 import org.tesserakt.diskordin.gateway.json.IRawEvent
@@ -24,8 +25,8 @@ import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
 import org.tesserakt.diskordin.impl.core.client.setupScarlet
 
 @Suppress("UNCHECKED_CAST")
-class Gateway(
-    private val context: BootstrapContext.Gateway,
+class Gateway<F>(
+    private val context: BootstrapContext.Gateway<F>,
     private val connections: List<GatewayConnection>,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
@@ -50,14 +51,10 @@ class Gateway(
 
             connection.map { WebSocketEventTransformer.transform(it) }
                 .flowOn(context.scheduler)
-                .flatMapMerge { payload ->
-                    if (payload.isTokenPayload) {
-                        composeToken(payload, shard)
-                    } else {
-                        shard.sequence = payload.seq
-                        composeEvent(payload, shard)
-                    }
-                }
+                .flatMapMerge {
+                    if (it.isTokenPayload) composeToken(it, shard)
+                    else composeEvent(it, shard)
+                }.map(context.runner)
         }
 
         return CoroutineScope(context.scheduler).launch {
@@ -74,25 +71,29 @@ class Gateway(
     private fun composeToken(
         payload: Payload<out IPayload>,
         shard: Shard
-    ): Flow<Unit> {
+    ) = context.CC.run {
         val token = RawTokenTransformer.transform(payload as Payload<IToken>)
         val interceptorContext = TokenInterceptor.Context(token, controller, shard)
 
-        return context.interceptors
+        context.interceptors
             .filter { it.selfContext == TokenInterceptor.Context::class }
+            .map { it as Interceptor<Interceptor.Context, F> }
             .map { it.intercept(interceptorContext) }
+            .asFlow()
     }
 
     private fun composeEvent(
         payload: Payload<out IPayload>,
         shard: Shard
-    ): Flow<Unit> {
+    ) = context.CC.run {
         val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
         val interceptorContext = EventInterceptor.Context(event, controller, shard)
 
-        return context.interceptors
+        context.interceptors
             .filter { it.selfContext == EventInterceptor.Context::class }
+            .map { it as Interceptor<Interceptor.Context, F> }
             .map { it.intercept(interceptorContext) }
+            .asFlow()
     }
 
     companion object Factory {
@@ -135,7 +136,7 @@ class Gateway(
             }
         }
 
-        fun create(context: BootstrapContext.Gateway): Gateway {
+        fun <F> create(context: BootstrapContext.Gateway<F>): Gateway<F> {
             val connections = connections(context.connectionContext)
             return Gateway(context, connections.map { it.first }, connections.map { it.second })
         }

@@ -1,9 +1,10 @@
 package org.tesserakt.diskordin.impl.core.client
 
+import arrow.Kind
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
-import kotlinx.coroutines.flow.asFlow
+import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -19,10 +20,10 @@ inline class ShardCount(val v: Int)
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
-class DiscordClientBuilder private constructor() {
+class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     private var token: String = "Invalid"
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
-    private var gatewaySettings: GatewayBuilder.GatewaySettings = GatewayBuilder().create()
+    private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
     private var isIntentsEnabled = false
 
     operator fun String.unaryPlus() {
@@ -38,22 +39,27 @@ class DiscordClientBuilder private constructor() {
         token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
     }
 
-    operator fun GatewayBuilder.unaryPlus() {
+    operator fun GatewayBuilder<F>.unaryPlus() {
         this@DiscordClientBuilder.gatewaySettings = this.create()
         if (this@DiscordClientBuilder.gatewaySettings.intents is IntentsStrategy.EnableOnly)
             this@DiscordClientBuilder.isIntentsEnabled = true
     }
 
-    inline fun DiscordClientBuilder.token(value: String) = value
-    inline fun DiscordClientBuilder.cache(value: Boolean) = value
-    internal inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
-    inline fun DiscordClientBuilder.gatewaySettings(f: GatewayBuilder.() -> Unit) = GatewayBuilder().apply(f)
+    inline fun DiscordClientBuilder<F>.token(value: String) = value
+    inline fun DiscordClientBuilder<F>.cache(value: Boolean) = value
+    internal inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
+    inline fun <F> DiscordClientBuilder<F>.gatewaySettings(f: GatewayBuilder<F>.() -> Unit) =
+        GatewayBuilder(CC).apply(f)
 
     internal object VerificationStub
 
     companion object {
-        operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
-            val builder = DiscordClientBuilder().apply(init)
+        operator fun <F> invoke(
+            CC: Concurrent<F>,
+            effectRunner: suspend (Kind<F, *>) -> Unit,
+            init: DiscordClientBuilder<F>.() -> Unit = {}
+        ): IDiscordClient {
+            val builder = DiscordClientBuilder(CC).apply(init)
             val token = System.getenv("token") ?: builder.token
             val httpClient = setupHttpClient(token)
             val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
@@ -61,33 +67,37 @@ class DiscordClientBuilder private constructor() {
 
             val shardSettings = formShardSettings(token, builder)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
-            val gatewayContext = formGatewaySettings(builder, connectionContext)
+            val gatewayContext = formGatewaySettings(builder, CC, effectRunner, connectionContext)
             val globalContext = formBootstrapContext(builder, rest, gatewayContext)
             return DiscordClient(globalContext).unsafeRunSync()
         }
 
-        private fun formBootstrapContext(
-            builder: DiscordClientBuilder,
+        private fun <F> formBootstrapContext(
+            builder: DiscordClientBuilder<F>,
             rest: RestClient<ForIO>,
-            gatewayContext: BootstrapContext.Gateway
-        ): BootstrapContext<ForIO> = BootstrapContext(
+            gatewayContext: BootstrapContext.Gateway<F>
+        ): BootstrapContext<ForIO, F> = BootstrapContext(
             if (builder.isIntentsEnabled) NoopMap() else builder.cache,
             rest,
             gatewayContext
         )
 
-        private fun formGatewaySettings(
-            builder: DiscordClientBuilder,
+        private fun <F> formGatewaySettings(
+            builder: DiscordClientBuilder<F>,
+            CC: Concurrent<F>,
+            runner: suspend (Kind<F, *>) -> Unit,
             connectionContext: BootstrapContext.Gateway.Connection
-        ): BootstrapContext.Gateway = BootstrapContext.Gateway(
+        ): BootstrapContext.Gateway<F> = BootstrapContext.Gateway(
             builder.gatewaySettings.coroutineContext,
-            builder.gatewaySettings.interceptors.asFlow(),
+            builder.gatewaySettings.interceptors,
+            CC,
+            runner,
             connectionContext
         )
 
-        private fun formConnectionSettings(
+        private fun <F> formConnectionSettings(
             httpClient: OkHttpClient,
-            builder: DiscordClientBuilder,
+            builder: DiscordClientBuilder<F>,
             shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
         ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(
             httpClient,
@@ -96,9 +106,9 @@ class DiscordClientBuilder private constructor() {
             shardSettings
         )
 
-        private fun formShardSettings(
+        private fun <F> formShardSettings(
             token: String,
-            builder: DiscordClientBuilder
+            builder: DiscordClientBuilder<F>
         ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
             token,
             builder.gatewaySettings.shardCount,
