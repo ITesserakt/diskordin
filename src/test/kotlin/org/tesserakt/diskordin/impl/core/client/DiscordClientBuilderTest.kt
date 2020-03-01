@@ -11,24 +11,24 @@ internal class DiscordClientBuilderTest {
     @Test
     fun `create instance of client once`() {
         {
-            DiscordClientBuilder { +disableTokenVerification() }
+            DiscordClientBuilder.default { +disableTokenVerification() }
         } `should not throw` IllegalStateException::class `with message` "Discord client already created"
     }
 
     @Test
     fun `create instance of client twice should produce error`() {
-        DiscordClientBuilder { +disableTokenVerification() };
+        DiscordClientBuilder.default { +disableTokenVerification() };
         {
-            DiscordClientBuilder { +disableTokenVerification() }
+            DiscordClientBuilder.default { +disableTokenVerification() }
         } `should throw` IllegalStateException::class `with message` "Discord client already created"
     }
 
     @Test
     fun `create client, logout and create again`() {
-        val cl = DiscordClientBuilder { +disableTokenVerification() }
+        val cl = DiscordClientBuilder.default { +disableTokenVerification() }
         cl.logout();
         {
-            DiscordClientBuilder { +disableTokenVerification() }
+            DiscordClientBuilder.default { +disableTokenVerification() }
         } `should not throw` IllegalStateException::class `with message` "Discord client already created"
     }
 
