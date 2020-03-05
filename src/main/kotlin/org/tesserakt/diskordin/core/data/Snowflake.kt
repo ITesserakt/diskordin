@@ -12,7 +12,7 @@ import java.time.Instant
 
 private const val DISCORD_EPOCH = 1420070400000u
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 data class Snowflake private constructor(private val id: ULong) : Comparable<Snowflake> {
     override operator fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
     override fun toString(): String = "$id"
@@ -61,7 +61,7 @@ fun Long.asSnowflake() = Snowflake.of(this)
 @ExperimentalUnsignedTypes
 fun ULong.asSnowflake() = Snowflake.of(this)
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionError>) = AE.run {
     val stringToConvert = this@asSnowflakeSafe
 
