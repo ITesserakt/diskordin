@@ -98,13 +98,13 @@ Auto-complete helps you to show all optional properties
 Here will more use cases as they will implement.
 
 ### Libraries
-|Name               | Reason                                                        |
-| ----------------- | ------------------------------------------------------------- |
-| Arrow             | Functional approach in Kotlin                                 |
-| Kotlin coroutines | Dependency to Arrow.                                          |
-| OkHTTP            | Http client implementation on which Rest and Gateway are based|
-| Scarlet           | Easy work with WebSockets                                     |
-| Kotlin logging    | Kotlin adapter for loggers                                    |
-| JUnit             | Tests                                                         |
-| Kluent            | Extensions providing easily unit testing                      |
+|Name                                                               | Reason                                                         |
+| ----------------------------------------------------------------- | -------------------------------------------------------------- |
+| [Arrow](https://github.com/arrow-kt/arrow)                        | Functional approach in Kotlin                                  |
+| [Kotlin coroutines](https://github.com/Kotlin/kotlinx.coroutines) | Dependency to Arrow.                                           |
+| [OkHTTP](https://github.com/square/okhttp)                        | Http client implementation on which Rest and Gateway are based |
+| [Scarlet](https://github.com/Tinder/Scarlet)                      | Easy work with WebSockets                                      |
+| [Kotlin logging](https://github.com/MicroUtils/kotlin-logging)    | Kotlin adapter for loggers                                     |
+| [JUnit5](https://github.com/junit-team/junit5)                    | Tests                                                          |
+| [Kluent](https://github.com/MarkusAmshove/Kluent/)                | Extensions providing easily unit testing                       |
 
