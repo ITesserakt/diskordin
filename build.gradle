@@ -3,7 +3,6 @@ plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id "maven-publish"
 }
-apply plugin: 'kotlin-kapt'
 
 group 'org.tesserakt.diskordin'
 version System.getProperty("diskordin.version", diskordin_version)
@@ -44,7 +43,6 @@ dependencies {
     compile "io.arrow-kt:arrow-fx:$arrow_version"
     compile "io.arrow-kt:arrow-core-data:$arrow_version"
     compile "io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version"
-    kapt "io.arrow-kt:arrow-meta:$arrow_version"
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
