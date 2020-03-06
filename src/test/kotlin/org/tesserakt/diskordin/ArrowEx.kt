@@ -43,6 +43,6 @@ internal fun <F, A> Bracket<F, Throwable>.withFinalize(
             is AssertionError -> finalize(r).map { Unit }
             else -> raiseError(case.e)
         }
-        is ExitCase.Canceled -> Unit.just()
+        is ExitCase.Cancelled -> Unit.just()
     }
 })
