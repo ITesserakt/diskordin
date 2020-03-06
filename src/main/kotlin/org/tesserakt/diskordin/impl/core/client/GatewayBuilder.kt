@@ -2,7 +2,6 @@
 
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.Kind
 import arrow.fx.typeclasses.Concurrent
 import kotlinx.coroutines.Dispatchers
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
@@ -16,7 +15,6 @@ import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
 
 @RequestBuilder
 class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewaySettings<F>>() {
@@ -102,15 +100,6 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
     }
 
     inline fun GatewayBuilder<F>.gatewayInterceptor(value: Interceptor<out Interceptor.Context, F>) = value
-    inline fun <reified C : Interceptor.Context, F> GatewayBuilder<F>.gatewayInterceptor(
-        crossinline f: (C) -> Kind<F, Unit>
-    ): Interceptor<out Interceptor.Context, F> {
-        val interceptor = object : Interceptor<C, F> {
-            override fun intercept(context: C) = f(context)
-            override val selfContext: KClass<C> = C::class
-        }
-        return gatewayInterceptor(interceptor)
-    }
 
     inline fun GatewayBuilder<F>.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
     inline fun GatewayBuilder<F>.compressShards(vararg shardIndexes: Int) = shardIndexes
