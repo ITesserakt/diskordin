@@ -23,5 +23,7 @@ class MessageCreateEvent(raw: MessageResponse) : IMessageEvent<ForId>, IChannelE
 
     init {
         cache[message.id] = message().extract()
+        if (author != null)
+            cache[author.id] = author.invoke().extract()
     }
 }

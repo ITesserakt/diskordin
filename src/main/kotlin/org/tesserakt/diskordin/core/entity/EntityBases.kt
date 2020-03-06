@@ -7,6 +7,7 @@ import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.client.IDiscordClient
+import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -30,7 +31,7 @@ val IDiscordObject.client: IDiscordClient
 val IDiscordObject.rest: RestClient<ForIO>
     inline get() = client.rest
 
-internal val IDiscordObject.cache: MutableMap<Snowflake, IEntity>
+internal val IDiscordObject.cache: EntityCache
     get() = (client as DiscordClient<*>).context.cache
 
 interface IGuildObject<F> : IDiscordObject {
