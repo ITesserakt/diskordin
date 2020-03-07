@@ -46,11 +46,13 @@ class Gateway<F>(
             val shard = Shard(
                 context.connectionContext.shardSettings.token,
                 Shard.Data(index, context.connectionContext.shardSettings.shardCount),
-                connections[index]
+                connections[index],
+                lifecycles[index]
             )
 
             connection.map { WebSocketEventTransformer.transform(it) }
                 .flowOn(context.scheduler)
+                .onEach { shard.sequence = it.seq ?: shard.sequence }
                 .flatMapMerge {
                     if (it.isTokenPayload) composeToken(it, shard)
                     else composeEvent(it, shard)

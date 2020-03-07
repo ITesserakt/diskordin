@@ -13,12 +13,18 @@ import arrow.fx.typeclasses.seconds
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
+import org.tesserakt.diskordin.core.data.EntityCache
+import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
+import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
+import org.tesserakt.diskordin.util.enums.ValuedEnum
+import org.tesserakt.diskordin.util.enums.not
 import java.util.concurrent.ConcurrentHashMap
 
 inline class ShardCount(val v: Int)
@@ -29,7 +35,6 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     private var token: String = "Invalid"
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
     private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
-    private var isIntentsEnabled = false
     private var restSchedule: Schedule<ForIO, Throwable, *> = Schedule.withMonad(IO.monad()) {
         (spaced<Throwable>(1.seconds) and recurs(5)).jittered(IO.monadDefer())
     }
@@ -38,9 +43,8 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         token = this
     }
 
-    operator fun Boolean.unaryPlus() {
-        cache = if (this) ConcurrentHashMap()
-        else NoopMap()
+    operator fun MutableMap<Snowflake, IEntity>.unaryPlus() {
+        cache = this
     }
 
     internal operator fun VerificationStub.unaryPlus() {
@@ -49,16 +53,19 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
 
     operator fun GatewayBuilder<F>.unaryPlus() {
         this@DiscordClientBuilder.gatewaySettings = this.create()
-        if (this@DiscordClientBuilder.gatewaySettings.intents is IntentsStrategy.EnableOnly)
-            this@DiscordClientBuilder.isIntentsEnabled = true
     }
 
     operator fun Schedule<ForIO, Throwable, *>.unaryPlus() {
         restSchedule = this
     }
 
+    operator fun Unit.unaryPlus() {
+        cache = NoopMap()
+    }
+
     inline fun DiscordClientBuilder<F>.token(value: String) = value
-    inline fun DiscordClientBuilder<F>.cache(value: Boolean) = value
+    inline fun DiscordClientBuilder<F>.withCache(value: MutableMap<Snowflake, IEntity>) = value
+    inline fun DiscordClientBuilder<F>.disableCaching() = Unit
     internal inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
     inline fun <F> DiscordClientBuilder<F>.gatewaySettings(f: GatewayBuilder<F>.() -> Unit) =
         GatewayBuilder(CC).apply(f)
@@ -90,11 +97,23 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             builder: DiscordClientBuilder<F>,
             rest: RestClient<ForIO>,
             gatewayContext: BootstrapContext.Gateway<F>
-        ): BootstrapContext<ForIO, F> = BootstrapContext(
-            if (builder.isIntentsEnabled) NoopMap() else builder.cache,
-            rest,
-            gatewayContext
-        )
+        ): BootstrapContext<ForIO, F> {
+            val strategy = builder.gatewaySettings.intents
+
+            val intents = if (strategy is IntentsStrategy.EnableOnly)
+                strategy.enabled
+                    .map { (_, code) -> ValuedEnum<Intents, Short>(code, Short.integral()) }
+                    .fold(ValuedEnum(0, Short.integral())) { acc, i -> acc or i }
+            else {
+                !Intents.GuildPresences or Intents.GuildPresences //Fixme: replace with ValuedEnum.all
+            }
+
+            return BootstrapContext(
+                EntityCache(EntitySifter(intents), builder.cache),
+                rest,
+                gatewayContext
+            )
+        }
 
         private fun <F> formGatewaySettings(
             builder: DiscordClientBuilder<F>,

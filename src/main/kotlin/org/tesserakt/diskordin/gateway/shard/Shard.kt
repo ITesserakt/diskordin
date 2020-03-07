@@ -1,16 +1,19 @@
 package org.tesserakt.diskordin.gateway.shard
 
+import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.GatewayConnection
 import java.time.Instant
+import kotlin.math.abs
 
 data class Shard(
     val token: String,
     val shardData: Data,
-    val connection: GatewayConnection
+    val connection: GatewayConnection,
+    val lifecycle: GatewayLifecycleManager
 ) {
     data class Data(val current: Int, val total: Int)
     enum class State {
-        Disconnected, Connecting, Connected, Handshaking
+        Disconnected, Connecting, Connected, Handshaking, Invalidated
     }
 
     lateinit var sessionId: String internal set
@@ -24,7 +27,7 @@ data class Shard(
         internal set
 
     fun ping() = if (lastHeartbeatACK != null && lastHeartbeat != null)
-        lastHeartbeatACK!!.toEpochMilli() - lastHeartbeat!!.toEpochMilli()
+        abs(lastHeartbeatACK!!.toEpochMilli() - lastHeartbeat!!.toEpochMilli())
     else Long.MIN_VALUE
 
     fun isReady() = this::sessionId.isInitialized

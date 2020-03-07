@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.gateway.shard
 
 import arrow.fx.IO
 import arrow.fx.extensions.io.concurrent.concurrent
+import arrow.fx.extensions.io.concurrent.fork
 import arrow.fx.fix
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -10,6 +11,7 @@ import org.tesserakt.diskordin.gateway.GatewayConnection
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload
+import org.tesserakt.diskordin.impl.gateway.interceptor.ConnectionObserver
 
 private const val INDEX_OUT_OF_SHARD_COUNT = "Given index of shard more than shard count"
 
@@ -20,6 +22,7 @@ class ShardController internal constructor(
 ) {
     private val logger = KotlinLogging.logger { }
     private val shards = mutableListOf<Shard>()
+    private val observer = ConnectionObserver()
 
     private val connectionProperties = Identify.ConnectionProperties(
         System.getProperty("os.name"),
@@ -65,6 +68,7 @@ class ShardController internal constructor(
     fun approveShard(shard: Shard, sessionId: String) {
         shard.sessionId = sessionId
         shards += shard
+        observer.observe(shard).fork().unsafeRunSync()
     }
 
     fun closeShard(shardIndex: Int) {

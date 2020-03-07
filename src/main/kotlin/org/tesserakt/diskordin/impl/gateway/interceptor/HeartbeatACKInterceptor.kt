@@ -14,11 +14,6 @@ class HeartbeatACKInterceptor<F>(private val A: Async<F>) : EventInterceptor<F>(
         shard.lastHeartbeatACK = Instant.now()
         logger.debug("Received heartbeat ACK after ${shard.ping()}ms")
 
-        if (shard.ping() >= 20000) {
-            logger.warn("Shard #${shard.shardData.current} does not respond. Closing")
-            controller.closeShard(shard.shardData.current)
-        }
-
         return A.unit()
     }
 }

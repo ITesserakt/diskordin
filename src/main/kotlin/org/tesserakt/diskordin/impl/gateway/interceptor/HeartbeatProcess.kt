@@ -1,30 +1,33 @@
-package org.tesserakt.diskordin.gateway
+package org.tesserakt.diskordin.impl.gateway.interceptor
 
 import arrow.fx.typeclasses.Concurrent
 import arrow.fx.typeclasses.milliseconds
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor.Context
+import org.tesserakt.diskordin.gateway.interceptor.sendPayload
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.shard.Shard
 import java.time.Instant
 
 class HeartbeatProcess(private val interval: Long) {
-    private val power = interval / 1000
+    private val power = 100
 
     fun <F> start(CC: Concurrent<F>, context: Context) = CC.fx.concurrent {
         var isExiting = false
 
-        while (context.shard.state == Shard.State.Connected && !isExiting) {
-            val result = !context.shard.connection.sendPayload(
-                Heartbeat(context.shard.sequence),
-                context.shard.sequence,
-                context.shard.shardData.current,
-                CC
-            ).attempt()
+        while (context.shard.state == Shard.State.Connected || context.shard.state == Shard.State.Handshaking && !isExiting) {
+            val result = !context.sendPayload(Heartbeat(context.shard.sequence), CC).attempt()
             result.map { context.shard.lastHeartbeat = Instant.now() }
 
+            isExiting = !waitForInterval(interval) { context.shard.state }
+        }
+    }
+
+    private inline fun <F> Concurrent<F>.waitForInterval(interval: Long, crossinline state: () -> Shard.State) =
+        fx.concurrent {
+            var isExiting = false
             var remaining = interval
             while (remaining > 0) {
-                if (context.shard.state != Shard.State.Connected) {
+                if (state() != Shard.State.Connected) {
                     isExiting = true
                     break
                 }
@@ -32,6 +35,6 @@ class HeartbeatProcess(private val interval: Long) {
                 remaining -= power
                 !sleep(power.milliseconds)
             }
+            isExiting
         }
-    }
 }
