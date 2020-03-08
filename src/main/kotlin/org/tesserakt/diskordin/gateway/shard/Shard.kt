@@ -13,7 +13,7 @@ data class Shard(
 ) {
     data class Data(val current: Int, val total: Int)
     enum class State {
-        Disconnected, Connecting, Connected, Handshaking, Invalidated
+        Disconnected, Connecting, Connected, Handshaking
     }
 
     lateinit var sessionId: String internal set
@@ -30,5 +30,5 @@ data class Shard(
         abs(lastHeartbeatACK!!.toEpochMilli() - lastHeartbeat!!.toEpochMilli())
     else Long.MIN_VALUE
 
-    fun isReady() = this::sessionId.isInitialized
+    fun isReady() = this::sessionId.isInitialized && sessionId.isNotEmpty()
 }

@@ -12,7 +12,7 @@ class HelloChain<F>(private val CC: Concurrent<F>) : EventInterceptor<F>(CC) {
 
         !sleep((5500 * (shard.shardData.current + 1)).milliseconds)
         !effect {
-            if (shard.isReady() && shard.state != Shard.State.Invalidated)
+            if (shard.isReady())
                 controller.resumeShard(shard)
             else {
                 controller.openShard(shard.shardData.current, shard::sequence)

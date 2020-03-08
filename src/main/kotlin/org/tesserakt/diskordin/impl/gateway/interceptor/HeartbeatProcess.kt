@@ -14,7 +14,7 @@ class HeartbeatProcess(private val interval: Long) {
     fun <F> start(CC: Concurrent<F>, context: Context) = CC.fx.concurrent {
         var isExiting = false
 
-        while (context.shard.state == Shard.State.Connected || context.shard.state == Shard.State.Handshaking && !isExiting) {
+        while (!isExiting) {
             val result = !context.sendPayload(Heartbeat(context.shard.sequence), CC).attempt()
             result.map { context.shard.lastHeartbeat = Instant.now() }
 

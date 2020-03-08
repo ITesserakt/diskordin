@@ -32,10 +32,8 @@ class ShardApprover<F>(private val CC: Concurrent<F>) : EventInterceptor<F>(CC) 
     }
 
     override fun Context.invalidSession(event: InvalidSessionEvent): Kind<F, Unit> = CC.fx.concurrent {
-        shard.state =
-            if (event.canResume) Shard.State.Disconnected
-            else Shard.State.Invalidated
-
+        shard.state = Shard.State.Disconnected
+        shard.sessionId = ""
         shard.lifecycle.restart()
     }
 
