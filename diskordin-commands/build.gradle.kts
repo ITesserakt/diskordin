@@ -1,6 +1,7 @@
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-val kotestVersion: String = ext["kotest_version"].safeAs()!!
+val kotestVersion: String = ext["kotest_version"].cast()
+val arrowVersion: String = project(":").properties["arrow_version"].cast()
 
 plugins {
     kotlin("jvm")
@@ -19,6 +20,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":"))
 
+    testImplementation("io.arrow-kt:arrow-fx-rx2:$arrowVersion")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") {
         exclude("io.arrow-kt")
     }

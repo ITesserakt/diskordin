@@ -50,7 +50,6 @@ class CommandBuilderTest : FunSpec({
                 }
 
             validated.fix() shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
-                println(nel)
                 nel shouldHaveSize 2
                 nel.toList() shouldHaveSingleElement { it is ValidationError.Empty }
                 nel.toList() shouldHaveSingleElement { it is ValidationError.DuplicatedAliases }
