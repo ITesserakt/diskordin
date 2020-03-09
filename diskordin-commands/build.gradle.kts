@@ -22,6 +22,9 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") {
         exclude("io.arrow-kt")
     }
+    testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion") {
+        exclude("io.arrow-kt")
+    }
 }
 
 tasks {
