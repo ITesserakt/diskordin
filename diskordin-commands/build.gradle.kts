@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+
+val kotestVersion: String = ext["kotest_version"].safeAs()!!
+
 plugins {
     kotlin("jvm")
 }
@@ -14,6 +18,10 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":"))
+
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") {
+        exclude("io.arrow-kt")
+    }
 }
 
 tasks {
@@ -22,5 +30,8 @@ tasks {
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
+    }
+    withType<Test> {
+        useJUnitPlatform()
     }
 }

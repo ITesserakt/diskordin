@@ -132,3 +132,5 @@ src/main/java/
 src/test/java/
 src/test/resources/
 *.meta
+/diskordin-commands/build/
+/diskordin-commands/.gradle/
