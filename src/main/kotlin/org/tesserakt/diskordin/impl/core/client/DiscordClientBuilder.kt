@@ -47,7 +47,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         cache = this
     }
 
-    internal operator fun VerificationStub.unaryPlus() {
+    operator fun VerificationStub.unaryPlus() {
         token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
     }
 
@@ -66,13 +66,17 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     inline fun DiscordClientBuilder<F>.token(value: String) = value
     inline fun DiscordClientBuilder<F>.withCache(value: MutableMap<Snowflake, IEntity>) = value
     inline fun DiscordClientBuilder<F>.disableCaching() = Unit
-    internal inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
+
+    @InternalTestAPI
+    inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
     inline fun <F> DiscordClientBuilder<F>.gatewaySettings(f: GatewayBuilder<F>.() -> Unit) =
         GatewayBuilder(CC).apply(f)
 
     inline fun DiscordClientBuilder<F>.restRetrySchedule(value: Schedule<ForIO, Throwable, *>) = value
 
-    internal object VerificationStub
+    @RequiresOptIn("This statement should be used only in tests")
+    annotation class InternalTestAPI
+    object VerificationStub
 
     companion object {
         operator fun <F> invoke(
