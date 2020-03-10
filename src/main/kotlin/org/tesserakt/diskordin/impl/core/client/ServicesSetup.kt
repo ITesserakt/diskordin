@@ -37,8 +37,10 @@ internal fun setupHttpClient(token: String): OkHttpClient = OkHttpClient().newBu
             .build()
         chain.proceed(request)
     }.addInterceptor(
-        HttpLoggingInterceptor(KotlinLogging.logger("[HTTP client]")::trace)
-            .setLevel(HttpLoggingInterceptor.Level.BASIC)
+        HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
+            private val logger = KotlinLogging.logger("[HTTP client]")
+            override fun log(message: String) = logger.trace(message)
+        }).setLevel(HttpLoggingInterceptor.Level.BASIC)
     ).build()
 
 internal fun setupScarlet(path: String, lifecycle: Lifecycle, httpClient: OkHttpClient): Scarlet {
