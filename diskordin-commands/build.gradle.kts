@@ -19,14 +19,13 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":"))
+    implementation("io.arrow-kt:arrow-core:$arrowVersion")
+    implementation("io.arrow-kt:arrow-fx:$arrowVersion")
 
     testImplementation("io.arrow-kt:arrow-fx-rx2:$arrowVersion")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") {
-        exclude("io.arrow-kt")
-    }
-    testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion") {
-        exclude("io.arrow-kt")
-    }
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 }
 
 tasks {

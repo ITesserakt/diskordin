@@ -3,7 +3,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.*
 
-val kotlin_version: String by extra
+val kotlin_version: String = KotlinVersion.CURRENT.toString()
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -59,7 +59,6 @@ dependencies {
     testImplementation(group = "org.slf4j", name = "slf4j-api", version = slf4j_version)
     testImplementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
     testImplementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
-    testImplementation("io.mockk:mockk:1.9.3")
 }
 
 tasks.test {
