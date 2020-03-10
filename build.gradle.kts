@@ -3,7 +3,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.*
 
-val kotlin_version: String = KotlinVersion.CURRENT.toString()
+val kotlin_version: String = KotlinVersion(1, 3, 70).toString()
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
