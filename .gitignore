@@ -131,3 +131,4 @@ gradlew.bat
 src/main/java/
 src/test/java/
 src/test/resources/
+*.meta

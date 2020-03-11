@@ -58,7 +58,7 @@ In DiscordClientBuilder lambda you can put other config options.
  
  If your token is in env variables the syntax will even more simple:
  ```kotlin
-fun main() = DiscordClientBuilder{}.login().unsafeRunSync()
+fun main() = DiscordClientBuilder().login().unsafeRunSync()
 ```
 
 Most wrappers block main forever after `login`.
@@ -70,7 +70,7 @@ Currently, a type of `readyEvent` is Kind<ForFlowable, ReadyEvent> because of li
 To repair it, use `fix` and `flowable` after it.
 In the future, this will change to S\<ReadyEvent\> where `S` is a concrete "streamable" type of the Gateway.
  ```kotlin
- fun main() = with(DiscordClientBuilder{}) {
+ fun main() = with(DiscordClientBuilder()) {
     login().unsafeRunSync()
     val readyEvents = eventDispatcher.subscribeOn()
     // ...
