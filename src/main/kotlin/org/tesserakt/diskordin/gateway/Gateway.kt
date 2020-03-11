@@ -94,7 +94,7 @@ class Gateway(private val scheduler: CoroutineContext, private val lifecycleRegi
             Gateway(context.scheduler, context.lifecycleRegistry) toT impl(
                 context.connectionContext.url,
                 context.connectionContext.compression,
-                context.httpClient
+                context.httpClient.memoize().extract()
             )
     }
 }

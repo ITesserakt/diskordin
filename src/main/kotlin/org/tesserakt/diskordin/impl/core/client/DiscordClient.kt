@@ -67,7 +67,7 @@ internal class DiscordClient private constructor(
     override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.token
-    override val rest: RestClient<ForIO> = context.restClient
+    override val rest: RestClient<ForIO> get() = context.restClient.memoize().extract()
     private val gatewayImplementation = Gateway.create(context.gatewayContext)
 
     private val gateway = gatewayImplementation.a

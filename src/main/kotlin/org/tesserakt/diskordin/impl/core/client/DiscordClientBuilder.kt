@@ -1,8 +1,11 @@
 package org.tesserakt.diskordin.impl.core.client
 
+import arrow.core.Eval
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
+import arrow.syntax.function.partially1
 import kotlinx.coroutines.Dispatchers
+import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -18,6 +21,7 @@ class DiscordClientBuilder private constructor() {
     private var gatewayContext: CoroutineContext = Dispatchers.IO
     private var compression = ""
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
+    private var httpClient: Eval<OkHttpClient> = Eval.later(::defaultHttpClient)
 
     operator fun String.unaryPlus() {
         token = this
@@ -40,11 +44,18 @@ class DiscordClientBuilder private constructor() {
         token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
     }
 
+    operator fun Eval<OkHttpClient>.unaryPlus() {
+        httpClient = this
+    }
+
     inline fun DiscordClientBuilder.token(value: String) = value
     inline fun DiscordClientBuilder.useCompression() = Unit
     inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
     inline fun DiscordClientBuilder.cache(value: Boolean) = value
     internal inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
+    inline fun DiscordClientBuilder.overrideHttpClient(client: Eval<OkHttpClient>) = client
+    inline fun DiscordClientBuilder.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
+        Eval.later(client)
 
     internal object VerificationStub
 
@@ -53,9 +64,13 @@ class DiscordClientBuilder private constructor() {
             val builder = DiscordClientBuilder().apply(init)
 
             val token = System.getenv("token") ?: builder.token
-            val httpClient = setupHttpClient(token)
-            val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
-            val rest = RestClient.byRetrofit(retrofit, IO.async())
+            val httpClient = builder.httpClient.map {
+                it.newBuilder()
+                    .addInterceptor(AuthorityInterceptor(token))
+                    .build()
+            }
+            val retrofit = httpClient.map(::setupRetrofit.partially1("https://discordapp.com/api/v6/"))
+            val rest = retrofit.map { RestClient.byRetrofit(it, IO.async()) }
 
             val connectionContext = BootstrapContext.Gateway.Connection(
                 "wss://gateway.discord.gg",
