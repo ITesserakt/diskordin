@@ -4,15 +4,21 @@ import arrow.core.Validated
 import arrow.core.extensions.validated.foldable.firstOption
 import arrow.core.extensions.validated.traverse.traverse
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.test.TestCaseConfig
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.string.shouldMatch
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
+@ExperimentalTime
 @DiscordClientBuilder.InternalTestAPI
 class CommandRegistryTest : FunSpec() {
     init {
+        defaultTestConfig = TestCaseConfig(timeout = 1.seconds, threads = 1)
+
         test("Empty registry should not contain any commands") {
             val client = DiscordClientBuilder.default {
                 +disableTokenVerification()

@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.util.concurrent.TimeUnit
 
-@OptIn(DiscordClientBuilder.InternalTestAPI::class)
+@DiscordClientBuilder.InternalTestAPI
 internal class DiscordClientBuilderTest {
     @Test
-    @Timeout(500, unit = TimeUnit.MILLISECONDS)
+    @Timeout(1, unit = TimeUnit.SECONDS)
     fun `create instance of client once`() {
         {
             DiscordClientBuilder.default { +disableTokenVerification() }
@@ -20,6 +20,7 @@ internal class DiscordClientBuilderTest {
     }
 
     @Test
+    @Timeout(1, unit = TimeUnit.SECONDS)
     fun `create instance of client twice should produce error`() {
         DiscordClientBuilder.default { +disableTokenVerification() };
         {
@@ -28,6 +29,7 @@ internal class DiscordClientBuilderTest {
     }
 
     @Test
+    @Timeout(1, unit = TimeUnit.SECONDS)
     fun `create client, logout and create again`() {
         val cl = DiscordClientBuilder.default { +disableTokenVerification() }
         cl.logout();
