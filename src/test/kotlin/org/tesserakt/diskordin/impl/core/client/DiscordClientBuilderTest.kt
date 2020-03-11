@@ -7,6 +7,7 @@ import org.amshove.kluent.`with message`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
+@OptIn(DiscordClientBuilder.InternalTestAPI::class)
 internal class DiscordClientBuilderTest {
     @Test
     fun `create instance of client once`() {
