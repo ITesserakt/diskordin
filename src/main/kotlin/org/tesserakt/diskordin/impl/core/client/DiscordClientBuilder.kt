@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.Kind
+import arrow.core.Eval
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.Schedule
@@ -10,6 +11,7 @@ import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
 import arrow.fx.typeclasses.Concurrent
 import arrow.fx.typeclasses.seconds
+import arrow.syntax.function.partially1
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -26,12 +28,14 @@ import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.not
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
 
 inline class ShardCount(val v: Int)
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
 class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
+    private var httpClient: Eval<OkHttpClient> = Eval.later(::defaultHttpClient)
     private var token: String = "Invalid"
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
     private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
@@ -51,6 +55,10 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
     }
 
+    operator fun Eval<OkHttpClient>.unaryPlus() {
+        httpClient = this
+    }
+
     operator fun GatewayBuilder<F>.unaryPlus() {
         this@DiscordClientBuilder.gatewaySettings = this.create()
     }
@@ -58,6 +66,13 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     operator fun Schedule<ForIO, Throwable, *>.unaryPlus() {
         restSchedule = this
     }
+
+    inline fun DiscordClientBuilder<F>.useCompression() = Unit
+    inline fun DiscordClientBuilder<F>.context(coroutineContext: CoroutineContext) = coroutineContext
+    inline fun DiscordClientBuilder<F>.cache(value: Boolean) = value
+    inline fun DiscordClientBuilder<F>.overrideHttpClient(client: Eval<OkHttpClient>) = client
+    inline fun DiscordClientBuilder<F>.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
+        Eval.later(client)
 
     operator fun Unit.unaryPlus() {
         cache = NoopMap()
@@ -86,9 +101,13 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         ): IDiscordClient {
             val builder = DiscordClientBuilder(CC).apply(init)
             val token = System.getenv("token") ?: builder.token
-            val httpClient = setupHttpClient(token)
-            val retrofit = setupRetrofit("https://discordapp.com/api/v6/", httpClient)
-            val rest = RestClient.byRetrofit(retrofit, builder.restSchedule, IO.concurrent())
+            val httpClient = builder.httpClient.map {
+                it.newBuilder()
+                    .addInterceptor(AuthorityInterceptor(token))
+                    .build()
+            }
+            val retrofit = httpClient.map(::setupRetrofit.partially1("https://discordapp.com/api/v6/"))
+            val rest = retrofit.map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }
 
             val shardSettings = formShardSettings(token, builder)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
@@ -99,7 +118,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
 
         private fun <F> formBootstrapContext(
             builder: DiscordClientBuilder<F>,
-            rest: RestClient<ForIO>,
+            rest: Eval<RestClient<ForIO>>,
             gatewayContext: BootstrapContext.Gateway<F>
         ): BootstrapContext<ForIO, F> {
             val strategy = builder.gatewaySettings.intents
@@ -133,7 +152,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         )
 
         private fun <F> formConnectionSettings(
-            httpClient: OkHttpClient,
+            httpClient: Eval<OkHttpClient>,
             builder: DiscordClientBuilder<F>,
             shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
         ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(

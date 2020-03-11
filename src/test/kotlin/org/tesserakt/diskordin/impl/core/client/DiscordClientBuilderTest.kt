@@ -6,10 +6,13 @@ import org.amshove.kluent.`should throw`
 import org.amshove.kluent.`with message`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
+import java.util.concurrent.TimeUnit
 
 @OptIn(DiscordClientBuilder.InternalTestAPI::class)
 internal class DiscordClientBuilderTest {
     @Test
+    @Timeout(500, unit = TimeUnit.MILLISECONDS)
     fun `create instance of client once`() {
         {
             DiscordClientBuilder.default { +disableTokenVerification() }

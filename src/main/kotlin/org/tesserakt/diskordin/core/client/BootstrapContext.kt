@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.core.client
 
 import arrow.Kind
+import arrow.core.Eval
 import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.data.EntityCache
@@ -15,7 +16,7 @@ import kotlin.coroutines.CoroutineContext
 
 data class BootstrapContext<F, G>(
     val cache: EntityCache,
-    val restClient: RestClient<F>,
+    val restClient: Eval<RestClient<F>>,
     val gatewayContext: Gateway<G>
 ) {
     data class Gateway<F>(
@@ -26,7 +27,7 @@ data class BootstrapContext<F, G>(
         val connectionContext: Connection
     ) {
         data class Connection(
-            val httpClient: OkHttpClient,
+            val httpClient: Eval<OkHttpClient>,
             val url: String,
             val compression: String,
             val shardSettings: ShardSettings
