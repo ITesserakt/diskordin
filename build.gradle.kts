@@ -13,6 +13,7 @@ val kotlin_logging_version: String by extra
 val slf4j_version: String by extra
 val junit_version: String by extra
 val kluent_version: String by extra
+val kotest_version: String by extra
 
 val publicationName = "diskordin"
 
@@ -53,12 +54,10 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
     testImplementation("org.amshove.kluent:kluent:$kluent_version")
-    testImplementation(group = "org.slf4j", name = "slf4j-api", version = slf4j_version)
-    testImplementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
-    testImplementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotest_version")
+    testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
+    testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
 }
 
 tasks.test {
