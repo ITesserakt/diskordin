@@ -114,7 +114,7 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
         shardIndex to value.code
 
     inline fun GatewayBuilder<F>.featureOverrides(shardIndex: Int, value: IValued<Intents, Short>) =
-        shardIndex to value.value
+        shardIndex to value.code
 
     inline fun GatewayBuilder<F>.coroutineContext(context: CoroutineContext) = context
 

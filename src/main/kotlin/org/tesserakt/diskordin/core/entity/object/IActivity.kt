@@ -30,7 +30,7 @@ interface IActivity : IDiscordObject {
     val instanceOfGame: Boolean?
     val flags: ValuedEnum<Flags, Short>?
 
-    enum class Flags(override val value: Short) : IValued<Flags, Short>, Integral<Short> by Short.integral() {
+    enum class Flags(override val code: Short) : IValued<Flags, Short>, Integral<Short> by Short.integral() {
         INSTANCE(1 shl 0),
         JOIN(1 shl 1),
         SPECTATE(1 shl 2),

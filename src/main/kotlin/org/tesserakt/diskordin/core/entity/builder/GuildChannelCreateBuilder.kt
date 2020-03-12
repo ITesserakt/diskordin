@@ -9,6 +9,7 @@ import org.tesserakt.diskordin.core.entity.IGuildChannel
 import org.tesserakt.diskordin.core.entity.ITextChannel
 import org.tesserakt.diskordin.core.entity.IVoiceChannel
 import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
+import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
 
 @RequestBuilder

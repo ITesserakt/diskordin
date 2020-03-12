@@ -9,7 +9,7 @@ import org.tesserakt.diskordin.util.typeclass.Integral
 
 typealias Permissions = ValuedEnum<Permission, Long>
 
-enum class Permission(override val value: Long) : IValued<Permission, Long>, Integral<Long> by Long.integral() {
+enum class Permission(override val code: Long) : IValued<Permission, Long>, Integral<Long> by Long.integral() {
     CreateInstantInvite(1),
     KickMembers(2),
     BanMembers(4),

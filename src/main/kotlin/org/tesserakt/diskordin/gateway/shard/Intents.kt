@@ -4,7 +4,7 @@ import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.typeclass.Integral
 
-enum class Intents(override val value: Short) : IValued<Intents, Short>, Integral<Short> by Short.integral() {
+enum class Intents(override val code: Short) : IValued<Intents, Short>, Integral<Short> by Short.integral() {
     Guilds(1 shl 0),
     GuildMembers(1 shl 1),
     GuildBans(1 shl 2),

@@ -27,7 +27,7 @@ interface IUser : IMentioned, INamed {
         NitroClassic, Nitro
     }
 
-    enum class Flags(override val value: Short) : IValued<Flags, Short>, Integral<Short> by Short.integral() {
+    enum class Flags(override val code: Short) : IValued<Flags, Short>, Integral<Short> by Short.integral() {
         None(0),
         DiscordEmployee(1 shl 0),
         DiscordPartner(1 shl 1),

@@ -27,6 +27,7 @@ import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
 
 internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
