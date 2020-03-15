@@ -6,13 +6,13 @@ import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Order
 import arrow.typeclasses.Show
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
-import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotANumber
+import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
 import java.time.Instant
 
 private const val DISCORD_EPOCH = 1420070400000u
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
-data class Snowflake private constructor(private val id: ULong) : Comparable<Snowflake> {
+@OptIn(ExperimentalUnsignedTypes::class)
+data class Snowflake private constructor(internal val id: ULong) : Comparable<Snowflake> {
     override operator fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
     override fun toString(): String = "$id"
     override fun hashCode(): Int = id.hashCode()
@@ -31,10 +31,10 @@ data class Snowflake private constructor(private val id: ULong) : Comparable<Sno
         get() = Instant.ofEpochMilli(((id shr 22) + DISCORD_EPOCH).toLong())
 
     companion object {
-        fun of(id: String): Snowflake = of(
-            requireNotNull(id.toLongOrNull()) {
-                "$id cannot be represented as Snowflake"
-            })
+        fun of(id: String): Snowflake {
+            require(id.all { it.isDigit() || it == '-' } && id.toLongOrNull() != null) { "$id cannot be represented as Snowflake" }
+            return of(id.toLong())
+        }
 
         fun of(id: Long): Snowflake {
             require(id >= 0) { "id must be greater than 0" }
@@ -48,7 +48,7 @@ data class Snowflake private constructor(private val id: ULong) : Comparable<Sno
     }
 
     sealed class ConstructionError(val message: String) {
-        object NotANumber : ConstructionError("Given string is not a number")
+        object NotNumber : ConstructionError("Given string is not a number")
         object LessThenDiscordEpoch : ConstructionError("Given number is less than $DISCORD_EPOCH")
     }
 }
@@ -60,12 +60,12 @@ fun Long.asSnowflake() = Snowflake.of(this)
 @ExperimentalUnsignedTypes
 fun ULong.asSnowflake() = Snowflake.of(this)
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionError>) = AE.run {
     val stringToConvert = this@asSnowflakeSafe
 
     if (stringToConvert.toLongOrNull() == null)
-        NotANumber.raiseError()
+        NotNumber.raiseError()
     else {
         val raw = toULongOrNull()
         if (raw == null || (raw.toLong() shr 22) <= 0)

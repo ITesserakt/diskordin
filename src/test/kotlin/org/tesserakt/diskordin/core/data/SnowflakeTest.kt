@@ -2,56 +2,111 @@ package org.tesserakt.diskordin.core.data
 
 import arrow.core.Either
 import arrow.core.extensions.either.applicativeError.applicativeError
-import arrow.core.left
-import arrow.core.right
-import org.amshove.kluent.*
-import org.junit.jupiter.api.Test
+import arrow.core.fix
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forSome
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldEndWith
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import io.kotest.matchers.types.shouldNotBeSameInstanceAs
+import io.kotest.property.RandomSource
+import io.kotest.property.arbitrary.Arb
+import io.kotest.property.arbitrary.long
+import io.kotest.property.arbitrary.take
+import io.kotest.property.exhaustive.Exhaustive
+import io.kotest.property.exhaustive.azstring
+import org.amshove.kluent.shouldNotBe
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
-import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotANumber
+import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
 
-internal class SnowflakeTest {
-    @Test
-    fun `toString()`() {
-        val snowflake = 100000000000.asSnowflake()
-        "100000000000" `should be equal to` snowflake.toString()
-    }
+private const val MIN_SNOWFLAKE = 4194305L
+private val testCount = System.getenv("test_count")?.toInt() ?: 1000
 
-    @Test
-    fun equality() {
-        val snow = 100000000000.asSnowflake()
-        val flake1 = 100000000000.asSnowflake()
-        val flake2 = 500000000000.asSnowflake()
+class SnowflakeTest : FunSpec() {
+    private val snowflakes
+        get() = Arb.long(MIN_SNOWFLAKE)
+            .take(testCount).filter { it >= MIN_SNOWFLAKE }
+            .map { it.asSnowflake() }
 
-        snow shouldBeEqualTo flake1
-        snow shouldNotBeEqualTo flake2
-    }
+    init {
+        test("Snowflake.toString should return number in string") {
+            snowflakes.forAll {
+                it.toString() shouldBe "$it"
+            }
+        }
 
-    @Test
-    @ExperimentalUnsignedTypes
-    fun converts() {
-        val s1 = "invalid"
-        val s2 = "666666666666"
-        val l1 = -12L
-        val l2 = 999999999999L
-        val ul1: ULong = 0u
+        test("Snowflake should not compare by references") {
+            snowflakes.zipWithNext().forAll { (current, next) ->
+                val copy = current.copy()
 
-        { s1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "invalid cannot be represented as Snowflake"
-        s2.asSnowflake() shouldBeEqualTo Snowflake.of(666666666666u);
+                current shouldNotBe next
+                current shouldBe copy
+                current shouldNotBeSameInstanceAs copy
+                current shouldBeSameInstanceAs current
+            }
+        }
 
-        { l1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater than 0"
-        l2.asSnowflake() shouldBeEqualTo Snowflake.of(999999999999u);
+        context("Non-safe converts should throw errors comparing their rules") {
+            test("String, that hasn't digits") {
+                Exhaustive.azstring(1..30).generate(RandomSource.Default).map { it.value }.take(testCount).forAll {
+                    shouldThrow<IllegalArgumentException> {
+                        it.asSnowflake()
+                    }.message shouldEndWith "cannot be represented as Snowflake"
+                }
+            }
 
-        { ul1.asSnowflake() } shouldThrow IllegalArgumentException::class withMessage "id must be greater than 4194304"
-    }
+            test("Number, that less then 0") {
+                Arb.long().take(testCount).forSome {
+                    shouldThrow<IllegalArgumentException> {
+                        it.asSnowflake()
+                    }.message shouldBe "id must be greater than 0"
+                }
+            }
 
-    @Test
-    fun `safe converts`() {
-        val s1 = "invalid"
-        val s2 = "6666666666666666"
-        val s3 = "0"
+            test("Number, that less then $MIN_SNOWFLAKE") {
+                Arb.long().take(testCount).forSome {
+                    shouldThrow<IllegalArgumentException> {
+                        it.asSnowflake()
+                    }.message shouldBe "id must be greater than ${MIN_SNOWFLAKE - 1}"
+                }
+            }
+        }
 
-        s1.asSnowflakeSafe(Either.applicativeError()) `should be equal to` NotANumber.left()
-        s2.asSnowflakeSafe(Either.applicativeError()) `should be equal to` Snowflake.of(6666666666666666).right()
-        s3.asSnowflakeSafe(Either.applicativeError()) `should be equal to` LessThenDiscordEpoch.left()
+        context("Safe converts should wrap error in data-type") {
+            test("Non-digit string should produce NotANumber") {
+                Exhaustive.azstring(1..30).generate(RandomSource.Default).map { it.value }.take(testCount).forAll {
+                    val snowflake = it.asSnowflakeSafe(Either.applicativeError()).fix()
+                    snowflake.shouldBeLeft { err ->
+                        err shouldBe NotNumber
+                    }
+                }
+            }
+
+            test("Numbers, that less than $MIN_SNOWFLAKE") {
+                Arb.long(max = MIN_SNOWFLAKE - 2)
+                    .samples(RandomSource.Default)
+                    .take(testCount)
+                    .map { it.value }.forAll {
+                        val snowflake = it.toString()
+                            .asSnowflakeSafe(Either.applicativeError()).fix()
+
+                        snowflake.shouldBeLeft { err ->
+                            err shouldBe LessThenDiscordEpoch
+                        }
+                    }
+            }
+
+            test("Right snowflake should unwrap without errors") {
+                snowflakes.forAll {
+                    it.toString()
+                        .asSnowflakeSafe(Either.applicativeError())
+                        .fix().shouldBeRight()
+                }
+            }
+        }
     }
 }
