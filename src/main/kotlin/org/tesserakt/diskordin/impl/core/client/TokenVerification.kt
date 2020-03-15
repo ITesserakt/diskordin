@@ -29,12 +29,7 @@ private fun <F> turnToSnowflake(tokenPart: String, ME: MonadError<F, Verificatio
     }
 
     padded.map { it.asSnowflakeSafe(Either.applicativeError()).fix() }.flatMap { either ->
-        either.fromEither {
-            when (it) {
-                is Snowflake.ConstructionError.NotNumber -> InvalidCharacters
-                is Snowflake.ConstructionError.LessThenDiscordEpoch -> CorruptedId
-            }
-        }
+        either.fromEither { CorruptedId }
     }
 }
 
