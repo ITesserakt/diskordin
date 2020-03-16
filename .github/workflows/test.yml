@@ -23,9 +23,14 @@ jobs:
           chmod +x gradlew
           ./gradlew clean build
           ./gradlew check
-          ls
+      - name: Upload test results
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: diskordin_test_report_${{github.run_id}}
+          path: build/reports/
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
-          name: diskordin_test_build_${{github.run_id}}
-          path: build/
+          name: diskordin_build_${{github.run_id}}
+          path: build/libs
+
