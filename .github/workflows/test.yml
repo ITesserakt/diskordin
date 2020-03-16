@@ -20,12 +20,12 @@ jobs:
           jvm: ${{matrix.jdk}}
           token: ${{secrets.discord_token}}
         run: |
-          ls
           chmod +x gradlew
           ./gradlew clean build
           ./gradlew check
+          ls
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: diskordin_test_build_${{github.run_id}}
-          path: /build 
+          path: build/
