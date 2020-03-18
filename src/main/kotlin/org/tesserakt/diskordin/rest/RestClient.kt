@@ -5,7 +5,9 @@ import arrow.core.Id
 import arrow.core.Option
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.fx.typeclasses.Async
+import arrow.fx.Schedule
+import arrow.fx.retryOrElse
+import arrow.fx.typeclasses.Concurrent
 import arrow.integrations.retrofit.adapter.CallK
 import arrow.integrations.retrofit.adapter.unwrapBody
 import arrow.typeclasses.Functor
@@ -22,7 +24,8 @@ import retrofit2.create
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 class RestClient<F>(
-    private val A: Async<F>,
+    private val CC: Concurrent<F>,
+    private val schedule: Schedule<F, Throwable, *>,
     private val _channelService: ChannelService,
     private val _emojiService: EmojiService,
     private val _gatewayService: GatewayService,
@@ -33,8 +36,9 @@ class RestClient<F>(
     private val _webhookService: WebhookService
 ) {
     companion object {
-        fun <F> byRetrofit(retrofit: Retrofit, A: Async<F>) = RestClient(
-            A,
+        fun <F> byRetrofit(retrofit: Retrofit, schedule: Schedule<F, Throwable, *>, CC: Concurrent<F>) = RestClient(
+            CC,
+            schedule,
             retrofit.create(),
             retrofit.create(),
             retrofit.create(),
@@ -65,37 +69,37 @@ class RestClient<F>(
 
     fun <R> callRaw(
         f: RestClient<F>.() -> CallK<out R>
-    ) = A.run {
-        this@RestClient.f().async(this).flatMap {
-            it.unwrapBody(this)
-        }.handleErrorWith {
-            if (it is HttpException && it.code() == 429)
-                raiseError<R>(RateLimitException(it.message()))
-            raiseError(it)
-        }
+    ): Kind<F, R> = CC.run {
+        effect { this@RestClient.f() }
+            .flatMap { it.async(this) }
+            .retryOrElse(this, schedule) { throwable, _ ->
+                if (throwable is HttpException && throwable.code() == 429)
+                    raiseError(RateLimitException(throwable.message()))
+                else raiseError(throwable)
+            }.flatMap { it.unwrapBody(this) }
     }
 
     fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
         ctx: C,
         f: RestClient<F>.() -> CallK<out Kind<G, R>>
-    ) = A.fx.monad {
+    ) = CC.fx.monad {
         val call = callRaw(f).bind()
         call.map { it.unwrap(ctx) }
     }
 
     fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> call(
         f: RestClient<F>.() -> CallK<Id<R>>
-    ) = A.run { this@RestClient.call(Id.functor(), f).map { it.extract() } }
+    ) = CC.run { this@RestClient.call(Id.functor(), f).map { it.extract() } }
 
     fun effect(
         f: RestClient<F>.() -> CallK<Unit>
-    ): Kind<F, Unit> = A.run {
+    ): Kind<F, Unit> = CC.run {
         callRaw { f() }.handleError {
             if (it is IllegalStateException) Unit
         }
     }
 
-    fun <A> monad(f: suspend MonadSyntax<F>.() -> A) = A.fx.monad(f)
+    fun <A> monad(f: suspend MonadSyntax<F>.() -> A) = CC.fx.monad(f)
 }
 
 fun <F, G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient<F>.call(

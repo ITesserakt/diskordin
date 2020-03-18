@@ -3,7 +3,7 @@ package org.tesserakt.diskordin.core.data
 import arrow.core.ForId
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
 import org.tesserakt.diskordin.core.entity.IMentioned
@@ -30,6 +30,6 @@ internal class IdentifiedTest {
     @RepeatedTest(10)
     fun `invoke should return same id as in start`() {
         val data = sample().extract()
-        data.id shouldEqual snowflake
+        data.id shouldBeEqualTo snowflake
     }
 }

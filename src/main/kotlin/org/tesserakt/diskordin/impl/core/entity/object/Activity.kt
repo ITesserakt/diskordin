@@ -39,12 +39,23 @@ internal class Activity(raw: ActivityResponse) : IActivity {
     override val applicationId: Snowflake? = raw.applicationId
     override val details: String? = raw.details
     override val state: String? = raw.state
+    override val emoji: IActivity.IEmoji? = raw.emoji?.unwrap()
     override val party: IActivity.IParty? = raw.party?.unwrap()
     override val assets: IActivity.IAssets? = raw.assets?.unwrap()
     override val secrets: IActivity.ISecrets? = raw.secrets?.unwrap()
     override val instanceOfGame: Boolean? = raw.instance
     override val flags: ValuedEnum<IActivity.Flags, Short>? =
         raw.flags?.let { ValuedEnum(it.toShort(), Short.integral()) }
+
+    class Emoji(raw: ActivityResponse.EmojiResponse) : IActivity.IEmoji {
+        override val name: String = raw.name
+        override val id: Snowflake? = raw.id
+        override val isAnimated: Boolean? = raw.animated
+
+        override fun toString(): String {
+            return "Emoji(name='$name', id=$id, isAnimated=$isAnimated)"
+        }
+    }
 
     class Party(raw: ActivityResponse.PartyResponse) : IActivity.IParty {
         override val id: String? = raw.id

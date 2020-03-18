@@ -15,6 +15,9 @@ data class Payload<T : IPayload>(
     inline fun <reified E : T> unwrap(): E = gson.fromJson(rawData, E::class.java)
     inline fun <reified R> unwrapAsResponse(): R = gson.fromJson(rawData, R::class.java)
     fun opcode() = opcode.asOpcode()
+
+    inline val isTokenPayload
+        inline get() = opcode() == Opcode.UNDERLYING
 }
 
 fun <T : GatewayCommand> T.wrap(opcode: Int, name: String, seq: Int?) =

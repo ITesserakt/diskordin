@@ -42,7 +42,7 @@ internal class TearDownTest : Bracket<ForIO, Throwable> by IO.bracket() {
     fun `must run finalizer only if use failed and init not`() {
         {
             withFinalize(IO { 1 }, {
-                it `should equal` -1
+                it `should be equal to` -1
             }, {
                 false.shouldBeTrue().just()
             }).fix().unsafeRunSync()

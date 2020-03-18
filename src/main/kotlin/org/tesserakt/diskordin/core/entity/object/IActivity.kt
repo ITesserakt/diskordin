@@ -23,6 +23,7 @@ interface IActivity : IDiscordObject {
     val applicationId: Snowflake?
     val details: String?
     val state: String?
+    val emoji: IEmoji?
     val party: IParty?
     val assets: IAssets?
     val secrets: ISecrets?
@@ -36,6 +37,12 @@ interface IActivity : IDiscordObject {
         JOIN_REQUEST(1 shl 3),
         SYNC(1 shl 4),
         PLAY(1 shl 5);
+    }
+
+    interface IEmoji : IDiscordObject {
+        val name: String
+        val id: Snowflake?
+        val isAnimated: Boolean?
     }
 
     interface ISecrets : IDiscordObject {
@@ -62,6 +69,8 @@ interface IActivity : IDiscordObject {
         Streaming,
         Listening,
         Watching,
-        Unknown;
+
+        @Deprecated("Don't use in presence builder", level = DeprecationLevel.WARNING)
+        Custom //FIXME;
     }
 }

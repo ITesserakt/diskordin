@@ -32,8 +32,10 @@ internal val defaultHttpClient = OkHttpClient.Builder()
             .build()
         chain.proceed(request)
     }.addInterceptor(
-        HttpLoggingInterceptor(KotlinLogging.logger("[Http client]")::info)
-            .setLevel(HttpLoggingInterceptor.Level.BODY)
+        HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
+            private val logger = KotlinLogging.logger("[HTTP client]")
+            override fun log(message: String) = logger.debug(message)
+        }).setLevel(HttpLoggingInterceptor.Level.BODY)
     ).build()
 
 internal val defaultGson = Gson().newBuilder()

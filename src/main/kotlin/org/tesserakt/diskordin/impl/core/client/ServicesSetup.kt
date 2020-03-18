@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.integrations.retrofit.adapter.CallKindAdapterFactory
+import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
@@ -36,7 +37,7 @@ internal fun defaultHttpClient() = OkHttpClient().newBuilder()
             .setLevel(HttpLoggingInterceptor.Level.BASIC)
     ).build()
 
-internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
+internal fun setupScarlet(path: String, lifecycle: Lifecycle, httpClient: OkHttpClient): Scarlet {
     val protocol = OkHttpWebSocket(
         httpClient,
         OkHttpWebSocket.SimpleRequestFactory(
@@ -45,8 +46,8 @@ internal fun setupScarlet(path: String, httpClient: OkHttpClient): Scarlet {
         )
     )
     val configuration = Scarlet.Configuration(
-        backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 10000),
-        lifecycle = GlobalGatewayLifecycle
+        backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 5000),
+        lifecycle = lifecycle
     )
 
     return Scarlet(protocol, configuration)

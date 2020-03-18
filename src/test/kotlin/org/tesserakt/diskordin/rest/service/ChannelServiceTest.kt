@@ -4,12 +4,14 @@ import arrow.core.bothIor
 import arrow.core.toT
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.io.async.async
+import arrow.fx.Schedule
 import arrow.fx.extensions.io.bracket.bracket
+import arrow.fx.extensions.io.concurrent.concurrent
+import arrow.fx.extensions.io.monad.monad
 import arrow.fx.fix
 import arrow.fx.typeclasses.Bracket
+import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should contain`
-import org.amshove.kluent.`should equal`
 import org.amshove.kluent.shouldBeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -33,7 +35,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     private val constMessageId = 641979535235088405.asSnowflake()
     private val constEditMessageId = 642024602142244874.asSnowflake()
     private val constReactionsMessageId = 642070657303314442.asSnowflake()
-    private val rest = RestClient.byRetrofit(defaultRetrofit, IO.async())
+    private val rest = RestClient.byRetrofit(defaultRetrofit, Schedule.once(IO.monad()), IO.concurrent())
 
     @Test
     fun `retrieve existing channel from discord`() {
@@ -41,8 +43,8 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
             .unsafeRunSync()
 
         channel.isRight().shouldBeTrue()
-        channel.getRight().type `should equal` IChannel.Type.GuildText.ordinal
-        channel.getRight().id `should equal` constChannelId
+        channel.getRight().type `should be equal to` IChannel.Type.GuildText.ordinal
+        channel.getRight().id `should be equal to` constChannelId
     }
 
     @Suppress("SpellCheckingInspection")
@@ -53,7 +55,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
         }, "Test")
     }, {
         it.isRight().shouldBeTrue()
-        it.getRight().name `should equal` "testnew"
+        it.getRight().name `should be equal to` "testnew"
     }, {
         rest.callRaw {
             channelService.editChannel(constChannelId, TextChannelEditBuilder().build {
@@ -86,8 +88,8 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
             channelService.getMessage(constChannelId, constMessageId)
         }.unsafeRunSync()
 
-        message.getRight().id `should equal` constMessageId
-        message.getRight().content `should equal` "It`s a test message!"
+        message.getRight().id `should be equal to` constMessageId
+        message.getRight().content `should be equal to` "It`s a test message!"
     }
 
     @Test
@@ -103,9 +105,9 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
         })
     }, {
         it.isRight().shouldBeTrue()
-        it.getRight().content `should equal` "Test"
-        it.getRight().embeds.size `should equal` 1
-        it.getRight().channel_id `should equal` constChannelId
+        it.getRight().content `should be equal to` "Test"
+        it.getRight().embeds.size `should be equal to` 1
+        it.getRight().channel_id `should be equal to` constChannelId
     }, {
         it.isRight().shouldBeTrue()
         rest.effect {
@@ -120,7 +122,7 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
         })
     }.map { it.extract() }.attempt(), {
         it.isRight().shouldBeTrue()
-        it.getRight().content `should equal` "It`s an edited test message!"
+        it.getRight().content `should be equal to` "It`s an edited test message!"
     }, {
         rest.callRaw {
             channelService.editMessage(constChannelId, constEditMessageId, MessageEditBuilder().build {
@@ -136,8 +138,8 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
 
         messages.isRight().shouldBeTrue()
 
-        messages.getRight().size `should equal` 1
-        messages.getRight()[0].id `should equal` constMessageId
+        messages.getRight().size `should be equal to` 1
+        messages.getRight()[0].id `should be equal to` constMessageId
     }
 
     @Test
@@ -175,8 +177,8 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
 
         messages.isRight().shouldBeTrue()
 
-        messages.getRight().size `should equal` 1
-        messages.getRight()[0].id `should equal` 316249690092077065.asSnowflake()
+        messages.getRight().size `should be equal to` 1
+        messages.getRight()[0].id `should be equal to` 316249690092077065.asSnowflake()
     }
 
     @Test
@@ -201,6 +203,6 @@ internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
         }.unsafeRunSync()
 
         invite.isRight().shouldBeTrue()
-        invite.getRight().channel.id `should equal` constChannelId
+        invite.getRight().channel.id `should be equal to` constChannelId
     }
 }

@@ -1,8 +1,7 @@
-@file:Suppress("unused", "DataClassPrivateConstructor", "EXPERIMENTAL_UNSIGNED_LITERALS")
+@file:Suppress("unused", "DataClassPrivateConstructor", "EXPERIMENTAL_UNSIGNED_LITERALS", "NOTHING_TO_INLINE")
 
 package org.tesserakt.diskordin.core.data
 
-import arrow.extension
 import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Order
 import arrow.typeclasses.Show
@@ -75,12 +74,14 @@ fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionErr
     }
 }
 
-@extension
 interface SnowflakeOrder : Order<Snowflake> {
     override fun Snowflake.compare(b: Snowflake): Int = this.compareTo(b)
 }
 
-@extension
+inline fun Snowflake.Companion.order(): Order<Snowflake> = object : SnowflakeOrder {}
+
 interface SnowflakeShow : Show<Snowflake> {
     override fun Snowflake.show(): String = asString()
 }
+
+inline fun Snowflake.Companion.show(): Show<Snowflake> = object : SnowflakeShow {}

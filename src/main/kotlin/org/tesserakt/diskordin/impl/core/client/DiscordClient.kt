@@ -16,16 +16,10 @@ import arrow.fx.extensions.io.functor.map
 import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.extensions.io.monadDefer.monadDefer
 import arrow.fx.fix
-import arrow.fx.rx2.FlowableK
-import arrow.fx.rx2.ForFlowableK
-import arrow.fx.rx2.extensions.concurrent
-import arrow.fx.rx2.extensions.flowablek.async.async
-import arrow.fx.rx2.extensions.flowablek.async.continueOn
-import arrow.fx.rx2.fix
 import arrow.fx.typeclasses.ConcurrentSyntax
-import mu.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.EventDispatcher
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.IdentifiedF
@@ -36,43 +30,26 @@ import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
-import org.tesserakt.diskordin.gateway.GatewayCompiler
-import org.tesserakt.diskordin.gateway.json.*
-import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
-import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
-import org.tesserakt.diskordin.gateway.json.token.NoConnection
-import org.tesserakt.diskordin.impl.gateway.handler.handleHello
-import org.tesserakt.diskordin.impl.gateway.handler.heartbeatACKHandler
-import org.tesserakt.diskordin.impl.gateway.handler.heartbeatHandler
-import org.tesserakt.diskordin.impl.gateway.interpreter.flowableInterpreter
-import org.tesserakt.diskordin.impl.util.typeclass.flowablek.generative.generative
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.util.toJsonTree
-import kotlin.time.ExperimentalTime
 
-internal class DiscordClient private constructor(
-    internal val context: BootstrapContext<ForIO>
+internal class DiscordClient<F> private constructor(
+    internal val context: BootstrapContext<ForIO, F>
 ) : IDiscordClient {
     companion object {
-        internal val client = Ref.unsafe<ForIO, DiscordClient?>(null, IO.monadDefer())
+        internal val client = Ref.unsafe<ForIO, DiscordClient<*>?>(null, IO.monadDefer())
 
-        operator fun invoke(context: BootstrapContext<ForIO>) = client.updateAndGet {
+        operator fun <F> invoke(context: BootstrapContext<ForIO, F>) = client.updateAndGet {
             if (it != null) throw IllegalStateException("Discord client already created")
             DiscordClient(context)
         }.map { it!! }
     }
 
-    override val eventDispatcher: EventDispatcher<ForFlowableK> = EventDispatcherImpl(FlowableK.generative())
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
-    override val token: String = context.token
     override val rest: RestClient<ForIO> get() = context.restClient.memoize().extract()
-    private val gatewayImplementation = Gateway.create(context.gatewayContext)
+    override val token: String = context.gatewayContext.connectionContext.shardSettings.token
 
-    private val gateway = gatewayImplementation.a
-    private val impl = gatewayImplementation.b
-    private val logger = KotlinLogging.logger("[Discord client]")
+    private lateinit var gateway: Gateway<F>
 
     override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
         .getOrHandle {
@@ -81,57 +58,15 @@ internal class DiscordClient private constructor(
         rest.call { userService.getCurrentUser() }
     }
 
-    init {
-        webSocketStateHolder.observe { _, new ->
-            when (new) {
-                is ConnectionOpened -> logger.info("Gateway reached")
-                is ConnectionClosed -> logger.warn("Gateway closed: ${new.reason}")
-                is ConnectionFailed -> logger.error("Gateway met with error", new.error)
-            }
-        }
-    }
-
     override val users get() = cache.values.filterIsInstance<IUser>()
     override val guilds get() = cache.values.filterIsInstance<IGuild>()
 
-    @ExperimentalTime
+    @ExperimentalCoroutinesApi
+    @FlowPreview
     @Suppress("UNCHECKED_CAST")
-    @ExperimentalStdlibApi
-    override fun login() = IO.fx io@{
-        gateway.run(impl.flowableInterpreter, FlowableK.async()).fix().map { payload ->
-            if (payload.opcode() == Opcode.UNDERLYING)
-                webSocketStateHolder.update(payload as Payload<in IToken>)
-            else
-                eventDispatcher.publish(payload as Payload<IRawEvent>)
-        }.flowable.doOnError {
-            webSocketStateHolder.update(
-                Payload(
-                    Opcode.UNDERLYING.asInt(),
-                    null,
-                    "CONNECTION_FAILED",
-                    ConnectionFailed(it).toJsonTree()
-                )
-            )
-        }.subscribe()
-
-        launchDefaultEventHandlers(impl.flowableInterpreter)
-        Unit
-    }
-
-    @ExperimentalTime
-    private fun launchDefaultEventHandlers(compiler: GatewayCompiler<ForFlowableK>) = with(eventDispatcher) {
-        handleHello(
-            token,
-            context.gatewayContext.connectionContext.compression.isNotEmpty(),
-            webSocketStateHolder,
-            gateway::sequenceId,
-            compiler,
-            FlowableK.concurrent()
-        ).continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-        heartbeatHandler(gateway::sequenceId, compiler, FlowableK.async())
-            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
-        heartbeatACKHandler(webSocketStateHolder, FlowableK.async())
-            .continueOn(context.gatewayContext.scheduler).flowable.subscribe()
+    override fun login() {
+        gateway = Gateway.create(context.gatewayContext)
+        gateway.run()
     }
 
     override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
@@ -140,10 +75,8 @@ internal class DiscordClient private constructor(
     }
 
     override fun logout() {
-        if (webSocketStateHolder.getState() != NoConnection) {
-            logger.info("Shutting down gateway")
-            GlobalGatewayLifecycle.stop()
-        }
+        if (::gateway.isInitialized)
+            gateway.close()
         DiscordClient.client.set(null).fix().unsafeRunSync()
     }
 

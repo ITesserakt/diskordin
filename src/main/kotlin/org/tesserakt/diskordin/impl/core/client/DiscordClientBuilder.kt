@@ -1,49 +1,75 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Eval
+import arrow.Kind
+import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.async.async
 import arrow.syntax.function.partially1
 import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
+import arrow.fx.Schedule
+import arrow.fx.extensions.io.concurrent.concurrent
+import arrow.fx.extensions.io.monad.monad
+import arrow.fx.extensions.io.monadDefer.monadDefer
+import arrow.fx.fix
+import arrow.fx.typeclasses.Concurrent
+import arrow.fx.typeclasses.seconds
+import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
+import org.tesserakt.diskordin.core.data.EntityCache
+import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
+import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
+import org.tesserakt.diskordin.gateway.shard.Intents
+import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
+import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
+import org.tesserakt.diskordin.util.enums.ValuedEnum
+import org.tesserakt.diskordin.util.enums.not
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.CoroutineContext
 
+inline class ShardCount(val v: Int)
+
+@RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
-class DiscordClientBuilder private constructor() {
+class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     private var token: String = "Invalid"
-    private var gatewayContext: CoroutineContext = Dispatchers.IO
-    private var compression = ""
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
     private var httpClient: Eval<OkHttpClient> = Eval.later(::defaultHttpClient)
+    private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
+    private var restSchedule: Schedule<ForIO, Throwable, *> = Schedule.withMonad(IO.monad()) {
+        (spaced<Throwable>(1.seconds) and recurs(5)).jittered(IO.monadDefer())
+    }
 
     operator fun String.unaryPlus() {
         token = this
     }
 
-    operator fun CoroutineContext.unaryPlus() {
-        gatewayContext = this
-    }
-
-    operator fun Unit.unaryPlus() {
-        compression = "zlib-stream"
-    }
-
-    operator fun Boolean.unaryPlus() {
-        cache = if (this) ConcurrentHashMap()
-        else NoopMap()
+    operator fun MutableMap<Snowflake, IEntity>.unaryPlus() {
+        cache = this
     }
 
     internal operator fun VerificationStub.unaryPlus() {
         token = "NTQ3NDg5MTA3NTg1MDA3NjM2.123456.123456789"
     }
 
+    operator fun GatewayBuilder<F>.unaryPlus() {
+        this@DiscordClientBuilder.gatewaySettings = this.create()
+    }
+
+    operator fun Schedule<ForIO, Throwable, *>.unaryPlus() {
+        restSchedule = this
+    }
+
+    operator fun Unit.unaryPlus() {
+        cache = NoopMap()
+    }
+
+    inline fun DiscordClientBuilder<F>.restRetrySchedule(value: Schedule<ForIO, Throwable, *>) = value
     operator fun Eval<OkHttpClient>.unaryPlus() {
         httpClient = this
     }
@@ -60,9 +86,12 @@ class DiscordClientBuilder private constructor() {
     internal object VerificationStub
 
     companion object {
-        operator fun invoke(init: DiscordClientBuilder.() -> Unit = {}): IDiscordClient {
-            val builder = DiscordClientBuilder().apply(init)
-
+        operator fun <F> invoke(
+            CC: Concurrent<F>,
+            effectRunner: suspend (Kind<F, *>) -> Unit,
+            init: DiscordClientBuilder<F>.() -> Unit = {}
+        ): IDiscordClient {
+            val builder = DiscordClientBuilder(CC).apply(init)
             val token = System.getenv("token") ?: builder.token
             val httpClient = builder.httpClient.map {
                 it.newBuilder()
@@ -72,23 +101,73 @@ class DiscordClientBuilder private constructor() {
             val retrofit = httpClient.map(::setupRetrofit.partially1("https://discordapp.com/api/v6/"))
             val rest = retrofit.map { RestClient.byRetrofit(it, IO.async()) }
 
-            val connectionContext = BootstrapContext.Gateway.Connection(
-                "wss://gateway.discord.gg",
-                builder.compression
-            )
-            val gatewayContext = BootstrapContext.Gateway(
-                builder.gatewayContext,
-                httpClient,
-                GlobalGatewayLifecycle,
-                connectionContext
-            )
-            val globalContext = BootstrapContext(
-                token,
-                builder.cache,
+            val shardSettings = formShardSettings(token, builder)
+            val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
+            val gatewayContext = formGatewaySettings(builder, CC, effectRunner, connectionContext)
+            val globalContext = formBootstrapContext(builder, rest, gatewayContext)
+            return DiscordClient(globalContext).unsafeRunSync()
+        }
+
+        private fun <F> formBootstrapContext(
+            builder: DiscordClientBuilder<F>,
+            rest: RestClient<ForIO>,
+            gatewayContext: BootstrapContext.Gateway<F>
+        ): BootstrapContext<ForIO, F> {
+            val strategy = builder.gatewaySettings.intents
+
+            val intents = if (strategy is IntentsStrategy.EnableOnly)
+                strategy.enabled
+                    .map { (_, code) -> ValuedEnum<Intents, Short>(code, Short.integral()) }
+                    .fold(ValuedEnum(0, Short.integral())) { acc, i -> acc or i }
+            else {
+                !Intents.GuildPresences or Intents.GuildPresences //Fixme: replace with ValuedEnum.all
+            }
+
+            return BootstrapContext(
+                EntityCache(EntitySifter(intents), builder.cache),
                 rest,
                 gatewayContext
             )
-            return DiscordClient(globalContext).unsafeRunSync()
         }
+
+        private fun <F> formGatewaySettings(
+            builder: DiscordClientBuilder<F>,
+            CC: Concurrent<F>,
+            runner: suspend (Kind<F, *>) -> Unit,
+            connectionContext: BootstrapContext.Gateway.Connection
+        ): BootstrapContext.Gateway<F> = BootstrapContext.Gateway(
+            builder.gatewaySettings.coroutineContext,
+            builder.gatewaySettings.interceptors,
+            CC,
+            runner,
+            connectionContext
+        )
+
+        private fun <F> formConnectionSettings(
+            httpClient: OkHttpClient,
+            builder: DiscordClientBuilder<F>,
+            shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
+        ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(
+            httpClient,
+            "wss://gateway.discord.gg",
+            builder.gatewaySettings.compression,
+            shardSettings
+        )
+
+        private fun <F> formShardSettings(
+            token: String,
+            builder: DiscordClientBuilder<F>
+        ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
+            token,
+            builder.gatewaySettings.shardCount,
+            builder.gatewaySettings.compressionStrategy,
+            builder.gatewaySettings.guildSubscriptionsStrategy,
+            builder.gatewaySettings.threshold,
+            builder.gatewaySettings.initialPresence,
+            builder.gatewaySettings.intents
+        )
+
+        inline fun default(noinline init: DiscordClientBuilder<ForIO>.() -> Unit) =
+            invoke(IO.concurrent(), { it.fix().suspended() }, init)
     }
 }
