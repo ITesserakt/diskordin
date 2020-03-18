@@ -29,7 +29,7 @@ import kotlin.time.seconds
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 @EnabledIfEnvironmentVariable(named = "token", matches = ".*") //all this tests enabled if token presents
-internal class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
+class ChannelServiceTest : Bracket<ForIO, Throwable> by IO.bracket() {
     private val constPinMessage = 641979565593460747.asSnowflake()
     private val constChannelId = 641701349914050560.asSnowflake()
     private val constMessageId = 641979535235088405.asSnowflake()

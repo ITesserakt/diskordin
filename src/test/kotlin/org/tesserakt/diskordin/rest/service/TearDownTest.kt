@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.tesserakt.diskordin.withFinalize
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
-internal class TearDownTest : Bracket<ForIO, Throwable> by IO.bracket() {
+class TearDownTest : Bracket<ForIO, Throwable> by IO.bracket() {
     private var test = 0
 
     @Test
