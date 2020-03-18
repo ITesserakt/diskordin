@@ -33,8 +33,10 @@ internal fun defaultHttpClient() = OkHttpClient().newBuilder()
     .writeTimeout(20, TimeUnit.SECONDS)
     .readTimeout(20, TimeUnit.SECONDS)
     .addInterceptor(
-        HttpLoggingInterceptor(KotlinLogging.logger("[HTTP client]")::debug)
-            .setLevel(HttpLoggingInterceptor.Level.BASIC)
+        HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
+            private val logger = KotlinLogging.logger("[HTTP client]")
+            override fun log(message: String) = logger.trace(message)
+        }).setLevel(HttpLoggingInterceptor.Level.BASIC)
     ).build()
 
 internal fun setupScarlet(path: String, lifecycle: Lifecycle, httpClient: OkHttpClient): Scarlet {

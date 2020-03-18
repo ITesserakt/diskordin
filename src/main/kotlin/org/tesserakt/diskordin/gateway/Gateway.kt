@@ -128,7 +128,12 @@ class Gateway<F>(
         }
 
         private val connection = { context: BootstrapContext.Gateway.Connection, lifecycle: Lifecycle ->
-            scarlet(context.url, context.compression, lifecycle, context.httpClient).create<GatewayConnection>()
+            scarlet(
+                context.url,
+                context.compression,
+                lifecycle,
+                context.httpClient.memoize().extract()
+            ).create<GatewayConnection>()
         }
 
         private val connections = { context: BootstrapContext.Gateway.Connection ->

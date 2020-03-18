@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.core.client
 
-import arrow.core.Eval
 import arrow.Kind
+import arrow.core.Eval
 import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.data.EntityCache
@@ -21,15 +21,13 @@ data class BootstrapContext<F, G>(
 ) {
     data class Gateway<F>(
         val scheduler: CoroutineContext,
-        val httpClient: Eval<OkHttpClient>,
-        val lifecycleRegistry: IGatewayLifecycleManager,
         val interceptors: List<Interceptor<out Interceptor.Context, F>>,
         val CC: Concurrent<F>,
         val runner: suspend (Kind<F, *>) -> Unit,
         val connectionContext: Connection
     ) {
         data class Connection(
-            val httpClient: OkHttpClient,
+            val httpClient: Eval<OkHttpClient>,
             val url: String,
             val compression: String,
             val shardSettings: ShardSettings
