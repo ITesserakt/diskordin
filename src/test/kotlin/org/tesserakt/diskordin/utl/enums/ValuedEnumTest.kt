@@ -1,11 +1,10 @@
 package org.tesserakt.diskordin.utl.enums
 
-import io.kotest.assertions.stringRepr
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.*
+import io.kotest.property.Arb
 import io.kotest.property.RandomSource
-import io.kotest.property.arbitrary.Arb
 import io.kotest.property.arbitrary.enum
 import org.tesserakt.diskordin.core.data.Permission
 import org.tesserakt.diskordin.core.data.Permission.*
@@ -44,7 +43,7 @@ class ValuedEnumTest : StringSpec() {
 private inline fun <reified E, I, T : ValuedEnum<E, I>> contain(other: IValued<E, I>): Matcher<T>
         where E : Enum<E>, E : IValued<E, I> = object : Matcher<T> {
     override fun test(value: T): MatcherResult = MatcherResult(value.contains(other),
-        { "Enum should contain element(s) ${stringRepr(other.asSet())};" },
-        { "Enum should not contain element(s) ${stringRepr(other.asSet())}" }
+        { "Enum should contain element(s) ${other.asSet()};" },
+        { "Enum should not contain element(s) ${other.asSet()}" }
     )
 }

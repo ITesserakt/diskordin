@@ -22,7 +22,7 @@ jobs:
           test_count: ${{secrets.test_depth}}
         run: |
           chmod +x gradlew
-          ./gradlew clean build
+          ./gradlew :build :diskordin-commands:build
           ./gradlew :check :diskordin-commands:check
       - name: Upload test results
         uses: actions/upload-artifact@v1.0.0

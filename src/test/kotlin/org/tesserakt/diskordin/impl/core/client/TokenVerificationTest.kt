@@ -7,7 +7,7 @@ import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
-import io.kotest.property.arbitrary.Arb
+import io.kotest.property.Arb
 import io.kotest.property.arbitrary.stringPattern
 import io.kotest.property.arbitrary.take
 import org.tesserakt.diskordin.core.data.asSnowflake

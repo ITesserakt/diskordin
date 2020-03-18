@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-val kotestVersion: String = ext["kotest_version"].cast()
+val kotestVersion: String = project(":").properties["kotest_version"].cast()
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
 
 plugins {

@@ -13,11 +13,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
+import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
 import io.kotest.property.RandomSource
-import io.kotest.property.arbitrary.Arb
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.take
-import io.kotest.property.exhaustive.Exhaustive
 import io.kotest.property.exhaustive.azstring
 import org.amshove.kluent.shouldNotBe
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
@@ -68,7 +68,7 @@ class SnowflakeTest : FunSpec() {
             }
 
             test("Number, that less then $MIN_SNOWFLAKE") {
-                Arb.long().take(testCount).forSome {
+                Arb.long(1, MIN_SNOWFLAKE).values(RandomSource.Default).map { it.value }.take(testCount).forAll {
                     shouldThrow<IllegalArgumentException> {
                         it.asSnowflake()
                     }.message shouldBe "id must be greater than ${MIN_SNOWFLAKE - 1}"
@@ -88,7 +88,7 @@ class SnowflakeTest : FunSpec() {
 
             test("Numbers, that less than $MIN_SNOWFLAKE") {
                 Arb.long(max = MIN_SNOWFLAKE - 2)
-                    .samples(RandomSource.Default)
+                    .values(RandomSource.Default)
                     .take(testCount)
                     .map { it.value }.forAll {
                         val snowflake = it.toString()
