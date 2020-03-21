@@ -3,6 +3,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 val kotestVersion: String = project(":").properties["kotest_version"].cast()
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
 
+fun arrow(module: String, version: String = arrowVersion): Any =
+    "io.arrow-kt:arrow-$module:$version"
+
 plugins {
     kotlin("jvm")
 }
@@ -19,10 +22,12 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":"))
-    implementation("io.arrow-kt:arrow-core:$arrowVersion")
-    implementation("io.arrow-kt:arrow-fx:$arrowVersion")
+    implementation(arrow("core"))
+    implementation(arrow("fx"))
+    implementation(arrow("mtl"))
+    implementation("io.github.classgraph:classgraph:4.8.65")
 
-    testImplementation("io.arrow-kt:arrow-fx-rx2:$arrowVersion")
+    testImplementation(arrow("fx-rx2"))
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")

@@ -39,6 +39,8 @@ abstract class CommandRegistry private constructor(private val allCommands: List
 
         fun RegisterScope<F>.command(f: CommandBuilder.() -> Unit) =
             CommandBuilder().apply(f).validate(validator, T)
+
+        fun RegisterScope<F>.command(value: CommandBuilder) = value.validate(validator, T)
     }
 }
 
