@@ -42,13 +42,11 @@ class CommandRegistryTest : FunSpec() {
                 +commandRegistry(CommandBuilder.Validator.AccumulateErrors, Validated.traverse()) {
                     first = command {
                         +name("Test")
-                        +description("Test command")
                     }.firstOption().orNull()!!
                     +first
 
                     second = command {
                         +name("Test2")
-                        +description("Test command")
                         +hide()
                     }.firstOption().orNull()!!
                     +second

@@ -11,16 +11,17 @@ import io.kotest.assertions.arrow.validation.shouldBeInvalid
 import io.kotest.assertions.arrow.validation.shouldBeValid
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSingleElement
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import org.tesserakt.diskordin.commands.feature.Description as DescriptionFeature
 
 class CommandBuilderTest : FunSpec({
     test("Valid command builder should not produce errors") {
         val command = CommandBuilder().apply {
             +name("Test")
-            +description("Test command")
             +aliases("help", "wanted")
+            +features(setOf(DescriptionFeature("Test", "test")) as Set<Feature<*>>)
         }
 
         val validated: Kind<Kind<ForValidated, NonEmptyList<ValidationError>>, CommandObject> =
@@ -30,16 +31,14 @@ class CommandBuilderTest : FunSpec({
 
         validated.fix() shouldBeValid { (it: CommandObject) ->
             it.name shouldBe "Test"
-            it.description shouldBe "Test command"
             it.aliases shouldBe listOf("help", "wanted")
             it.isHidden.shouldBeFalse()
-            it.requiredFeatures shouldHaveSize 0
+            it.requiredFeatures shouldContainExactly setOf(DescriptionFeature("Test", "test"))
         }
     }
 
     context("Invalid command builder") {
         val command = CommandBuilder().apply {
-            +name("Foo")
             +aliases("Foo", "Bar", "Baz", "Foo")
         }
 
@@ -51,7 +50,7 @@ class CommandBuilderTest : FunSpec({
 
             validated.fix() shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
                 nel shouldHaveSize 2
-                nel.toList() shouldHaveSingleElement { it is ValidationError.Empty }
+                nel.toList() shouldHaveSingleElement { it is ValidationError.BlankName }
                 nel.toList() shouldHaveSingleElement { it is ValidationError.DuplicatedAliases }
             }
         }
@@ -64,7 +63,7 @@ class CommandBuilderTest : FunSpec({
 
             validated.fix() shouldBeLeft { nel ->
                 nel shouldHaveSize 1
-                nel.forExactly(1) { it is ValidationError.Empty }
+                nel.forExactly(1) { it is ValidationError.BlankName }
             }
         }
     }
