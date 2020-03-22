@@ -24,12 +24,18 @@ jobs:
           chmod +x gradlew
           ./gradlew :build :diskordin-commands:build
           ./gradlew :check :diskordin-commands:check
-      - name: Upload test results
+      - name: Upload diskordin test results
         if: always()
         uses: actions/upload-artifact@v1.0.0
         with:
           name: diskordin_test_report_${{github.run_id}}
           path: build/reports/
+      - name: Upload diskordin-commands test results
+        if: always()
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: diskordin_commands_test_report_${{github.run_id}}
+          path: diskordin-commands/build/reports/
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
