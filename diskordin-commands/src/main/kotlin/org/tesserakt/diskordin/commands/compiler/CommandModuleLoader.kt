@@ -8,12 +8,8 @@ import arrow.core.extensions.nonemptylist.semigroup.semigroup
 import arrow.core.extensions.validated.applicative.applicative
 import arrow.core.extensions.validated.traverse.traverse
 import arrow.core.fix
-import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.extensions.io.monad.monad
-import arrow.mtl.StateT
-import arrow.mtl.extensions.fx
+import arrow.fx.extensions.io.applicative.just
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
 import io.github.classgraph.ScanResult
@@ -56,25 +52,15 @@ class CommandModuleLoader(
     private fun ClassInfo.commands() =
         allowedMethods().filter { it.hasAnnotation("org.tesserakt.diskordin.commands.Command") }
 
-    private fun loadToRegistry(scan: ScanResult) = StateT.fx<CompilerSummary, ForIO, CompilerSummary>(IO.monad()) {
+    private fun loadToRegistry(scan: ScanResult): IO<CompilerSummary> {
         val modules = scan.commandModules().toList()
-        !StateT.modify<CompilerSummary, ForIO>(IO.applicative()) { it.copy(loadedModules = modules.size) }
-
         val compiled = modules.flatMap { compiler.compileModule(it) }
-        !StateT.modify<CompilerSummary, ForIO>(IO.applicative()) { it.copy(compiledCommands = compiled.size) }
-
         val commands = compiled.map {
             it.validate(CommandBuilder.Validator.AccumulateErrors, Validated.traverse())
         }.sequence<ValidatedPartialOf<NonEmptyList<ValidationError>>, CommandObject>(
             Validated.applicative(NonEmptyList.semigroup())
-        ).fix().map { validCommands ->
-            CommandRegistry(CommandBuilder.Validator.AccumulateErrors, Validated.traverse()) {
-                validCommands.fix().forEach { +it }
-            }
-        }
+        ).fix().map { CommandRegistry(it.fix()) }
 
-        !StateT.inspect<CompilerSummary, ForIO, CompilerSummary>(IO.applicative()) {
-            it.copy(result = commands.toEither())
-        }
-    }.runA(IO.monad(), CompilerSummary())
+        return CompilerSummary(modules.size, compiled.size, commands.toEither()).just()
+    }
 }

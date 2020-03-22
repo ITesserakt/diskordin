@@ -14,17 +14,12 @@ import org.tesserakt.diskordin.core.entity.builder.Name
 
 class CommandBuilder {
     private var name: String = ""
-    private var description: String = ""
     private val aliases: MutableList<String> = mutableListOf()
     private var isHidden: Boolean = false
     private val features: MutableSet<Feature<*>> = mutableSetOf()
 
     operator fun Name.unaryPlus() {
         name = this.v
-    }
-
-    operator fun String.unaryPlus() {
-        description = this
     }
 
     @JvmName("unaryPlus_aliases")
@@ -41,7 +36,6 @@ class CommandBuilder {
     }
 
     inline fun CommandBuilder.name(value: String) = Name(value)
-    inline fun CommandBuilder.description(value: String) = value
     inline fun CommandBuilder.aliases(vararg values: String) = values.toList()
     inline fun CommandBuilder.hide() = Unit
     inline fun CommandBuilder.features(values: Set<Feature<*>>) = values
@@ -49,11 +43,10 @@ class CommandBuilder {
     fun <V : Validator<F>, F> validate(validator: V, T: Traverse<F>) = validator.run {
         mapN(
             name.validateName(),
-            description.validateDescription(name),
             validateAliases(),
             validateFeatures(T)
-        ) { (name, description, aliases, features) ->
-            CommandObject(name, description, aliases, isHidden, features.toSet())
+        ) { (name, aliases, features) ->
+            CommandObject(name, aliases, isHidden, features.toSet())
         }
     }
 
@@ -61,10 +54,6 @@ class CommandBuilder {
         ApplicativeError<F, Nel<ValidationError>> by AE {
         fun String.validateName() =
             if (this.isBlank()) raiseError(ValidationError.BlankName.nel())
-            else just(this)
-
-        fun String.validateDescription(commandName: String) =
-            if (this.isBlank()) raiseError(ValidationError.EmptyDescription(commandName).nel())
             else just(this)
 
         fun CommandBuilder.validateAliases(): Kind<F, List<String>> {
@@ -92,7 +81,6 @@ class CommandBuilder {
 
 abstract class ValidationError(val description: String) {
     object BlankName : ValidationError("Some command doesn't have name")
-    data class EmptyDescription(val commandName: String) : ValidationError("$commandName description cannot be empty!")
     data class DuplicatedAliases(val commandName: String, val duplicated: Iterable<String>) :
         ValidationError("Aliases(${duplicated.joinToString()}) duplicates with name or other aliases of command[$commandName]")
 }

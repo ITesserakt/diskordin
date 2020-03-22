@@ -26,6 +26,12 @@ abstract class CommandRegistry private constructor(private val allCommands: List
             val publicCommands = allCommands.filter { !it.isHidden }
             return object : CommandRegistry(allCommands), List<CommandObject> by publicCommands {}
         }
+
+        @OptIn(PrivateStatement::class)
+        operator fun invoke(commands: List<CommandObject>): CommandRegistry {
+            val publicCommands = commands.filter { !it.isHidden }
+            return object : CommandRegistry(commands), List<CommandObject> by publicCommands {}
+        }
     }
 
     class RegisterScope<F>(private val validator: CommandBuilder.Validator<F>, private val T: Traverse<F>) {

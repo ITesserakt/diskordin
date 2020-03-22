@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.commands.compiler.extension
 
 import io.github.classgraph.MethodInfo
-import org.tesserakt.diskordin.commands.compiler.CompilerExtension
+import org.tesserakt.diskordin.commands.compiler.PersistentCompilerExtension
 import org.tesserakt.diskordin.commands.feature.FunctionParameters
 
-class FunctionParametersCompiler : CompilerExtension<FunctionParameters>() {
+class FunctionParametersCompiler : PersistentCompilerExtension<FunctionParameters>() {
     override fun compileFeature(function: MethodInfo, name: String): FunctionParameters {
         val parameters = function.parameterInfo
 

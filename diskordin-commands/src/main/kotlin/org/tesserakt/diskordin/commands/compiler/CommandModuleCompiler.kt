@@ -5,9 +5,8 @@ import io.github.classgraph.ClassInfo
 import io.github.classgraph.MethodInfo
 import org.tesserakt.diskordin.commands.CommandBuilder
 
-private const val PREFIX = "org.tesserakt.diskordin.commands"
+internal const val PREFIX = "org.tesserakt.diskordin.commands"
 private const val COMMAND = "$PREFIX.Command"
-private const val DESCRIPTION = "$PREFIX.Description"
 private const val ALIASES = "$PREFIX.Aliases"
 private const val HIDE = "$PREFIX.Hide"
 
@@ -28,10 +27,6 @@ class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) 
             .getValueAs<String>("name")
             ?.takeIf { it.isNotBlank() } ?: function.name
 
-        val description = function.getAnnotationInfo(DESCRIPTION)
-            ?.parameterValues
-            ?.getValueAs<String>("description")
-
         val aliases = function.getAnnotationInfo(ALIASES)
             ?.parameterValues
             ?.getValueAs<List<String>>("aliases")
@@ -39,12 +34,10 @@ class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) 
 
         val isHidden = function.hasAnnotation(HIDE)
 
-        val features = extensions.map { it.compileFeature(function, commandName) }.toSet()
+        val features = extensions.mapNotNull { it.compileFeature(function, commandName) }.toSet()
 
         return CommandBuilder().apply {
             +name(commandName)
-            if (description != null)
-                +description(description)
             if (isHidden)
                 +hide()
             +aliases
