@@ -66,7 +66,7 @@ class CommandRegistryTest : FunSpec() {
             }
 
             test("Registry should show it content") {
-                registry.toString() shouldMatch Regex("""CommandRegistry \[.*] with 1 hidden commands""")
+                registry.toString() shouldMatch Regex("""CommandRegistry contains 1 commands with 1 hidden ones""")
             }
 
             afterTest {
