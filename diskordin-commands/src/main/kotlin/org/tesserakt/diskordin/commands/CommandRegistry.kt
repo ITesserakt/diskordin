@@ -11,7 +11,7 @@ annotation class PrivateStatement
 
 abstract class CommandRegistry private constructor(private val allCommands: List<CommandObject>) : List<CommandObject> {
     override fun toString(): String =
-        "CommandRegistry [${joinToString()}] with ${allCommands.filter { it.isHidden }.size} hidden commands"
+        "CommandRegistry contains $size commands with ${allCommands.filter { it.isHidden }.size} hidden ones"
 
     companion object {
         val EMPTY: CommandRegistry = object : CommandRegistry(emptyList()), List<CommandObject> by emptyList() {}

@@ -1,10 +1,13 @@
 package org.tesserakt.diskordin.commands.compiler
 
-import arrow.core.*
+import arrow.core.NonEmptyList
+import arrow.core.Validated
+import arrow.core.ValidatedPartialOf
 import arrow.core.extensions.list.traverse.sequence
 import arrow.core.extensions.nonemptylist.semigroup.semigroup
 import arrow.core.extensions.validated.applicative.applicative
 import arrow.core.extensions.validated.traverse.traverse
+import arrow.core.fix
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
@@ -14,31 +17,38 @@ import arrow.mtl.extensions.fx
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
 import io.github.classgraph.ScanResult
+import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.CommandBuilder
 import org.tesserakt.diskordin.commands.CommandObject
 import org.tesserakt.diskordin.commands.CommandRegistry
 import org.tesserakt.diskordin.commands.ValidationError
-import java.util.concurrent.Executors
 
+@Suppress("unused")
 class CommandModuleLoader(
     private val specifiedPackage: String? = null,
-    private val parallelism: Int = 1,
+    private val parallelism: Int? = null,
     private val compiler: CommandModuleCompiler
 ) {
+    private val logger = KotlinLogging.logger { }
+
     private val graph = ClassGraph()
         .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*", "io.arrow-kt.*")
         .enableAnnotationInfo()
         .enableMethodInfo()
+        .disableJarScanning()
         .also {
             if (specifiedPackage != null)
                 it.whitelistPackages(specifiedPackage)
         }
 
-    private fun load() = IO.async<ScanResult> { sink ->
-        graph.scanAsync(Executors.newFixedThreadPool(parallelism), parallelism,
-            { sink(it.right()) },
-            { sink(it.left()) }
-        )
+    fun load() = IO {
+        logger.debug("Inspecting packages for command modules")
+        if (parallelism != null) graph.scan(parallelism)
+        else graph.scan()
+    }.flatMap {
+        val summary = loadToRegistry(it)
+        it.close()
+        summary
     }
 
     private fun ScanResult.commandModules() =
@@ -51,9 +61,7 @@ class CommandModuleLoader(
     private fun ClassInfo.commands() =
         allowedMethods().filter { it.hasAnnotation("org.tesserakt.diskordin.commands.Command") }
 
-    fun loadToRegistry() = StateT.fx<CompilerSummary, ForIO, CompilerSummary>(IO.monad()) {
-        val scan = !StateT.liftF<CompilerSummary, ForIO, ScanResult>(IO.applicative(), load())
-
+    private fun loadToRegistry(scan: ScanResult) = StateT.fx<CompilerSummary, ForIO, CompilerSummary>(IO.monad()) {
         val modules = scan.commandModules().toList()
         !StateT.modify<CompilerSummary, ForIO>(IO.applicative()) { it.copy(loadedModules = modules.size) }
 
@@ -73,5 +81,5 @@ class CommandModuleLoader(
         !StateT.inspect<CompilerSummary, ForIO, CompilerSummary>(IO.applicative()) {
             it.copy(result = commands.toEither())
         }
-    }
+    }.runA(IO.monad(), CompilerSummary())
 }

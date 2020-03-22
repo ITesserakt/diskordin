@@ -5,5 +5,5 @@ data class CommandObject(
     val description: String,
     val aliases: List<String>,
     val isHidden: Boolean,
-    val requiredFeatures: List<Feature>
+    val requiredFeatures: Set<Feature>
 )

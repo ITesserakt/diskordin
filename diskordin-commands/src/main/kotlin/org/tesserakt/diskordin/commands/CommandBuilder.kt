@@ -17,7 +17,7 @@ class CommandBuilder {
     private var description: String = ""
     private val aliases: MutableList<String> = mutableListOf()
     private var isHidden: Boolean = false
-    private val features: MutableList<Feature> = mutableListOf()
+    private val features: MutableSet<Feature> = mutableSetOf()
 
     operator fun Name.unaryPlus() {
         name = this.v
@@ -36,7 +36,7 @@ class CommandBuilder {
         isHidden = true
     }
 
-    operator fun List<Feature>.unaryPlus() {
+    operator fun Set<Feature>.unaryPlus() {
         features += this
     }
 
@@ -44,7 +44,7 @@ class CommandBuilder {
     inline fun CommandBuilder.description(value: String) = value
     inline fun CommandBuilder.aliases(vararg values: String) = values.toList()
     inline fun CommandBuilder.hide() = Unit
-    inline fun CommandBuilder.features(vararg values: Feature) = values.toList()
+    inline fun CommandBuilder.features(vararg values: Feature) = values.toSet()
 
     fun <V : Validator<F>, F> validate(validator: V, T: Traverse<F>) = validator.run {
         mapN(
@@ -53,7 +53,7 @@ class CommandBuilder {
             validateAliases(),
             validateFeatures(T)
         ) { (name, description, aliases, features) ->
-            CommandObject(name, description, aliases, isHidden, features)
+            CommandObject(name, description, aliases, isHidden, features.toSet())
         }
     }
 

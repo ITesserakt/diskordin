@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 val kotestVersion: String = project(":").properties["kotest_version"].cast()
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
+val kotlinLoggingVersion: String = project(":").properties["kotlin_logging_version"].cast()
 
 fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
@@ -20,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib"))
     implementation(project(":"))
     implementation(arrow("core"))
     implementation(arrow("fx"))
