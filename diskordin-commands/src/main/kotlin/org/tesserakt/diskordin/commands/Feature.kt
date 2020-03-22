@@ -4,10 +4,6 @@ import arrow.Kind
 import arrow.core.Nel
 import arrow.typeclasses.ApplicativeError
 
-interface Feature {
-    val validator: Validator
-
-    abstract class Validator {
-        abstract fun <F> validate(AE: ApplicativeError<F, Nel<ValidationError>>): Kind<F, Feature>
-    }
+interface Feature<F : Feature<F>> {
+    fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, F>
 }

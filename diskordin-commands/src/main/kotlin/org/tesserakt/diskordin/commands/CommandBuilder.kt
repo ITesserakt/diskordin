@@ -5,7 +5,7 @@ package org.tesserakt.diskordin.commands
 import arrow.Kind
 import arrow.core.*
 import arrow.core.extensions.either.applicativeError.applicativeError
-import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.list.traverse.traverse
 import arrow.core.extensions.nonemptylist.semigroup.semigroup
 import arrow.core.extensions.validated.applicativeError.applicativeError
 import arrow.typeclasses.ApplicativeError
@@ -17,7 +17,7 @@ class CommandBuilder {
     private var description: String = ""
     private val aliases: MutableList<String> = mutableListOf()
     private var isHidden: Boolean = false
-    private val features: MutableSet<Feature> = mutableSetOf()
+    private val features: MutableSet<Feature<*>> = mutableSetOf()
 
     operator fun Name.unaryPlus() {
         name = this.v
@@ -36,7 +36,7 @@ class CommandBuilder {
         isHidden = true
     }
 
-    operator fun Set<Feature>.unaryPlus() {
+    operator fun Set<Feature<*>>.unaryPlus() {
         features += this
     }
 
@@ -44,12 +44,12 @@ class CommandBuilder {
     inline fun CommandBuilder.description(value: String) = value
     inline fun CommandBuilder.aliases(vararg values: String) = values.toList()
     inline fun CommandBuilder.hide() = Unit
-    inline fun CommandBuilder.features(vararg values: Feature) = values.toSet()
+    inline fun CommandBuilder.features(values: Set<Feature<*>>) = values
 
     fun <V : Validator<F>, F> validate(validator: V, T: Traverse<F>) = validator.run {
         mapN(
-            name.notEmpty("name"),
-            description.notEmpty("description"),
+            name.validateName(),
+            description.validateDescription(name),
             validateAliases(),
             validateFeatures(T)
         ) { (name, description, aliases, features) ->
@@ -59,8 +59,12 @@ class CommandBuilder {
 
     sealed class Validator<F>(private val AE: ApplicativeError<F, Nel<ValidationError>>) :
         ApplicativeError<F, Nel<ValidationError>> by AE {
-        fun String.notEmpty(elementName: String) =
-            if (this.isEmpty()) raiseError(ValidationError.Empty(elementName).nel())
+        fun String.validateName() =
+            if (this.isBlank()) raiseError(ValidationError.BlankName.nel())
+            else just(this)
+
+        fun String.validateDescription(commandName: String) =
+            if (this.isBlank()) raiseError(ValidationError.EmptyDescription(commandName).nel())
             else just(this)
 
         fun CommandBuilder.validateAliases(): Kind<F, List<String>> {
@@ -70,9 +74,9 @@ class CommandBuilder {
             else just(aliases)
         }
 
-        fun CommandBuilder.validateFeatures(T: Traverse<F>) = T.run {
-            features.map { it.validator.validate(AE) }.sequence(AE)
-        }.map { it.fix() }
+        fun CommandBuilder.validateFeatures(T: Traverse<F>): Kind<F, ListK<Feature<*>>> = T.run {
+            features.map { it.validate(AE) }.traverse(AE, ::identity).map { it.fix() }
+        }
 
         object AccumulateErrors :
             Validator<ValidatedPartialOf<NonEmptyList<ValidationError>>>(Validated.applicativeError(NonEmptyList.semigroup()))
@@ -87,7 +91,8 @@ class CommandBuilder {
 }
 
 abstract class ValidationError(val description: String) {
-    data class Empty(val element: String) : ValidationError("$element of command cannot be empty!")
+    object BlankName : ValidationError("Some command doesn't have name")
+    data class EmptyDescription(val commandName: String) : ValidationError("$commandName description cannot be empty!")
     data class DuplicatedAliases(val commandName: String, val duplicated: Iterable<String>) :
         ValidationError("Aliases(${duplicated.joinToString()}) duplicates with name or other aliases of command[$commandName]")
 }

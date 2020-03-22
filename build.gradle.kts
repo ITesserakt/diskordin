@@ -52,6 +52,9 @@ dependencies {
     implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version")
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
+    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
+    implementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
+    implementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
     testImplementation("org.amshove.kluent:kluent:$kluent_version")

@@ -25,31 +25,26 @@ import org.tesserakt.diskordin.commands.ValidationError
 
 @Suppress("unused")
 class CommandModuleLoader(
+    private val compiler: CommandModuleCompiler,
     private val specifiedPackage: String? = null,
-    private val parallelism: Int? = null,
-    private val compiler: CommandModuleCompiler
+    private val parallelism: Int? = null
 ) {
     private val logger = KotlinLogging.logger { }
 
     private val graph = ClassGraph()
-        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*", "io.arrow-kt.*")
+        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
         .enableAnnotationInfo()
         .enableMethodInfo()
         .disableJarScanning()
         .also {
-            if (specifiedPackage != null)
-                it.whitelistPackages(specifiedPackage)
+            if (specifiedPackage != null) it.whitelistPackages(specifiedPackage)
         }
 
     fun load() = IO {
         logger.debug("Inspecting packages for command modules")
         if (parallelism != null) graph.scan(parallelism)
         else graph.scan()
-    }.flatMap {
-        val summary = loadToRegistry(it)
-        it.close()
-        summary
-    }
+    }.flatMap(::loadToRegistry)
 
     private fun ScanResult.commandModules() =
         allClasses.filter { it.extendsSuperclass("org.tesserakt.diskordin.commands.CommandModule") }

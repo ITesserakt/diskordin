@@ -26,7 +26,7 @@ class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) 
         val commandName = function.getAnnotationInfo(COMMAND)
             .parameterValues
             .getValueAs<String>("name")
-            ?.takeIf { it.isNotBlank() }
+            ?.takeIf { it.isNotBlank() } ?: function.name
 
         val description = function.getAnnotationInfo(DESCRIPTION)
             ?.parameterValues
@@ -39,10 +39,10 @@ class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) 
 
         val isHidden = function.hasAnnotation(HIDE)
 
-        val features = extensions.map { it.compileFeature(function) }.toSet()
+        val features = extensions.map { it.compileFeature(function, commandName) }.toSet()
 
         return CommandBuilder().apply {
-            +name(commandName ?: function.name)
+            +name(commandName)
             if (description != null)
                 +description(description)
             if (isHidden)
