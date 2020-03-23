@@ -11,7 +11,7 @@ data class AliasesFeature(
     val aliases: List<String>
 ) : Feature<AliasesFeature> {
     data class DuplicatedAliases(val commandName: String, val duplicated: Iterable<String>) :
-        ValidationError("Aliases(${duplicated.joinToString()}) duplicates with name or other aliases of command[$commandName]")
+        ValidationError("Aliases(${duplicated.joinToString()}) duplicates with name or other aliases of command $commandName")
 
     override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, AliasesFeature> = AE.run {
         val counted = aliases.associateBy({ it }, { aliases.count { i -> i == it } })

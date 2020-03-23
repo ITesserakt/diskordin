@@ -11,7 +11,7 @@ private const val COMMAND = "$PREFIX.Command"
 private inline fun <reified T : Any> AnnotationParameterValueList.getValueAs(parameterName: String) =
     getValue(parameterName) as? T
 
-class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) {
+class CommandModuleCompiler(private val extensions: Set<CompilerExtension<*>>) {
     fun compileModule(module: ClassInfo): List<CommandBuilder> {
         val commands = module.declaredMethodInfo
             .filter { it.hasAnnotation(COMMAND) }

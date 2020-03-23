@@ -4,8 +4,6 @@ package org.tesserakt.diskordin.commands
 
 import arrow.typeclasses.Traverse
 import org.tesserakt.diskordin.commands.feature.HiddenFeature
-import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 
 @RequiresOptIn("This statement should not be used. This is part of a private implementation")
 annotation class PrivateStatement
@@ -49,20 +47,4 @@ abstract class CommandRegistry private constructor(private val allCommands: List
 
         fun RegisterScope<F>.command(value: CommandBuilder) = value.validate(validator, T)
     }
-}
-
-private var commandRegistryPrivate: CommandRegistry = CommandRegistry.EMPTY
-
-val IDiscordClient.commandRegistry: CommandRegistry
-    get() = commandRegistryPrivate
-
-fun <F, G> DiscordClientBuilder<F>.commandRegistry(
-    validator: CommandBuilder.Validator<G>,
-    T: Traverse<G>,
-    f: CommandRegistry.RegisterScope<G>.() -> Unit
-) =
-    CommandRegistry(validator, T, f)
-
-operator fun CommandRegistry.unaryPlus() {
-    commandRegistryPrivate = this
 }
