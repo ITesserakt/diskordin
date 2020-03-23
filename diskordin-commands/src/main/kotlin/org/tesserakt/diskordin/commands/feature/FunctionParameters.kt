@@ -31,7 +31,7 @@ data class FunctionParameters(
     ) : ValidationError("Context of $commandName should be equal with declared as type parameter in CommandModule. Actual: $actualContextType, declared: $declaredContextType")
 
     private fun ClassRefTypeSignature.subtypeOf(className: String) =
-        if (this.classInfo == null) this.loadClass().isAssignableFrom(Class.forName(className))
+        if (this.classInfo == null) this.loadClass().interfaces.contains(Class.forName(className))
         else classInfo.implementsInterface(className) or classInfo.extendsSuperclass(className)
 
     private fun <G> ClassRefTypeSignature.compareWithTypeBound(AE: ApplicativeError<G, Nel<ValidationError>>) =

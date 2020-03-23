@@ -24,29 +24,20 @@ import java.util.concurrent.Executors
 @Suppress("unused")
 class CommandModuleLoader(
     private val compiler: CommandModuleCompiler,
-    private val specifiedPackage: String? = null,
-    private val parallelism: Int? = null
+    private val graph: ClassGraph,
+    private val parallelism: Int = 1
 ) {
     private val logger = KotlinLogging.logger { }
 
-    private val graph = ClassGraph()
-        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
-        .enableAnnotationInfo()
-        .enableMethodInfo()
-        .disableJarScanning()
-        .also {
-            if (specifiedPackage != null) it.whitelistPackages(specifiedPackage)
-        }
-
     fun load() = Resource(
-        { Executors.newFixedThreadPool(parallelism ?: 1).just() },
+        { Executors.newFixedThreadPool(parallelism).just() },
         { threads, _: ExitCase<Throwable> -> threads.shutdown().just() },
         IO.bracket()
     ).flatMap { service ->
         Resource({
             IO.async<ScanResult> { sink ->
-                logger.debug("Inspecting ${specifiedPackage ?: ""} package for command modules")
-                graph.scanAsync(service, parallelism ?: 1, { sink(it.right()) }, { sink(it.left()) })
+                logger.debug("Inspecting packages for command modules")
+                graph.scanAsync(service, parallelism, { sink(it.right()) }, { sink(it.left()) })
             }
         }, { scan, _: ExitCase<Throwable> -> scan.close().just() },
             IO.bracket()
