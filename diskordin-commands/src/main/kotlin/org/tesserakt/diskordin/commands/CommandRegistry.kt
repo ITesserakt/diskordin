@@ -3,6 +3,7 @@
 package org.tesserakt.diskordin.commands
 
 import arrow.typeclasses.Traverse
+import org.tesserakt.diskordin.commands.feature.HiddenFeature
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 
@@ -11,7 +12,7 @@ annotation class PrivateStatement
 
 abstract class CommandRegistry private constructor(private val allCommands: List<CommandObject>) : List<CommandObject> {
     override fun toString(): String =
-        "CommandRegistry contains $size commands with ${allCommands.filter { it.isHidden }.size} hidden ones"
+        "CommandRegistry contains $size commands with ${allCommands.filter { it.hasFeature<HiddenFeature>() }.size} hidden ones"
 
     companion object {
         val EMPTY: CommandRegistry = object : CommandRegistry(emptyList()), List<CommandObject> by emptyList() {}
@@ -23,13 +24,13 @@ abstract class CommandRegistry private constructor(private val allCommands: List
             f: RegisterScope<F>.() -> Unit
         ): CommandRegistry {
             val allCommands = RegisterScope(validator, T).apply(f).commands
-            val publicCommands = allCommands.filter { !it.isHidden }
+            val publicCommands = allCommands.filter { !it.hasFeature<HiddenFeature>() }
             return object : CommandRegistry(allCommands), List<CommandObject> by publicCommands {}
         }
 
         @OptIn(PrivateStatement::class)
         operator fun invoke(commands: List<CommandObject>): CommandRegistry {
-            val publicCommands = commands.filter { !it.isHidden }
+            val publicCommands = commands.filter { !it.hasFeature<HiddenFeature>() }
             return object : CommandRegistry(commands), List<CommandObject> by publicCommands {}
         }
     }

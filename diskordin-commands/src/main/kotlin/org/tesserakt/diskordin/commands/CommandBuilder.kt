@@ -14,15 +14,10 @@ import org.tesserakt.diskordin.core.entity.builder.Name
 
 class CommandBuilder {
     private var name: String = ""
-    private var isHidden: Boolean = false
     private val features: MutableSet<Feature<*>> = mutableSetOf()
 
     operator fun Name.unaryPlus() {
         name = this.v
-    }
-
-    operator fun Unit.unaryPlus() {
-        isHidden = true
     }
 
     operator fun Set<Feature<*>>.unaryPlus() {
@@ -30,7 +25,6 @@ class CommandBuilder {
     }
 
     inline fun CommandBuilder.name(value: String) = Name(value)
-    inline fun CommandBuilder.hide() = Unit
     inline fun CommandBuilder.features(values: Set<Feature<*>>) = values
 
     fun <V : Validator<F>, F> validate(validator: V, T: Traverse<F>) = validator.run {
@@ -38,7 +32,7 @@ class CommandBuilder {
             name.validateName(),
             validateFeatures(T)
         ) { (name, features) ->
-            CommandObject(name, isHidden, features.toSet())
+            CommandObject(name, features.toSet())
         }
     }
 

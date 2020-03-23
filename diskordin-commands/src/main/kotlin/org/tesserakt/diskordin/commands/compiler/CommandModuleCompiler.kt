@@ -7,7 +7,6 @@ import org.tesserakt.diskordin.commands.CommandBuilder
 
 internal const val PREFIX = "org.tesserakt.diskordin.commands"
 private const val COMMAND = "$PREFIX.Command"
-private const val HIDE = "$PREFIX.Hide"
 
 private inline fun <reified T : Any> AnnotationParameterValueList.getValueAs(parameterName: String) =
     getValue(parameterName) as? T
@@ -26,14 +25,10 @@ class CommandModuleCompiler(private val extensions: List<CompilerExtension<*>>) 
             .getValueAs<String>("name")
             ?.takeIf { it.isNotBlank() } ?: function.name
 
-        val isHidden = function.hasAnnotation(HIDE)
-
         val features = extensions.mapNotNull { it.compileFeature(function, commandName) }.toSet()
 
         return CommandBuilder().apply {
             +name(commandName)
-            if (isHidden)
-                +hide()
             +features
         }
     }

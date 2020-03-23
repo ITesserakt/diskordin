@@ -10,12 +10,10 @@ import io.kotest.matchers.shouldBe
 import org.tesserakt.diskordin.commands.Command
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.commands.CommandModule
-import org.tesserakt.diskordin.commands.Description
 
 @Suppress("unused")
 class Test : CommandModule<ForIO, CommandContext<ForIO>>(IO.async()) {
     @Command
-    @Description("Test")
     fun test() {
     }
 

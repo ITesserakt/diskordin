@@ -9,6 +9,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.string.shouldMatch
+import org.tesserakt.diskordin.commands.feature.HiddenFeature
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -47,7 +48,7 @@ class CommandRegistryTest : FunSpec() {
 
                     second = command {
                         +name("Test2")
-                        +hide()
+                        +features(setOf(HiddenFeature()))
                     }.firstOption().orNull()!!
                     +second
                 }
