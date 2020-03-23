@@ -7,7 +7,6 @@ import arrow.typeclasses.ApplicativeError
 import io.github.classgraph.ClassRefTypeSignature
 import io.github.classgraph.TypeSignature
 import org.tesserakt.diskordin.commands.CommandContext
-import org.tesserakt.diskordin.commands.Feature
 import org.tesserakt.diskordin.commands.ValidationError
 import kotlin.reflect.KClass
 
@@ -17,7 +16,7 @@ data class FunctionParameters(
     val commandName: String,
     val contextType: TypeSignature,
     val parameters: List<TypeSignature>
-) : Feature<FunctionParameters> {
+) : PersistentFeature<FunctionParameters> {
     data class DuplicatedParameters(val commandName: String, val parameterNames: List<TypeSignature>) :
         ValidationError("$commandName has duplicated next parameters: $parameterNames")
 

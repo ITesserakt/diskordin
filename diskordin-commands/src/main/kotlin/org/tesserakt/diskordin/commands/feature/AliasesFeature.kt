@@ -4,7 +4,6 @@ import arrow.Kind
 import arrow.core.Nel
 import arrow.core.nel
 import arrow.typeclasses.ApplicativeError
-import org.tesserakt.diskordin.commands.Feature
 import org.tesserakt.diskordin.commands.ValidationError
 
 data class AliasesFeature(

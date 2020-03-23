@@ -10,6 +10,7 @@ import arrow.core.extensions.nonemptylist.semigroup.semigroup
 import arrow.core.extensions.validated.applicativeError.applicativeError
 import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Traverse
+import org.tesserakt.diskordin.commands.feature.Feature
 import org.tesserakt.diskordin.core.entity.builder.Name
 
 class CommandBuilder {

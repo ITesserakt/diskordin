@@ -16,6 +16,7 @@ import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.shouldBe
 import org.tesserakt.diskordin.commands.feature.AliasesFeature
 import org.tesserakt.diskordin.commands.feature.DescriptionFeature
+import org.tesserakt.diskordin.commands.feature.HiddenFeature
 
 class CommandBuilderTest : FunSpec({
     test("Valid command builder should not produce errors") {
@@ -25,7 +26,7 @@ class CommandBuilderTest : FunSpec({
                 setOf(
                     DescriptionFeature("Test", "test"),
                     AliasesFeature("Test", listOf("help", "wanted"))
-                ) as Set<Feature<*>>
+                )
             )
         }
 
@@ -36,7 +37,7 @@ class CommandBuilderTest : FunSpec({
 
         validated.fix() shouldBeValid { (it: CommandObject) ->
             it.name shouldBe "Test"
-            it.isHidden.shouldBeFalse()
+            it.hasFeature<HiddenFeature>().shouldBeFalse()
             it.requiredFeatures shouldContainExactly setOf(
                 DescriptionFeature("Test", "test"),
                 AliasesFeature("Test", listOf("help", "wanted"))
