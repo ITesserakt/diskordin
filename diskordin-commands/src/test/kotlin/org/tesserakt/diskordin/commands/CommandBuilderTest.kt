@@ -14,14 +14,19 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.shouldBe
-import org.tesserakt.diskordin.commands.feature.Description as DescriptionFeature
+import org.tesserakt.diskordin.commands.feature.AliasesFeature
+import org.tesserakt.diskordin.commands.feature.DescriptionFeature
 
 class CommandBuilderTest : FunSpec({
     test("Valid command builder should not produce errors") {
         val command = CommandBuilder().apply {
             +name("Test")
-            +aliases("help", "wanted")
-            +features(setOf(DescriptionFeature("Test", "test")) as Set<Feature<*>>)
+            +features(
+                setOf(
+                    DescriptionFeature("Test", "test"),
+                    AliasesFeature("Test", listOf("help", "wanted"))
+                ) as Set<Feature<*>>
+            )
         }
 
         val validated: Kind<Kind<ForValidated, NonEmptyList<ValidationError>>, CommandObject> =
@@ -31,15 +36,21 @@ class CommandBuilderTest : FunSpec({
 
         validated.fix() shouldBeValid { (it: CommandObject) ->
             it.name shouldBe "Test"
-            it.aliases shouldBe listOf("help", "wanted")
             it.isHidden.shouldBeFalse()
-            it.requiredFeatures shouldContainExactly setOf(DescriptionFeature("Test", "test"))
+            it.requiredFeatures shouldContainExactly setOf(
+                DescriptionFeature("Test", "test"),
+                AliasesFeature("Test", listOf("help", "wanted"))
+            )
         }
     }
 
     context("Invalid command builder") {
         val command = CommandBuilder().apply {
-            +aliases("Foo", "Bar", "Baz", "Foo")
+            +features(
+                setOf(
+                    AliasesFeature("", listOf("Foo", "Bar", "Baz", "Foo"))
+                )
+            )
         }
 
         test("Errors should accumulate with Validated") {
@@ -51,7 +62,7 @@ class CommandBuilderTest : FunSpec({
             validated.fix() shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
                 nel shouldHaveSize 2
                 nel.toList() shouldHaveSingleElement { it is ValidationError.BlankName }
-                nel.toList() shouldHaveSingleElement { it is ValidationError.DuplicatedAliases }
+                nel.toList() shouldHaveSingleElement { it is AliasesFeature.DuplicatedAliases }
             }
         }
 

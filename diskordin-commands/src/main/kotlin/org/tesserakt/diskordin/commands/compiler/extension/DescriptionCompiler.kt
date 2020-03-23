@@ -4,13 +4,13 @@ import io.github.classgraph.MethodInfo
 import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.compiler.CompilerExtension
 import org.tesserakt.diskordin.commands.compiler.PREFIX
-import org.tesserakt.diskordin.commands.feature.Description
+import org.tesserakt.diskordin.commands.feature.DescriptionFeature
 
-class DescriptionCompiler : CompilerExtension<Description>() {
+class DescriptionCompiler : CompilerExtension<DescriptionFeature>() {
     private val description = "$PREFIX.Description"
     private val logger = KotlinLogging.logger { }
 
-    override fun compileFeature(function: MethodInfo, name: String): Description? {
+    override fun compileFeature(function: MethodInfo, name: String): DescriptionFeature? {
         val value = function.getAnnotationInfo(description)
             ?.parameterValues
             ?.getValue("description") as? String
@@ -18,6 +18,6 @@ class DescriptionCompiler : CompilerExtension<Description>() {
         return if (value.isNullOrBlank()) {
             logger.info("$name doesn't have description. Consider to add it")
             null
-        } else Description(name, value)
+        } else DescriptionFeature(name, value)
     }
 }
