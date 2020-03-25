@@ -21,7 +21,7 @@ data class ReturnType(
     data class UnresolvedType(val type: TypeSignature) :
         ValidationError("$type doesn't resolved. Try rescan including this class")
 
-    data class DifferentReturnType(val commandName: String, val type: TypeSignature) :
+    data class DifferentReturnType(val commandName: String) :
         ValidationError("Return type of command $commandName doesn't equal to type defined in CommandModule")
 
     private fun <G> ClassRefTypeSignature.validateReturnType(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
@@ -59,7 +59,7 @@ data class ReturnType(
             if (it is ClassRefTypeSignature && it.typeArguments[0] == moduleDataClass)
                 ReturnType(commandName, it, moduleType).right()
             else
-                DifferentReturnType(commandName, it).nel().left()
+                DifferentReturnType(commandName).nel().left()
         }.fromEither(::identity)
     }
 }
