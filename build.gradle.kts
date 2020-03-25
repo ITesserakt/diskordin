@@ -78,7 +78,7 @@ tasks.compileTestKotlin {
 }
 
 tasks.wrapper {
-    gradleVersion = "6.0.1"
+    gradleVersion = "5.6.4"
 }
 
 tasks.kotlinSourcesJar {
