@@ -7,8 +7,8 @@ import arrow.typeclasses.ApplicativeError
 import io.github.classgraph.ClassRefTypeSignature
 import io.github.classgraph.ReferenceTypeSignature
 import io.github.classgraph.TypeSignature
-import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.ValidationError
+import org.tesserakt.diskordin.commands.integration.logger
 
 data class ReturnType(
     val commandName: String,
@@ -23,8 +23,6 @@ data class ReturnType(
 
     data class DifferentReturnType(val commandName: String, val type: TypeSignature) :
         ValidationError("Return type of command $commandName doesn't equal to type defined in CommandModule")
-
-    private val logger = KotlinLogging.logger { }
 
     private fun <G> ClassRefTypeSignature.validateReturnType(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
         val kind = this@validateReturnType
@@ -45,7 +43,7 @@ data class ReturnType(
             type.baseClassName == "arrow.Kind" -> type.validateReturnType(AE)
 
             type.classInfo.implementsInterface("arrow.Kind") -> {
-                logger.info("Unchecked return type detected for command $commandName. Consider using Kind<F, Unit> against F<Unit>")
+                logger.log("Unchecked return type detected for command $commandName. Consider using Kind<F, Unit> against F<Unit>")
                 type.classInfo.typeSignature.superinterfaceSignatures.first { it.baseClassName == "arrow.Kind" }.just()
             }
 

@@ -9,7 +9,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.string.shouldMatch
-import org.tesserakt.diskordin.commands.feature.HiddenFeature
+import org.tesserakt.diskordin.commands.integration.commandRegistry
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -38,23 +38,17 @@ class CommandRegistryTest : FunSpec() {
             lateinit var first: CommandObject
             lateinit var second: CommandObject
 
-            val client = DiscordClientBuilder.default {
-                +disableTokenVerification()
-                +commandRegistry(CommandBuilder.Validator.AccumulateErrors, Validated.traverse()) {
-                    first = command {
-                        +name("Test")
-                    }.firstOption().orNull()!!
-                    +first
+            val registry = CommandRegistry(CommandBuilder.Validator.AccumulateErrors, Validated.traverse()) {
+                first = command {
+                    +name("Test 1")
+                }.firstOption().orNull()!!
+                +first
 
-                    second = command {
-                        +name("Test2")
-                        +features(setOf(HiddenFeature()))
-                    }.firstOption().orNull()!!
-                    +second
-                }
+                second = command {
+                    +name("Test 2")
+                }.firstOption().orNull()!!
+                +second
             }
-
-            val registry = client.commandRegistry
 
             test("Registry should not provide hidden commands") {
                 registry shouldNotContain second
@@ -66,10 +60,6 @@ class CommandRegistryTest : FunSpec() {
 
             test("Registry should show it content") {
                 registry.toString() shouldMatch Regex("""CommandRegistry contains 1 commands with 1 hidden ones""")
-            }
-
-            afterTest {
-                client.logout()
             }
         }
     }

@@ -30,7 +30,7 @@ class CommandModuleLoaderTest : StringSpec() {
 
     init {
         "Loader should produce error for invalid command" {
-            val compiler = CommandModuleCompiler(emptyList())
+            val compiler = CommandModuleCompiler(emptySet())
             val loader = CommandModuleLoader(compiler, graph, defaultTestConfig?.threads ?: 1)
 
             loader.load().attempt().unsafeRunSync() shouldBeRight {
