@@ -3,7 +3,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.*
 
-val kotlin_version: String = KotlinVersion(1, 3, 70).toString()
+val kotlin_version: String = "1.3.71"
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -18,7 +18,7 @@ val kotest_version: String by extra
 val publicationName = "diskordin"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.3.70"
+    id("org.jetbrains.kotlin.jvm") version "1.3.71"
     id("com.jfrog.bintray") version "1.8.4"
     `maven-publish`
 }
@@ -30,11 +30,10 @@ val jvmVersion = System.getenv("jvm") ?: "1.8"
 repositories {
     jcenter()
     maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") }
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib", kotlin_version))
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutines_version")
@@ -43,7 +42,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-syntax:$arrow_version")
     implementation("io.arrow-kt:arrow-fx:$arrow_version")
     implementation("io.arrow-kt:arrow-core-data:$arrow_version")
-    implementation("io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version")
+    implementation("io.arrow-kt:arrow-integrations-retrofit-adapter:$arrow_version")
 
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")
