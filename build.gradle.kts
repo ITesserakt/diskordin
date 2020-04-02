@@ -29,7 +29,6 @@ val jvmVersion = System.getenv("jvm") ?: "1.8"
 repositories {
     jcenter()
     maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") }
 }
 
 dependencies {
@@ -42,7 +41,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-syntax:$arrow_version")
     implementation("io.arrow-kt:arrow-fx:$arrow_version")
     implementation("io.arrow-kt:arrow-core-data:$arrow_version")
-    implementation("io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version")
+    implementation("io.arrow-kt:arrow-integrations-retrofit-adapter:$arrow_version")
 
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")
