@@ -40,7 +40,7 @@ internal class CustomEmoji constructor(
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override fun edit(builder: EmojiEditBuilder.() -> Unit) = rest.call(guild.id.some(), Id.functor()) {
-        emojiService.editGuildEmoji(guild.id, id, builder.build())
+        emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder))
     }.map { it.extract() }
 
     override val guild = guildId identify {

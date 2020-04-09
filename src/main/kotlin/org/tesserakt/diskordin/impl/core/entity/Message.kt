@@ -46,7 +46,7 @@ internal class Message(raw: MessageResponse) : IMessage {
         emoji: IEmoji,
         builder: ReactedUsersQuery.() -> Unit
     ): IO<ListK<IUser>> = rest.call(ListK.functor()) {
-        channelService.getReactions(channel.id, id, emoji.name, builder.query())
+        channelService.getReactions(channel.id, id, emoji.name, builder.query(::ReactedUsersQuery))
     }.map { it.fix() }
 
     override fun deleteAllReactions() = rest.effect {
@@ -76,7 +76,7 @@ internal class Message(raw: MessageResponse) : IMessage {
     override val id: Snowflake = raw.id
 
     override fun edit(builder: MessageEditBuilder.() -> Unit) = rest.call(Id.functor()) {
-        channelService.editMessage(channel.id, id, builder.build())
+        channelService.editMessage(channel.id, id, builder.build(::MessageEditBuilder))
     }.map { it.extract() }
 
     override fun pin() = rest.effect {

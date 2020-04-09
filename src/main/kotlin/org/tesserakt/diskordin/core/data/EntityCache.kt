@@ -6,7 +6,6 @@ import org.tesserakt.diskordin.gateway.shard.Intents.*
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSuperclassOf
 
 class EntityCache internal constructor(
     cacheSifter: EntitySifter,
@@ -19,7 +18,7 @@ class EntityCache internal constructor(
     fun disabledFeatures() = deniedEntities.mapNotNull { it.simpleName }
 
     override fun put(key: Snowflake, value: IEntity) =
-        if (value::class in deniedEntities || deniedEntities.any { it.isSuperclassOf(value::class) }) null
+        if (value::class in deniedEntities || deniedEntities.any { it.java.isAssignableFrom(value::class.java) }) null
         else initial.put(key, value)
 
     override fun toString(): String =

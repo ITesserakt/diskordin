@@ -38,7 +38,7 @@ internal class Integration(
     }.fix()
 
     override fun edit(builder: IntegrationEditBuilder.() -> Unit): IO<IIntegration> = rest.effect {
-        guildService.editIntegration(guild.id, id, builder.build())
+        guildService.editIntegration(guild.id, id, builder.build(::IntegrationEditBuilder))
     }.flatMap { IO.fx { guild().bind().integrations.bind().first { it.id == id } } }
 
     override fun toString(): String {

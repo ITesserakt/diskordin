@@ -26,7 +26,7 @@ internal class Role constructor(
     guildId: Snowflake
 ) : IRole {
     override fun edit(builder: RoleEditBuilder.() -> Unit): IO<IRole> = rest.call(guild.id, Id.functor()) {
-        val inst = builder.instance()
+        val inst = builder.instance(::RoleEditBuilder)
         guildService.editRole(guild.id, id, inst.create(), inst.reason)
     }.map { it.extract() }
 

@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-
 import arrow.core.extensions.list.traverse.sequence
 import arrow.core.extensions.listk.monadFilter.filterMap
 import arrow.core.identity
@@ -16,7 +15,7 @@ import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.MemberResponse
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
-import org.tesserakt.diskordin.core.entity.builder.build
+import org.tesserakt.diskordin.core.entity.builder.instance
 import java.time.Instant
 
 internal class Member constructor(
@@ -44,7 +43,8 @@ internal class Member constructor(
     }.fix()
 
     override fun edit(builder: MemberEditBuilder.() -> Unit) = rest.effect {
-        guildService.editMember(guild.id, id, builder.build(), null)
+        val inst = builder.instance(::MemberEditBuilder)
+        guildService.editMember(guild.id, id, inst.create(), inst.reason)
     }.flatMap { client.getMember(id, guild.id) }
 
     override fun toString(): String {

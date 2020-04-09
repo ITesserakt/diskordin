@@ -119,7 +119,7 @@ internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(ra
     override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
 
     override fun edit(builder: TextChannelEditBuilder.() -> Unit): IO<ITextChannel> = rest.call(Id.functor()) {
-        val inst = builder.instance()
+        val inst = builder.instance(::TextChannelEditBuilder)
         channelService.editChannel(id, inst.create(), inst.reason)
     }.map { it.extract() as ITextChannel }
 
@@ -141,7 +141,7 @@ internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(
     override val userLimit: Int = raw.user_limit!!
 
     override fun edit(builder: VoiceChannelEditBuilder.() -> Unit) = rest.call(Id.functor()) {
-        val inst = builder.instance()
+        val inst = builder.instance(::VoiceChannelEditBuilder)
         channelService.editChannel(id, inst.create(), inst.reason)
     }.map { it.extract() as IVoiceChannel }
 

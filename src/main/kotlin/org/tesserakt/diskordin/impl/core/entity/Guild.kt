@@ -26,6 +26,7 @@ import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
 import org.tesserakt.diskordin.rest.call
+import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.time.Duration
@@ -119,8 +120,10 @@ internal class Guild(raw: GuildResponse) : IGuild {
         guildService.createGuildChannel(id, instance.create(), instance.reason)
     }.map { it as C }
 
-    override fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = rest.effect {
-        guildService.editGuildChannelPositions(id, builder.map { it.build() }.toTypedArray())
+    override fun moveChannels(vararg builder: Pair<Snowflake, Int>) = rest.effect {
+        guildService.editGuildChannelPositions(
+            id, builder.map { PositionEditBuilder(it.first, it.second).create() }.toTypedArray()
+        )
     }.fix()
 
     override fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember> =
@@ -134,10 +137,11 @@ internal class Guild(raw: GuildResponse) : IGuild {
         guildService.removeMember(id, memberId, reason)
     }.fix()
 
-    override fun addRole(builder: RoleCreateBuilder.() -> Unit) = rest.call(id, Id.functor()) {
-        val inst = builder.instance()
-        guildService.createRole(id, inst.create(), inst.reason)
-    }.map { it.extract() }
+    override fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit) =
+        rest.call(id, Id.functor()) {
+            val inst = builder.instance { RoleCreateBuilder(name, color) }
+            guildService.createRole(id, inst.create(), inst.reason)
+        }.map { it.extract() }
 
     override fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>> = rest.call(id, ListK.functor()) {
         guildService.editRolePositions(id, builder.map { (id, pos) ->
@@ -154,7 +158,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     @ExperimentalTime
     override fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = rest.effect {
-        guildService.ban(id, memberId, builder.query())
+        guildService.ban(id, memberId, builder.query(::BanQuery))
     }.fix()
 
     override fun pardon(userId: Snowflake, reason: String?) = rest.effect {
@@ -162,7 +166,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
     }.fix()
 
     override fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int> = rest.callRaw {
-        guildService.getPruneCount(id, builder.query())
+        guildService.getPruneCount(id, builder.query(::PruneQuery))
     }.map { it.extract() }
 
     override fun addIntegration(id: Snowflake, type: String): IO<Unit> = rest.effect {
@@ -190,7 +194,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
     }.map { it.fix() }
 
     override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = rest.call(Id.functor()) {
-        guildService.editGuild(id, builder.build())
+        guildService.editGuild(id, builder.build(::GuildEditBuilder))
     }.map { it.extract() }
 
     override val iconHash: String? = raw.icon
@@ -214,7 +218,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
             .filter { it.guild.id == id }
 
     override fun getMembers(query: MemberQuery.() -> Unit) = rest.call(id, ListK.functor()) {
-        guildService.getMembers(id, query.query())
+        guildService.getMembers(id, query.query(::MemberQuery))
     }.map { it.fix() }.flatTap { list -> cache += list.associateBy { it.id }; just() }
 
     override val channels get() = cache.values.filterIsInstance<IGuildChannel>().filter { it.guild.id == id }

@@ -55,7 +55,7 @@ interface IChannel : IMentioned, IDeletable {
 
     @ExperimentalTime
     fun invite(builder: InviteCreateBuilder.() -> Unit): IO<IInvite> = rest.call {
-        val inst = builder.instance()
+        val inst = builder.instance(::InviteCreateBuilder)
         channelService.createChannelInvite(id, inst.create(), inst.reason)
     }.fix()
 }
@@ -117,7 +117,7 @@ interface IMessageChannel : IChannel {
     }.fix()
 
     fun getMessages(query: MessagesQuery.() -> Unit) = rest.call(ListK.functor()) {
-        channelService.getMessages(id, query.query())
+        channelService.getMessages(id, query.query(::MessagesQuery))
     }.map { it.fix() }.flatTap { list -> cache += list.associateBy { it.id }; just() }
 
     fun getMessage(messageId: Snowflake) = client.getMessage(id, messageId)
@@ -140,7 +140,7 @@ interface IMessageChannel : IChannel {
         createMessage((content toT EmbedCreateBuilder().apply(embed)).bothIor(), builder)
 
     fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) = rest.effect {
-        channelService.bulkDeleteMessages(id, builder.build())
+        channelService.bulkDeleteMessages(id, builder.build(::BulkDeleteBuilder))
     }.fix()
 }
 

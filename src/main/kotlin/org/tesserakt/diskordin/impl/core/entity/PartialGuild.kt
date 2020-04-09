@@ -15,6 +15,7 @@ import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.BanQuery
 import org.tesserakt.diskordin.core.entity.query.MemberQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
+import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.time.Duration
@@ -64,16 +65,12 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel> =
         delegate.addVoiceChannel(name, builder)
 
-    override fun moveChannels(vararg builder: PositionEditBuilder.() -> Unit) = delegate.moveChannels(*builder)
-
     override fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember> =
         delegate.addMember(userId, accessToken, builder)
 
     override fun kick(member: IMember, reason: String?) = delegate.kick(member, reason)
 
     override fun kick(memberId: Snowflake, reason: String?) = delegate.kick(memberId, reason)
-
-    override fun addRole(builder: RoleCreateBuilder.() -> Unit): IO<IRole> = delegate.addRole(builder)
 
     override fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>> =
         delegate.moveRoles(*builder)
@@ -110,6 +107,11 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = delegate.edit(builder)
 
     override fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>> = delegate.getMembers(query)
+
+    override fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IO<IRole> =
+        delegate.addRole(name, color, builder)
+
+    override fun moveChannels(vararg builder: Pair<Snowflake, Int>): IO<Unit> = delegate.moveChannels(*builder)
 
     override fun toString(): String {
         return StringBuilder("PartialGuild(")

@@ -102,7 +102,7 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     }.fix()
 
     override fun edit(builder: UserEditBuilder.() -> Unit): IO<ISelf> = rest.call(Id.functor()) {
-        userService.editCurrentUser(builder.build())
+        userService.editCurrentUser(builder.build(::UserEditBuilder))
     }.map { it.extract() }
 
     override fun toString(): String {
