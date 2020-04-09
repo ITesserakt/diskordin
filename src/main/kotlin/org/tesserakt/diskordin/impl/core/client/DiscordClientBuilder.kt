@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.Kind
 import arrow.core.Eval
 import arrow.fx.ForIO
 import arrow.fx.IO
@@ -8,7 +7,6 @@ import arrow.fx.Schedule
 import arrow.fx.extensions.io.concurrent.concurrent
 import arrow.fx.extensions.io.monad.monad
 import arrow.fx.extensions.io.monadDefer.monadDefer
-import arrow.fx.fix
 import arrow.fx.typeclasses.Concurrent
 import arrow.fx.typeclasses.seconds
 import arrow.syntax.function.partially1
@@ -23,11 +21,13 @@ import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
 import org.tesserakt.diskordin.impl.util.typeclass.integral
+import org.tesserakt.diskordin.impl.util.typeclass.suspended
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.not
 import org.tesserakt.diskordin.util.enums.or
+import org.tesserakt.diskordin.util.typeclass.Suspended
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -97,7 +97,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     companion object {
         operator fun <F> invoke(
             CC: Concurrent<F>,
-            effectRunner: suspend (Kind<F, *>) -> Unit,
+            effectRunner: Suspended<F>,
             init: DiscordClientBuilder<F>.() -> Unit = {}
         ): IDiscordClient {
             val builder = DiscordClientBuilder(CC).apply(init)
@@ -142,7 +142,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         private fun <F> formGatewaySettings(
             builder: DiscordClientBuilder<F>,
             CC: Concurrent<F>,
-            runner: suspend (Kind<F, *>) -> Unit,
+            runner: Suspended<F>,
             connectionContext: BootstrapContext.Gateway.Connection
         ): BootstrapContext.Gateway<F> = BootstrapContext.Gateway(
             builder.gatewaySettings.coroutineContext,
@@ -177,6 +177,6 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         )
 
         inline fun default(noinline init: DiscordClientBuilder<ForIO>.() -> Unit) =
-            invoke(IO.concurrent(), { it.fix().suspended() }, init)
+            invoke(IO.concurrent(), IO.suspended(), init)
     }
 }

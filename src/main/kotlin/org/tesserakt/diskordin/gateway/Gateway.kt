@@ -56,7 +56,9 @@ class Gateway<F>(
                 .flatMapMerge {
                     if (it.isTokenPayload) composeToken(it, shard)
                     else composeEvent(it, shard)
-                }.map(context.runner)
+                }.map {
+                    context.runner.run { it.suspended() }
+                }
         }
 
         return CoroutineScope(context.scheduler).launch {

@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.client
 
-import arrow.Kind
 import arrow.core.Eval
 import arrow.fx.typeclasses.Concurrent
 import okhttp3.OkHttpClient
@@ -12,6 +11,7 @@ import org.tesserakt.diskordin.gateway.shard.GuildSubscriptionsStrategy
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
 import org.tesserakt.diskordin.gateway.shard.ShardThreshold
 import org.tesserakt.diskordin.rest.RestClient
+import org.tesserakt.diskordin.util.typeclass.Suspended
 import kotlin.coroutines.CoroutineContext
 
 data class BootstrapContext<F, G>(
@@ -23,7 +23,7 @@ data class BootstrapContext<F, G>(
         val scheduler: CoroutineContext,
         val interceptors: List<Interceptor<out Interceptor.Context, F>>,
         val CC: Concurrent<F>,
-        val runner: suspend (Kind<F, *>) -> Unit,
+        val runner: Suspended<F>,
         val connectionContext: Connection
     ) {
         data class Connection(
