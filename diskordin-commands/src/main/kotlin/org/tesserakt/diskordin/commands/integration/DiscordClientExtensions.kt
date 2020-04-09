@@ -22,6 +22,7 @@ import kotlin.math.ceil
 private val defaultExtension = setOf(
     FunctionParametersCompiler(),
     ReturnTypeCompiler(),
+    FunctionBodyCompiler(),
     DescriptionCompiler(),
     AliasesCompiler(),
     HiddenCompiler()
