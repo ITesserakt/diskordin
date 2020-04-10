@@ -20,4 +20,8 @@ interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject<F
     fun addRole(roleId: Snowflake, reason: String?): IO<Unit>
     fun removeRole(role: IRole, reason: String?): IO<Unit>
     fun removeRole(roleId: Snowflake, reason: String?): IO<Unit>
+
+    companion object : StaticMention<IMember, Companion> {
+        override val mention: Regex = Regex(""""<@!(\d{18,})>"""")
+    }
 }

@@ -23,6 +23,10 @@ interface IUser : IMentioned, INamed {
     val flags: ValuedEnum<Flags, Short>
     val premiumType: Type?
 
+    companion object : StaticMention<IUser, Companion> {
+        override val mention: Regex = Regex(""""<@(\d{18,})>"""")
+    }
+
     enum class Type {
         NitroClassic, Nitro
     }

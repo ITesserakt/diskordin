@@ -41,7 +41,7 @@ interface IChannel : IMentioned, IDeletable {
     }
 
     @Suppress("UNCHECKED_CAST")
-    companion object {
+    companion object : StaticMention<IChannel, Companion> {
         internal fun <T : IChannel> typed(response: ChannelResponse<T>) = when (response.type) {
             GuildText.ordinal -> TextChannel(response as ChannelResponse<ITextChannel>)
             Private.ordinal -> PrivateChannel(response as ChannelResponse<IPrivateChannel>)
@@ -51,6 +51,8 @@ interface IChannel : IMentioned, IDeletable {
             GuildNews.ordinal -> AnnouncementChannel(response as ChannelResponse<IAnnouncementChannel>)
             else -> throw IllegalAccessException("Type of channel isn`t right (!in [0; 6) range)")
         } as T
+
+        override val mention = Regex(""""<#(\d{18,})>"""")
     }
 
     @ExperimentalTime

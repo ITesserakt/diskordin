@@ -12,4 +12,8 @@ interface IRole : IGuildObject<ForIO>, IMentioned, INamed, IDeletable, IEditable
     val isHoisted: Boolean
     val isMentionable: Boolean
     val isEveryone: Boolean
+
+    companion object : StaticMention<IRole, Companion> {
+        override val mention: Regex = Regex(""""<@&(\d{18,})>"""")
+    }
 }

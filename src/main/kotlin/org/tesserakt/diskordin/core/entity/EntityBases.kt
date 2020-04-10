@@ -53,3 +53,7 @@ interface IDeletable : IEntity {
 interface IEditable<E : IEntity, B : BuilderBase<*>> : IEntity {
     fun edit(builder: B.() -> Unit): IO<E>
 }
+
+interface StaticMention<out P : IMentioned, in S : StaticMention<P, S>> {
+    val mention: Regex
+}

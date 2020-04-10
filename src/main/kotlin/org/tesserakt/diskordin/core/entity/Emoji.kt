@@ -33,4 +33,8 @@ interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject<ForIO>,
         this.name = name
         this.roles = roles
     }
+
+    companion object : StaticMention<ICustomEmoji, Companion> {
+        override val mention: Regex = Regex("""<a?:(?<name>.+):(?<id>\d{18,})>""")
+    }
 }
