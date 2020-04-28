@@ -3,7 +3,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.*
 
-val kotlin_version: String = "1.3.71"
+val kotlin_version: String = "1.3.72"
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -11,14 +11,13 @@ val retrofit_version: String by extra
 val scarlet_version: String by extra
 val kotlin_logging_version: String by extra
 val slf4j_version: String by extra
-val junit_version: String by extra
 val kluent_version: String by extra
 val kotest_version: String by extra
 
 val publicationName = "diskordin"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.3.71"
+    id("org.jetbrains.kotlin.jvm") version "1.3.72"
     id("com.jfrog.bintray") version "1.8.4"
     `maven-publish`
 }
@@ -51,7 +50,6 @@ dependencies {
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
     testImplementation("org.amshove.kluent:kluent:$kluent_version")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
