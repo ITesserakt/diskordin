@@ -14,9 +14,7 @@ import arrow.fx.IO
 import arrow.fx.extensions.io.applicative.applicative
 import arrow.fx.extensions.io.applicative.map
 import arrow.fx.fix
-import org.tesserakt.diskordin.core.data.IdentifiedF
-import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
@@ -47,7 +45,7 @@ internal class CustomEmoji constructor(
         client.getGuild(it)
     }
 
-    override val roles = raw.roles!!.map { id ->
+    override val roles = raw.roles.orEmpty().map { id ->
         guild().map { it.getRole(id) }
     }.sequence(IO.applicative()).map { it.filterMap(::identity) }
 

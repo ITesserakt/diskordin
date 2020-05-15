@@ -2,33 +2,19 @@ package org.tesserakt.diskordin.core.data
 
 import arrow.Kind
 import arrow.core.ForId
+import arrow.core.Id
 import arrow.core.andThen
+import arrow.fx.ForIO
 import arrow.typeclasses.Comonad
-import arrow.typeclasses.Functor
-import arrow.typeclasses.Monad
-import org.tesserakt.diskordin.core.entity.IEntity
+import arrow.ui.Store
 
-data class IdentifiedF<F, E : IEntity>(
-    val id: Snowflake,
-    private val render: (Snowflake) -> Kind<F, E>
-) {
-    operator fun invoke() = render(id)
-    operator fun invoke(CM: Comonad<F>) = CM.run { invoke().extract() }
+typealias IdentifiedF <F, E> = Store<Snowflake, out Kind<F, E>>
+typealias Identified <E> = IdentifiedF<ForId, E>
+typealias IdentifiedIO <E> = IdentifiedF<ForIO, E>
 
-    fun <B : IEntity> map(FN: Functor<F>, f: (E) -> B) = FN.run {
-        id identify (render andThen { it.map(f) })
-    }
-
-    fun <B : IEntity> flatMap(M: Monad<F>, f: (E) -> IdentifiedF<F, B>) = M.run {
-        id identify (render andThen { render -> render.flatMap { f(it).render(id) } })
-    }
-
-    override fun toString(): String {
-        return "{$id -> thunk()}"
-    }
-}
-
-typealias Identified<E> = IdentifiedF<ForId, E>
-
-infix fun <F, E : IEntity> Snowflake.identify(render: (Snowflake) -> Kind<F, E>) =
-    IdentifiedF(this, render)
+@JvmName("identifyHK")
+infix fun <F, E> Snowflake.identify(render: (Snowflake) -> Kind<F, E>): IdentifiedF<F, E> = Store(this, render)
+infix fun <E> Snowflake.identify(render: (Snowflake) -> E): Identified<E> = Store(this, render andThen ::Id)
+inline val IdentifiedF<*, *>.id get() = state
+operator fun <F, E> IdentifiedF<F, E>.invoke() = extract()
+operator fun <F, E> IdentifiedF<F, E>.invoke(CM: Comonad<F>) = CM.run { extract().extract() }

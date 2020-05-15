@@ -16,7 +16,7 @@ class MessageDeleteEvent(raw: MessageDelete) : IChannelEvent<ForIO> {
     override val channel = raw.channelId identify {
         when (guild) {
             null -> client.getChannel(it).map { channel -> channel as IMessageChannel }
-            else -> guild.invoke().map { guild -> guild.getChannel<ITextChannel>(it) }
+            else -> guild.extract().map { guild -> guild.getChannel<ITextChannel>(it) }
         }
     }
 

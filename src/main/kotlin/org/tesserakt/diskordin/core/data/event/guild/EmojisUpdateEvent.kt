@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.data.event.guild
 import arrow.core.some
 import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.event.IEvent
+import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.cache

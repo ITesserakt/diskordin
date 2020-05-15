@@ -1,14 +1,9 @@
 package org.tesserakt.diskordin.core.data
 
 import arrow.core.Eval
-import arrow.core.Id
-import arrow.core.Nel
 import arrow.core.extensions.eval.comonad.extract
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.monad.monad
-import arrow.core.extensions.nonemptylist.comonad.extract
-import arrow.core.extensions.nonemptylist.functor.functor
 import arrow.core.nel
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -29,7 +24,7 @@ class IdentifiedTest : StringSpec() {
     }
 
     init {
-        "Identified should not evaluate inner value" {
+        "org.tesserakt.diskordin.core.data.Identified should not evaluate inner value" {
             var sideEffect = false
 
             val identified = snowflake identify {
@@ -45,22 +40,7 @@ class IdentifiedTest : StringSpec() {
             sideEffect.shouldBeTrue()
         }
 
-        "Identified should flatmap lazily" {
-            var sideEffect = false
-
-            val identified = snowflake identify {
-                sideEffect = true
-                entity.just()
-            }
-
-            sideEffect.shouldBeFalse()
-            val new = identified.flatMap(Id.monad()) { snowflake identify { superEntity.just() } }
-            sideEffect.shouldBeFalse()
-            new().extract().mention shouldBe "Super cool mention"
-            sideEffect.shouldBeTrue()
-        }
-
-        "Identified should map lazily" {
+        "org.tesserakt.diskordin.core.data.Identified should map lazily" {
             var sideEffect = false
 
             val identified = snowflake identify {
@@ -69,7 +49,7 @@ class IdentifiedTest : StringSpec() {
             }
 
             sideEffect.shouldBeFalse()
-            val new = identified.map(Nel.functor()) { superEntity }
+            val new: Identified<IMentioned> = identified.map { superEntity.just() }
             sideEffect.shouldBeFalse()
             new().extract().mention shouldBe "Super cool mention"
             sideEffect.shouldBeTrue()

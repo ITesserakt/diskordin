@@ -13,7 +13,7 @@ class ReactedUsersQuery : IQuery {
 
     private var before: Snowflake? = null
     private var after: Snowflake? = null
-    private var limit: Int = 50
+    private var limit: Byte = 50
 
     operator fun Before.unaryPlus() {
         before = this.v
@@ -30,5 +30,5 @@ class ReactedUsersQuery : IQuery {
 
     inline fun ReactedUsersQuery.before(id: Snowflake) = Before(id)
     inline fun ReactedUsersQuery.after(id: Snowflake) = After(id)
-    inline fun ReactedUsersQuery.limit(value: Int = 50) = Limit(value)
+    inline fun ReactedUsersQuery.limit(value: Byte = 50) = Limit(value)
 }

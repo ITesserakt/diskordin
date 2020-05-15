@@ -1,10 +1,16 @@
 package org.tesserakt.diskordin.gateway
 
+import arrow.core.compose
+import arrow.core.extensions.list.applicative.map
+import arrow.core.extensions.list.traverse.sequence
+import arrow.syntax.function.andThen
 import arrow.syntax.function.memoize
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.LifecycleState
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
 import okhttp3.OkHttpClient
@@ -14,13 +20,12 @@ import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.json.IPayload
-import org.tesserakt.diskordin.gateway.json.IRawEvent
-import org.tesserakt.diskordin.gateway.json.IToken
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import org.tesserakt.diskordin.gateway.transformer.RawEventTransformer
 import org.tesserakt.diskordin.gateway.transformer.RawTokenTransformer
+import org.tesserakt.diskordin.gateway.transformer.Transformer
 import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
 import org.tesserakt.diskordin.impl.core.client.setupScarlet
 
@@ -30,6 +35,14 @@ class Gateway<F>(
     private val connections: List<GatewayConnection>,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
+    private val tokenInterceptors = context.interceptors
+        .filter { it.selfContext == TokenInterceptor.Context::class }
+        .map { it as TokenInterceptor<F> }
+
+    private val eventInterceptors = context.interceptors
+        .filter { it.selfContext == EventInterceptor.Context::class }
+        .map { it as EventInterceptor<F> }
+
     private val controller = ShardController(
         context.connectionContext.shardSettings,
         connections,
@@ -37,12 +50,10 @@ class Gateway<F>(
     )
 
     @FlowPreview
-    @ExperimentalCoroutinesApi
     internal fun run(): Job {
         lifecycles.forEach { it.start() }
 
-        val transformed = connections.mapIndexed { index, c -> index to c.receive().asFlow() }.asFlow()
-        val chain = transformed.flatMapMerge { (index, connection) ->
+        return connections.map { it.receive().asFlow() }.withIndex().asFlow().flatMapMerge { (index, it) ->
             val shard = Shard(
                 context.connectionContext.shardSettings.token,
                 Shard.Data(index, context.connectionContext.shardSettings.shardCount),
@@ -50,20 +61,16 @@ class Gateway<F>(
                 lifecycles[index]
             )
 
-            connection.map { WebSocketEventTransformer.transform(it) }
-                .flowOn(context.scheduler)
+            it.map { WebSocketEventTransformer.transform(it) }
                 .onEach { shard.sequence = it.seq ?: shard.sequence }
-                .flatMapMerge {
-                    if (it.isTokenPayload) composeToken(it, shard)
-                    else composeEvent(it, shard)
-                }.map {
-                    context.runner.run { it.suspended() }
-                }
-        }
-
-        return CoroutineScope(context.scheduler).launch {
-            chain.retry { it !is CancellationException }.collect()
-        }
+                .map { payload ->
+                    if (payload.isTokenPayload) processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
+                        TokenInterceptor.Context(it, controller, shard)
+                    } else processIncoming(payload, eventInterceptors, RawEventTransformer) {
+                        EventInterceptor.Context(it, controller, shard)
+                    }
+                }.map { context.runner.run { it.suspended() } }
+        }.launchIn(CoroutineScope(context.scheduler))
     }
 
     internal fun close() {
@@ -72,32 +79,17 @@ class Gateway<F>(
         }
     }
 
-    private fun composeToken(
-        payload: Payload<out IPayload>,
-        shard: Shard
+    private fun <P : IPayload, C : Interceptor.Context, I : Interceptor<C, F>, E> processIncoming(
+        payload: Payload<*>,
+        interceptors: List<I>,
+        transformer: Transformer<Payload<P>, E>,
+        interceptorContext: (response: E) -> C
     ) = context.CC.run {
-        val token = RawTokenTransformer.transform(payload as Payload<IToken>)
-        val interceptorContext = TokenInterceptor.Context(token, controller, shard)
-
-        context.interceptors
-            .filter { it.selfContext == TokenInterceptor.Context::class }
-            .map { it as Interceptor<Interceptor.Context, F> }
-            .map { it.intercept(interceptorContext) }
-            .asFlow()
-    }
-
-    private fun composeEvent(
-        payload: Payload<out IPayload>,
-        shard: Shard
-    ) = context.CC.run {
-        val event = RawEventTransformer.transform(payload as Payload<IRawEvent>)
-        val interceptorContext = EventInterceptor.Context(event, controller, shard)
-
-        context.interceptors
-            .filter { it.selfContext == EventInterceptor.Context::class }
-            .map { it as Interceptor<Interceptor.Context, F> }
-            .map { it.intercept(interceptorContext) }
-            .asFlow()
+        interceptors.map {
+            interceptorContext compose transformer andThen { ctx -> it.intercept(ctx).fork(context.scheduler) }
+        }.map { it(payload as Payload<P>) }
+            .sequence(this)
+            .flatMap { unit() }
     }
 
     companion object Factory {
@@ -108,7 +100,7 @@ class Gateway<F>(
             "$start/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
         }.memoize()
 
-        private val lifecycle = { registry: LifecycleRegistry ->
+        private val lifecycle: (LifecycleRegistry) -> GatewayLifecycleManager = { registry: LifecycleRegistry ->
             object : GatewayLifecycleManager, Lifecycle by registry {
                 override fun start() {
                     registry.onNext(LifecycleState.Started)

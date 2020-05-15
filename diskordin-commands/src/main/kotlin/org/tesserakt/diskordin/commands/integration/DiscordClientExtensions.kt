@@ -25,7 +25,8 @@ private val defaultExtension = setOf(
     FunctionBodyCompiler(),
     DescriptionCompiler(),
     AliasesCompiler(),
-    HiddenCompiler()
+    HiddenCompiler(),
+    ModuleCompiler()
 )
 
 private val workersCount = 2.coerceAtLeast(
@@ -62,12 +63,14 @@ operator fun CommandFramework.unaryPlus() {
             .map { logger.logs }
             .map { it.forEach(realLogger::info) }
 
-        summary.mapLeft { it.localizedMessage }
-            .flatMap { it.result.mapLeft(it::errorsToString) }
-            .getOrHandle { throw IllegalStateException(it) }
-    }
+        summary.mapLeft { it }
+            .flatMap { it.result.mapLeft { msg -> IllegalStateException(it.errorsToString(msg)) } }
+            .getOrHandle { throw it }
+    }.memoize()
+
+    if (eager) commandRegistryPrivate.extract()
 }
 
-val IDiscordClient.commandRegistry: CommandRegistry get() = commandRegistryPrivate.memoize().extract()
+val IDiscordClient.commandRegistry: CommandRegistry get() = commandRegistryPrivate.extract()
 val CompilerExtension<*>.logger get() = loggerPrivate
 val Feature<*>.logger get() = loggerPrivate

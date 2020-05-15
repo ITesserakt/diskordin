@@ -22,10 +22,13 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
     implementation(project(":"))
     implementation(arrow("core"))
     implementation(arrow("fx"))
     implementation(arrow("mtl"))
+    implementation(arrow("ui"))
+    implementation(arrow("syntax"))
     implementation("io.github.classgraph:classgraph:4.8.65")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")

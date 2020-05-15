@@ -1,8 +1,13 @@
 package org.tesserakt.diskordin.commands.feature
 
 import arrow.Kind
-import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.extensions.either.monad.flatten
+import arrow.core.extensions.either.traverse.sequence
+import arrow.core.left
+import arrow.core.nonFatalOrThrow
+import arrow.core.right
+import arrow.fx.typeclasses.Async
 import arrow.typeclasses.ApplicativeError
 import io.github.classgraph.TypeSignature
 import org.tesserakt.diskordin.commands.CommandContext
@@ -16,12 +21,18 @@ data class FunctionBody(
 ) : PersistentFeature<FunctionBody> {
     override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, FunctionBody> = AE.just(this)
 
-    @Suppress("UNCHECKED_CAST")
-    suspend operator fun <F, C : CommandContext<F>> invoke(
+    operator fun <F, C : CommandContext<F>> invoke(
+        A: Async<F>,
         module: CommandModule<F, C>,
         ctx: C,
         rest: List<Any?> = emptyList()
-    ) = Either.catch {
-        call(module, rest + ctx) as Kind<F, Unit> //here we assume that function is a valid command
+    ) = A.run {
+        try {
+            call<Kind<F, Unit>>(module, rest + ctx).right() //here we assume that function is a valid command
+        } catch (t: Throwable) {
+            t.nonFatalOrThrow().left()
+        }.map { it.attempt() }.sequence(A).map { it.flatten() }
     }
+
+    private inline fun <reified T> call(parent: Any, params: List<Any?>) = call.invoke(parent, params) as T
 }

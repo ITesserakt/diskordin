@@ -3,7 +3,7 @@ package org.tesserakt.diskordin.core.entity.builder
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 
 abstract class BuilderBase<R : JsonRequest> internal constructor() {
-    internal abstract fun create(): R
+    abstract fun create(): R
 }
 
 internal inline fun <R : JsonRequest, B : BuilderBase<out R>> (B.() -> Unit).build(ctor: () -> B) =

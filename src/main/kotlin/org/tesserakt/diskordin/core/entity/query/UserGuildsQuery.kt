@@ -6,7 +6,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 class UserGuildsQuery : IQuery {
     private var before: Snowflake? = null
     private var after: Snowflake? = null
-    private var limit: Int = 100
+    private var limit: Byte = 100
 
     operator fun Before.unaryPlus() {
         before = this.v
@@ -22,7 +22,7 @@ class UserGuildsQuery : IQuery {
 
     inline fun UserGuildsQuery.before(id: Snowflake) = Before(id)
     inline fun UserGuildsQuery.after(id: Snowflake) = After(id)
-    inline fun UserGuildsQuery.limit(value: Int = 100) = Limit(value)
+    inline fun UserGuildsQuery.limit(value: Byte = 100) = Limit(value)
 
     override fun create(): Query = mapOf(
         "before" to before.toString(),

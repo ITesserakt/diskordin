@@ -17,9 +17,7 @@ interface IGuildEvent<F> : IEvent {
 interface IMemberEvent<F, G> : IGuildEvent<G>, IUserEvent<F> {
     val member: IdentifiedF<F, IMember>
 
-    @Suppress("UNCHECKED_CAST")
-    override val user: IdentifiedF<F, IUser>
-        get() = member as IdentifiedF<F, IUser>
+    override val user: IdentifiedF<F, IUser> get() = member
 }
 
 interface IRoleEvent<F, G> : IGuildEvent<G> {

@@ -16,6 +16,9 @@ val kotest_version: String by extra
 
 val publicationName = "diskordin"
 
+fun arrow(module: String, version: String = arrow_version): Any =
+    "io.arrow-kt:arrow-$module:$version"
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
     id("com.jfrog.bintray") version "1.8.4"
@@ -41,6 +44,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-fx:$arrow_version")
     implementation("io.arrow-kt:arrow-core-data:$arrow_version")
     implementation("io.arrow-kt:arrow-integrations-retrofit-adapter:$arrow_version")
+    implementation(arrow("ui"))
 
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")

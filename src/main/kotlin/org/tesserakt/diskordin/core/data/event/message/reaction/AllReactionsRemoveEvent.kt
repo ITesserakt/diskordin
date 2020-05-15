@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.data.event.message.reaction
 import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.event.channel.IChannelEvent
 import org.tesserakt.diskordin.core.data.event.message.IMessageEvent
+import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.entity.IMessageChannel
 import org.tesserakt.diskordin.core.entity.client

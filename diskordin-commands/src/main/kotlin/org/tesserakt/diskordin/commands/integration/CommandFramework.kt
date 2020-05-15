@@ -5,5 +5,6 @@ import org.tesserakt.diskordin.commands.feature.Feature
 
 data class CommandFramework(
     val logger: Logger,
-    val extraExtensions: Set<CompilerExtension<out Feature<*>>>
+    val extraExtensions: Set<CompilerExtension<out Feature<*>>>,
+    val eager: Boolean
 )

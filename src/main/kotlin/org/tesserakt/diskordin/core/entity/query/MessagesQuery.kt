@@ -31,11 +31,11 @@ class MessagesQuery : IQuery {
 
     operator fun Limit.unaryPlus() {
         require(this.v in 1..100) { "Value must be in [1; 100) range" }
-        limit = this.v.toByte()
+        limit = this.v
     }
 
     inline fun MessagesQuery.around(id: Snowflake) = Around(id)
     inline fun MessagesQuery.before(id: Snowflake) = Before(id)
     inline fun MessagesQuery.after(id: Snowflake) = After(id)
-    inline fun MessagesQuery.limit(value: Byte = 50) = value
+    inline fun MessagesQuery.limit(value: Byte = 50) = Limit(value)
 }

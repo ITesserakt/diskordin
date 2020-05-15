@@ -11,6 +11,7 @@ import arrow.fx.extensions.io.monad.flatTap
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
 import org.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
