@@ -10,6 +10,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forSome
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
@@ -19,7 +20,6 @@ import io.kotest.property.RandomSource
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.take
 import io.kotest.property.exhaustive.azstring
-import org.amshove.kluent.shouldNotBe
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
 

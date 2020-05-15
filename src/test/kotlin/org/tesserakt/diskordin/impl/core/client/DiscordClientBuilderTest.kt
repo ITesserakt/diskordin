@@ -8,7 +8,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestCaseConfig
 import io.kotest.core.test.TestResult
-import org.amshove.kluent.shouldBe
+import io.kotest.matchers.shouldBe
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 

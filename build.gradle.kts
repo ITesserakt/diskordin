@@ -39,11 +39,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutines_version")
 
-    implementation("io.arrow-kt:arrow-core:$arrow_version")
-    implementation("io.arrow-kt:arrow-syntax:$arrow_version")
-    implementation("io.arrow-kt:arrow-fx:$arrow_version")
-    implementation("io.arrow-kt:arrow-core-data:$arrow_version")
-    implementation("io.arrow-kt:arrow-integrations-retrofit-adapter:$arrow_version")
+    implementation(arrow("core"))
+    implementation(arrow("syntax"))
+    implementation(arrow("fx"))
+    implementation(arrow("integrations-retrofit-adapter"))
     implementation(arrow("ui"))
 
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
@@ -54,7 +53,6 @@ dependencies {
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
-    testImplementation("org.amshove.kluent:kluent:$kluent_version")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
