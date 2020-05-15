@@ -10,8 +10,6 @@ import arrow.core.fix
 import arrow.fx.IO
 import arrow.fx.extensions.io.monad.map
 import arrow.fx.fix
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.entity.*
@@ -77,23 +75,17 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
         }.create())
     }.fix()
 
-    override val guilds: Flow<IGuild> = flow {
-        rest.call(ListK.functor()) {
-            userService.getCurrentUserGuilds(UserGuildsQuery().create())
-        }.fix().suspended().fix().forEach { emit(it) }
-    }
+    override val guilds = rest.call(ListK.functor()) {
+        userService.getCurrentUserGuilds(UserGuildsQuery().create())
+    }.map { it.fix() }
 
-    override val privateChannels: Flow<IPrivateChannel> = flow {
-        rest.call(ListK.functor()) {
-            userService.getUserDMs()
-        }.fix().suspended().fix().forEach { emit(it) }
-    }
+    override val privateChannels = rest.call(ListK.functor()) {
+        userService.getUserDMs()
+    }.map { it.fix() }
 
-    override val connections: Flow<IConnection> = flow {
-        rest.call(ListK.functor()) {
-            userService.getCurrentUserConnections()
-        }.fix().suspended().fix().forEach { emit(it) }
-    }
+    override val connections = rest.call(ListK.functor()) {
+        userService.getCurrentUserConnections()
+    }.map { it.fix() }
 
     override fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
 
