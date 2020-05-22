@@ -68,16 +68,14 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         restSchedule = this
     }
 
-    inline fun DiscordClientBuilder<F>.useCompression() = Unit
-    inline fun DiscordClientBuilder<F>.context(coroutineContext: CoroutineContext) = coroutineContext
-    inline fun DiscordClientBuilder<F>.cache(value: Boolean) = value
-    inline fun DiscordClientBuilder<F>.overrideHttpClient(client: Eval<OkHttpClient>) = client
-    inline fun DiscordClientBuilder<F>.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
-        Eval.later(client)
-
     operator fun Unit.unaryPlus() {
         cache = NoopMap()
     }
+
+    inline fun DiscordClientBuilder<F>.context(coroutineContext: CoroutineContext) = coroutineContext
+    inline fun DiscordClientBuilder<F>.overrideHttpClient(client: Eval<OkHttpClient>) = client
+    inline fun DiscordClientBuilder<F>.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
+        Eval.later(client)
 
     inline fun DiscordClientBuilder<F>.token(value: String) = value
     inline fun DiscordClientBuilder<F>.withCache(value: MutableMap<Snowflake, IEntity>) = value
@@ -93,6 +91,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     @RequiresOptIn("This statement should be used only in tests")
     annotation class InternalTestAPI
     object VerificationStub
+    object CompressionStub
 
     companion object {
         operator fun <F> invoke(

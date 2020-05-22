@@ -14,9 +14,10 @@ abstract class CommandModule<F, in C : CommandContext<F>>(private val A: Async<F
         it.createMessage(content).fromIO(A)
     }
 
-    protected fun C.reply(required: Ior<Content, Embed>, builder: MessageCreateBuilder.() -> Unit) = channel().flatMap {
-        it.createMessage(required, builder).fromIO(A)
-    }
+    protected fun C.reply(required: Ior<Content, Embed>, builder: MessageCreateBuilder.() -> Unit = {}) =
+        channel().flatMap {
+            it.createMessage(required, builder).fromIO(A)
+        }
 
     interface Factory {
         fun create(): CommandModule<*, *>

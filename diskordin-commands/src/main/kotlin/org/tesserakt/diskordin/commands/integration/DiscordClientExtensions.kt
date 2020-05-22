@@ -15,6 +15,7 @@ import org.tesserakt.diskordin.commands.compiler.CommandModuleLoader
 import org.tesserakt.diskordin.commands.compiler.CompilerExtension
 import org.tesserakt.diskordin.commands.compiler.extension.*
 import org.tesserakt.diskordin.commands.feature.Feature
+import org.tesserakt.diskordin.commands.resolver.ResolversProvider
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import kotlin.math.ceil
@@ -37,16 +38,19 @@ private val workersCount = 2.coerceAtLeast(
     ).toInt()
 )
 
-private var commandRegistryPrivate = Eval.now(CommandRegistry.EMPTY)
 private var loggerPrivate: Logger = QuietLogger
+private var commandsContextPrivate = Commands(ResolversProvider(emptyMap()), Eval.now(CommandRegistry.EMPTY))
 
-inline fun <F> DiscordClientBuilder<F>.enableCommandFramework(builder: CommandFrameworkBuilder.() -> Unit = {}) =
-    CommandFrameworkBuilder().apply(builder).create()
+inline fun <F> DiscordClientBuilder<F>.commandFramework(
+    builder: CommandFrameworkBuilder<F>.() -> Unit = {
+        +resolvers()
+    }
+) = CommandFrameworkBuilder(CC).apply(builder).create()
 
 operator fun CommandFramework.unaryPlus() {
     loggerPrivate = logger
 
-    commandRegistryPrivate = Eval.later {
+    val registry = Eval.later {
         val graph = ClassGraph()
             .enableAnnotationInfo()
             .enableMethodInfo()
@@ -68,9 +72,13 @@ operator fun CommandFramework.unaryPlus() {
             .getOrHandle { throw it }
     }.memoize()
 
-    if (eager) commandRegistryPrivate.extract()
+    commandsContextPrivate = Commands(
+        resolversProvider,
+        if (eager) Eval.now(registry.extract())
+        else registry.memoize()
+    )
 }
 
-val IDiscordClient.commandRegistry: CommandRegistry get() = commandRegistryPrivate.extract()
+val IDiscordClient.commands get() = commandsContextPrivate
 val CompilerExtension<*>.logger get() = loggerPrivate
 val Feature<*>.logger get() = loggerPrivate
