@@ -10,7 +10,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.string.shouldMatch
 import org.tesserakt.diskordin.commands.feature.HiddenFeature
-import org.tesserakt.diskordin.commands.integration.commandRegistry
+import org.tesserakt.diskordin.commands.integration.commands
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -26,7 +26,7 @@ class CommandRegistryTest : FunSpec() {
                 +disableTokenVerification()
             }
 
-            val emptyRegistry = client.commandRegistry
+            val emptyRegistry = client.commands.registry.extract()
 
             emptyRegistry.shouldBeEmpty()
 
