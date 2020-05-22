@@ -8,7 +8,6 @@ import io.github.classgraph.ClassRefTypeSignature
 import io.github.classgraph.ReferenceTypeSignature
 import io.github.classgraph.TypeSignature
 import org.tesserakt.diskordin.commands.ValidationError
-import org.tesserakt.diskordin.commands.integration.logger
 
 data class ReturnType(
     val commandName: String,
@@ -16,20 +15,13 @@ data class ReturnType(
     val moduleType: ClassRefTypeSignature
 ) : PersistentFeature<ReturnType> {
     data class InvalidReturnType(val commandName: String, val actual: TypeSignature) :
-        ValidationError("Return type of $commandName doesn't match with Kind<F, Unit>. Actual: $actual")
+        ValidationError("Return type of $commandName doesn't match with Kind<F, *>. Actual: $actual")
 
     data class UnresolvedType(val type: TypeSignature) :
         ValidationError("$type doesn't resolved. Try rescan including this class")
 
     data class DifferentReturnType(val commandName: String) :
         ValidationError("Return type of command $commandName doesn't equal to type defined in CommandModule")
-
-    private fun <G> ClassRefTypeSignature.validateReturnType(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
-        val kind = this@validateReturnType
-        if (kind.typeArguments[1].typeSignature.toString() == "kotlin.Unit")
-            kind.just()
-        else raiseError(InvalidReturnType(commandName, kind).nel())
-    }
 
     private fun <G> TypeSignature.asKinded(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
         if (this@asKinded !is ClassRefTypeSignature) return@run raiseError<ReferenceTypeSignature>(
@@ -40,12 +32,10 @@ data class ReturnType(
         return@run when {
             type.classInfo == null -> raiseError(UnresolvedType(type).nel())
 
-            type.baseClassName == "arrow.Kind" -> type.validateReturnType(AE)
+            type.baseClassName == "arrow.Kind" -> type.just()
 
-            type.classInfo.implementsInterface("arrow.Kind") -> {
-                logger.log("Unchecked return type detected for command $commandName. Consider using Kind<F, Unit> against F<Unit>")
+            type.classInfo.implementsInterface("arrow.Kind") ->
                 type.classInfo.typeSignature.superinterfaceSignatures.first { it.baseClassName == "arrow.Kind" }.just()
-            }
 
             else -> raiseError(InvalidReturnType(commandName, type).nel())
         }

@@ -28,7 +28,7 @@ data class FunctionBody(
         rest: List<Any?> = emptyList()
     ) = A.run {
         try {
-            call<Kind<F, Unit>>(module, rest + ctx).right() //here we assume that function is a valid command
+            call<Kind<F, *>>(module, rest + ctx).right() //here we assume that function is a valid command
         } catch (t: Throwable) {
             t.nonFatalOrThrow().left()
         }.map { it.attempt() }.sequence(A).map { it.flatten() }
