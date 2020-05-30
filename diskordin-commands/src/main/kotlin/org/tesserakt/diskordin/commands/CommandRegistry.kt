@@ -26,7 +26,6 @@ abstract class CommandRegistry private constructor(private val allCommands: List
             return object : CommandRegistry(allCommands), List<CommandObject> by publicCommands {}
         }
 
-        @OptIn(PrivateStatement::class)
         operator fun invoke(commands: List<CommandObject>): CommandRegistry {
             val publicCommands = commands.filter { !it.hasFeature<HiddenFeature>() }
             return object : CommandRegistry(commands), List<CommandObject> by publicCommands {}

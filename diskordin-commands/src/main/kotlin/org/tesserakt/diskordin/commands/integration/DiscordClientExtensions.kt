@@ -27,7 +27,7 @@ private val defaultExtension = setOf(
     DescriptionCompiler(),
     AliasesCompiler(),
     HiddenCompiler(),
-    ModuleCompiler()
+    ModuleInstanceCompiler()
 )
 
 private val workersCount = 2.coerceAtLeast(

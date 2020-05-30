@@ -10,3 +10,5 @@ interface Feature<F : Feature<F>> {
 }
 
 interface PersistentFeature<F : PersistentFeature<F>> : Feature<F>
+
+interface ModuleFeature<F : ModuleFeature<F>> : PersistentFeature<F>

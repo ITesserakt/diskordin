@@ -13,10 +13,15 @@ private inline fun <reified T : Any> AnnotationParameterValueList.getValueAs(par
 
 class CommandModuleCompiler(private val extensions: Set<CompilerExtension<*>>) {
     fun compileModule(module: ClassInfo): List<CommandBuilder> {
+        val extensions = extensions.filterIsInstance<ModuleCompilerExtension<*>>()
         val commands = module.declaredMethodInfo
             .filter { it.hasAnnotation(COMMAND) }
 
-        return commands.map(::compileFunction)
+        val features = extensions.map { it.compileModule(module) }.toSet()
+
+        return commands.map(::compileFunction).map {
+            it.apply { +features }
+        }
     }
 
     private fun compileFunction(function: MethodInfo): CommandBuilder {
@@ -25,7 +30,9 @@ class CommandModuleCompiler(private val extensions: Set<CompilerExtension<*>>) {
             .getValueAs<String>("name")
             ?.takeIf { it.isNotBlank() } ?: function.name
 
-        val features = extensions.mapNotNull { it.compileFeature(function, commandName) }.toSet()
+        val features = extensions
+            .filterIsInstance<FunctionCompilerExtension<*>>()
+            .mapNotNull { it.compileFeature(function, commandName) }.toSet()
 
         return CommandBuilder().apply {
             +name(commandName)

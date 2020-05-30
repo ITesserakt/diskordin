@@ -1,12 +1,12 @@
 package org.tesserakt.diskordin.commands.compiler.extension
 
 import io.github.classgraph.MethodInfo
-import org.tesserakt.diskordin.commands.compiler.CompilerExtension
+import org.tesserakt.diskordin.commands.compiler.FunctionCompilerExtension
 import org.tesserakt.diskordin.commands.compiler.PREFIX
 import org.tesserakt.diskordin.commands.feature.AliasesFeature
 
 @Suppress("UNCHECKED_CAST")
-class AliasesCompiler : CompilerExtension<AliasesFeature>() {
+class AliasesCompiler : FunctionCompilerExtension<AliasesFeature>() {
     private val aliases = "$PREFIX.Aliases"
 
     override fun compileFeature(function: MethodInfo, name: String): AliasesFeature? {
