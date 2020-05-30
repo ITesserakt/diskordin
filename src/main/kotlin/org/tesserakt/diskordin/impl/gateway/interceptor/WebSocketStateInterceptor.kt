@@ -16,8 +16,8 @@ class WebSocketStateInterceptor<F>(private val A: Async<F>) : TokenInterceptor<F
         A.fx.async {
             !effect { logStateUpdates(context.token) }
 
-            if (context.token is ConnectionFailed && context.shard.isReady())
-                !effect { context.controller.resumeShard(context.shard) }
+//            if (context.token is ConnectionFailed && context.shard.isReady())
+//                !effect { context.controller.resumeShard(context.shard) }
 
             when (context.token) {
                 is ConnectionOpened -> shard.state = Shard.State.Connecting
