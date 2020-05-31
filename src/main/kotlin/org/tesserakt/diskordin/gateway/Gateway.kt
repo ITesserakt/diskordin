@@ -1,9 +1,6 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.compose
-import arrow.core.extensions.list.applicative.map
 import arrow.core.extensions.list.traverse.sequence
-import arrow.syntax.function.andThen
 import arrow.syntax.function.memoize
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.LifecycleState
@@ -53,24 +50,25 @@ class Gateway<F>(
     internal fun run(): Job {
         lifecycles.forEach { it.start() }
 
-        return connections.map { it.receive().asFlow() }.withIndex().asFlow().flatMapMerge { (index, it) ->
-            val shard = Shard(
-                context.connectionContext.shardSettings.token,
-                Shard.Data(index, context.connectionContext.shardSettings.shardCount),
-                connections[index],
-                lifecycles[index]
-            )
+        return connections.map { it.receive().asFlow() }.withIndex().asFlow()
+            .flatMapMerge(connections.size) { (index, it) ->
+                val shard = Shard(
+                    context.connectionContext.shardSettings.token,
+                    Shard.Data(index, context.connectionContext.shardSettings.shardCount),
+                    connections[index],
+                    lifecycles[index]
+                )
 
-            it.map { WebSocketEventTransformer.transform(it) }
-                .onEach { shard.sequence = it.seq ?: shard.sequence }
-                .map { payload ->
-                    if (payload.isTokenPayload) processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
-                        TokenInterceptor.Context(it, controller, shard)
-                    } else processIncoming(payload, eventInterceptors, RawEventTransformer) {
-                        EventInterceptor.Context(it, controller, shard)
-                    }
-                }.map { context.runner.run { it.suspended() } }
-        }.launchIn(CoroutineScope(context.scheduler))
+                it.map { WebSocketEventTransformer.transform(it) }
+                    .onEach { shard.sequence = it.seq ?: shard.sequence }
+                    .map { payload ->
+                        if (payload.isTokenPayload) processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
+                            TokenInterceptor.Context(it, controller, shard)
+                        } else processIncoming(payload, eventInterceptors, RawEventTransformer) {
+                            EventInterceptor.Context(it, controller, shard)
+                        }
+                    }.map { context.runner.run { it.suspended() } }
+            }.launchIn(CoroutineScope(context.scheduler))
     }
 
     internal fun close() {
@@ -85,11 +83,10 @@ class Gateway<F>(
         transformer: Transformer<Payload<P>, E>,
         interceptorContext: (response: E) -> C
     ) = context.CC.run {
-        interceptors.map {
-            interceptorContext compose transformer andThen { ctx -> it.intercept(ctx).fork(context.scheduler) }
-        }.map { it(payload as Payload<P>) }
-            .sequence(this)
-            .flatMap { unit() }
+        val incoming = transformer.transform(payload as Payload<P>)
+        @Suppress("NAME_SHADOWING") val interceptorContext = interceptorContext(incoming)
+
+        interceptors.map { it.intercept(interceptorContext).fork(context.scheduler) }.sequence(this).void()
     }
 
     companion object Factory {
