@@ -54,6 +54,10 @@ internal class Message(raw: MessageResponse) : IMessage {
         channelService.removeAllReactions(channel.id, id)
     }.fix()
 
+    override fun deleteAllReactions(emoji: IEmoji): IO<Unit> = rest.effect {
+        channelService.removeAllReactionsForEmoji(channel.id, id, emoji.name)
+    }.fix()
+
     override fun delete(reason: String?) = rest.effect {
         channelService.deleteMessage(channel.id, id, reason)
     }.fix()

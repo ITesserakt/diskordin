@@ -94,21 +94,21 @@ interface ChannelService {
     fun addReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
-        @Path("emoji") emoji: String
+        @Path("emoji", encoded = true) emoji: String
     ): CallK<Unit>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}/@me")
     fun removeOwnReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
-        @Path("emoji") emoji: String
+        @Path("emoji", encoded = true) emoji: String
     ): CallK<Unit>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}/{userId}")
     fun removeReaction(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
-        @Path("emoji") emoji: String,
+        @Path("emoji", encoded = true) emoji: String,
         @Path("userId") userId: Snowflake
     ): CallK<Unit>
 
@@ -116,7 +116,7 @@ interface ChannelService {
     fun getReactions(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake,
-        @Path("emoji") emoji: String,
+        @Path("emoji", encoded = true) emoji: String,
         @QueryMap query: Query
     ): CallK<ListK<UserResponse<IUser>>>
 
@@ -124,6 +124,13 @@ interface ChannelService {
     fun removeAllReactions(
         @Path("channelId") channelId: Snowflake,
         @Path("messageId") messageId: Snowflake
+    ): CallK<Unit>
+
+    @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions/{emoji}")
+    fun removeAllReactionsForEmoji(
+        @Path("channelId") channelId: Snowflake,
+        @Path("messageId") messageId: Snowflake,
+        @Path("emoji", encoded = true) emoji: String
     ): CallK<Unit>
 
     @GET("/api/v6/channels/{id}/invites")

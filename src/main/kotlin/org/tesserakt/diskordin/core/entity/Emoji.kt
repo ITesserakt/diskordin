@@ -18,6 +18,10 @@ interface IEmoji : INamed {
             raw.id != null && guildId != null -> CustomEmoji(raw as EmojiResponse<ICustomEmoji>, guildId)
             else -> Emoji(raw)
         } as E
+
+        fun new(name: String) = object : IEmoji {
+            override val name: String = name
+        }
     }
 }
 

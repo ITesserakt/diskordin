@@ -23,6 +23,7 @@ interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder
     fun deleteOwnReaction(emoji: IEmoji): IO<Unit>
     fun deleteReaction(emoji: IEmoji, user: IUser): IO<Unit>
     fun deleteReaction(emoji: IEmoji, userId: Snowflake): IO<Unit>
+    fun deleteAllReactions(emoji: IEmoji): IO<Unit>
     fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): IO<ListK<IUser>>
     fun deleteAllReactions(): IO<Unit>
 }
