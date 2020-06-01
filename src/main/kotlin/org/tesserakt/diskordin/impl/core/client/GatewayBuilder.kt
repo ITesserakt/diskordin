@@ -42,7 +42,7 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
     private var guildSubscriptionsStrategy: GuildSubscriptionsStrategy =
         GuildSubscriptionsStrategy.SubscribeTo(emptyList())
     private var compressionStrategy: CompressionStrategy = CompressionStrategy.CompressOnly(emptyList())
-    private var shardCount = 1
+    private var shardCount = 0
     private var threshold = ShardThreshold(emptyMap())
     private var request: UserStatusUpdateRequest? = null
     private var intents: IntentsStrategy = IntentsStrategy.EnableAll

@@ -49,15 +49,15 @@ internal class CustomEmoji constructor(
         guild().map { it.getRole(id) }
     }.sequence(IO.applicative()).map { it.filterMap(::identity) }
 
-    override val creator: IdentifiedF<ForId, IUser> = raw.user!!.id identify { raw.user.unwrap().just() }
+    override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identify { raw.user.unwrap().just() }
 
-    override val requireColons: Boolean = raw.require_colons ?: throw NotCustomEmojiException()
+    override val requireColons: Boolean = raw.require_colons ?: false
 
-    override val isManaged: Boolean = raw.managed ?: throw NotCustomEmojiException()
+    override val isManaged: Boolean = raw.managed ?: false
 
-    override val isAnimated: Boolean = raw.animated ?: throw NotCustomEmojiException()
+    override val isAnimated: Boolean = raw.animated ?: false
 
-    override val id: Snowflake = raw.id ?: throw NotCustomEmojiException()
+    override val id: Snowflake = raw.id!!
 
     override val mention: String = "<${if (isAnimated) "a" else ""}:$name:${id.asString()}>"
 
@@ -79,5 +79,3 @@ internal class CustomEmoji constructor(
             .toString()
     }
 }
-
-class NotCustomEmojiException : IllegalArgumentException("Not a custom emoji")

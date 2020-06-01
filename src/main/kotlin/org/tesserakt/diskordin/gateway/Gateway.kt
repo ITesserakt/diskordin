@@ -54,7 +54,7 @@ class Gateway<F>(
             .flatMapMerge(connections.size) { (index, it) ->
                 val shard = Shard(
                     context.connectionContext.shardSettings.token,
-                    Shard.Data(index, context.connectionContext.shardSettings.shardCount),
+                    Shard.Data(index, context.connectionContext.shardSettings.shardCount.extract()),
                     connections[index],
                     lifecycles[index]
                 )
@@ -72,7 +72,7 @@ class Gateway<F>(
     }
 
     internal fun close() {
-        for (it in 0 until context.connectionContext.shardSettings.shardCount) {
+        for (it in 0 until context.connectionContext.shardSettings.shardCount.extract()) {
             controller.closeShard(it)
         }
     }
@@ -128,7 +128,7 @@ class Gateway<F>(
         }
 
         private val connections = { context: BootstrapContext.Gateway.Connection ->
-            (0 until context.shardSettings.shardCount).map {
+            (0 until context.shardSettings.shardCount.extract()).map {
                 val lifecycle: GatewayLifecycleManager = lifecycle(LifecycleRegistry())
                 connection(context, lifecycle) to lifecycle
             }

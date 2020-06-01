@@ -10,7 +10,7 @@ class HelloChain<F>(private val CC: Concurrent<F>) : EventInterceptor<F>(CC) {
     override fun Context.hello(event: HelloEvent) = CC.fx.concurrent {
         val interval = event.heartbeatInterval
 
-        !sleep((5500 * (shard.shardData.current + 1)).milliseconds)
+        !sleep((5500 * (shard.shardData.current)).milliseconds)
         !effect {
             if (shard.isReady())
                 controller.resumeShard(shard)

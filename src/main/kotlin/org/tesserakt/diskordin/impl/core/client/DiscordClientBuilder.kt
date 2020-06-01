@@ -1,12 +1,14 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Eval
+import arrow.core.extensions.eval.applicative.just
 import arrow.fx.ForIO
 import arrow.fx.IO
 import arrow.fx.Schedule
 import arrow.fx.extensions.io.concurrent.concurrent
 import arrow.fx.extensions.io.monad.monad
 import arrow.fx.extensions.io.monadDefer.monadDefer
+import arrow.fx.fix
 import arrow.fx.typeclasses.Concurrent
 import arrow.fx.typeclasses.seconds
 import arrow.syntax.function.partially1
@@ -17,6 +19,7 @@ import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
+import org.tesserakt.diskordin.core.entity.`object`.IGatewayStats
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
@@ -107,9 +110,11 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
                     .build()
             }
             val retrofit = httpClient.map(::setupRetrofit.partially1("https://discord.com/api/"))
-            val rest = retrofit.map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }
+            val rest = retrofit
+                .map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }.memoize()
+            val gatewayInfo = rest.map { it.call { gatewayService.getGatewayBot() }.fix().unsafeRunSync() }
 
-            val shardSettings = formShardSettings(token, builder)
+            val shardSettings = formShardSettings(token, builder, gatewayInfo)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
             val gatewayContext = formGatewaySettings(builder, CC, effectRunner, connectionContext)
             val globalContext = formBootstrapContext(builder, rest, gatewayContext)
@@ -164,10 +169,11 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
 
         private fun <F> formShardSettings(
             token: String,
-            builder: DiscordClientBuilder<F>
+            builder: DiscordClientBuilder<F>,
+            gatewayInfo: Eval<IGatewayStats>
         ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
             token,
-            builder.gatewaySettings.shardCount,
+            (builder.gatewaySettings.shardCount.takeIf { it != 0 }?.just() ?: gatewayInfo.map { it.shards }).memoize(),
             builder.gatewaySettings.compressionStrategy,
             builder.gatewaySettings.guildSubscriptionsStrategy,
             builder.gatewaySettings.threshold,

@@ -34,7 +34,7 @@ data class BootstrapContext<F, G>(
         ) {
             data class ShardSettings(
                 val token: String,
-                val shardCount: Int,
+                val shardCount: Eval<Int>,
                 val compressionStrategy: CompressionStrategy,
                 val guildSubscriptionsStrategy: GuildSubscriptionsStrategy,
                 val shardThresholdOverrides: ShardThreshold,
