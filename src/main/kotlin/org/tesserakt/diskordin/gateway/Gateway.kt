@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.list.foldable.traverse_
 import arrow.syntax.function.memoize
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.LifecycleState
@@ -86,7 +86,7 @@ class Gateway<F>(
         val incoming = transformer.transform(payload as Payload<P>)
         @Suppress("NAME_SHADOWING") val interceptorContext = interceptorContext(incoming)
 
-        interceptors.map { it.intercept(interceptorContext).fork(context.scheduler) }.sequence(this).void()
+        interceptors.traverse_(this) { it.intercept(interceptorContext).fork(context.scheduler) }
     }
 
     companion object Factory {

@@ -3,7 +3,6 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.fx.typeclasses.Concurrent
-import kotlinx.coroutines.Dispatchers
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -31,7 +30,7 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
     ) : JsonRequest()
 
     private var compression = ""
-    private var gatewayContext: CoroutineContext = Dispatchers.IO
+    private var gatewayContext: CoroutineContext = CC.dispatchers().io()
     private val interceptors: MutableList<Interceptor<out Interceptor.Context, F>> = mutableListOf(
         WebSocketStateInterceptor(CC),
         HeartbeatInterceptor(CC),

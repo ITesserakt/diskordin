@@ -9,7 +9,6 @@ import com.tinder.scarlet.Stream
 import com.tinder.scarlet.websocket.WebSocketEvent
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
-import kotlinx.coroutines.Dispatchers
 import mu.KotlinLogging
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.commands.*
@@ -43,7 +42,7 @@ fun <F> GatewayConnection.sendPayload(
     }.invoke(sequenceId)
     val json = payload.toJson()
 
-    !effect(Dispatchers.IO) { connection.send(json) }
+    !effect(CC.dispatchers().io()) { connection.send(json) }
         .flatMap {
             if (it) logger.debug("---> SENT ${payload.opcode()}").just()
             else raiseError(IllegalStateException("Payload was not send"))
