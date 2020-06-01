@@ -92,7 +92,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
                     .addInterceptor(AuthorityInterceptor(token))
                     .build()
             }
-            val retrofit = httpClient.map(::setupRetrofit.partially1("https://discordapp.com/api/v6/"))
+            val retrofit = httpClient.map(::setupRetrofit.partially1("https://discord.com/api/v6/"))
             val rest = retrofit.map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }
 
             val shardSettings = formShardSettings(token, builder)
