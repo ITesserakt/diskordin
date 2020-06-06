@@ -6,19 +6,17 @@ import arrow.core.Option
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.fx.Schedule
-import arrow.fx.retryOrElse
+import arrow.fx.retry
 import arrow.fx.typeclasses.Concurrent
 import arrow.integrations.retrofit.adapter.CallK
 import arrow.integrations.retrofit.adapter.unwrapBody
 import arrow.typeclasses.Functor
 import arrow.typeclasses.MonadSyntax
-import org.tesserakt.diskordin.core.data.RateLimitException
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import org.tesserakt.diskordin.rest.service.*
-import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.create
 
@@ -72,11 +70,8 @@ class RestClient<F>(
     ): Kind<F, R> = CC.run {
         effect { this@RestClient.f() }
             .flatMap { it.async(this) }
-            .retryOrElse(this, schedule) { throwable, _ ->
-                if (throwable is HttpException && throwable.code() == 429)
-                    raiseError(RateLimitException(throwable.message()))
-                else raiseError(throwable)
-            }.flatMap { it.unwrapBody(this) }
+            .retry(this, schedule)
+            .flatMap { it.unwrapBody(this) }
     }
 
     fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(

@@ -112,7 +112,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             val retrofit = httpClient.map(::setupRetrofit.partially1("https://discord.com/api/"))
             val rest = retrofit
                 .map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }.memoize()
-            val gatewayInfo = rest.map { it.call { gatewayService.getGatewayBot() }.fix().unsafeRunSync() }
+            val gatewayInfo = rest.map { it.call { gatewayService.getGatewayBot() }.fix().unsafeRunSync() }.memoize()
 
             val shardSettings = formShardSettings(token, builder, gatewayInfo)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
@@ -173,7 +173,7 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             gatewayInfo: Eval<IGatewayStats>
         ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
             token,
-            (builder.gatewaySettings.shardCount.takeIf { it != 0 }?.just() ?: gatewayInfo.map { it.shards }).memoize(),
+            builder.gatewaySettings.shardCount.takeIf { it != 0 }?.just() ?: gatewayInfo.map { it.shards },
             builder.gatewaySettings.compressionStrategy,
             builder.gatewaySettings.guildSubscriptionsStrategy,
             builder.gatewaySettings.threshold,
