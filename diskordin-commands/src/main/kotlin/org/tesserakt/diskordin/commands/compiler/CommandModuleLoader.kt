@@ -55,7 +55,7 @@ class CommandModuleLoader(
         allowedMethods().filter { it.hasAnnotation("org.tesserakt.diskordin.commands.Command") }
 
     private fun loadToRegistry(scan: ScanResult): IO<CompilerSummary> {
-        val modules = scan.commandModules().toList()
+        val modules = scan.commandModules().toList().filter { !it.hasAnnotation(IGNORE) }
         val compiled = modules.flatMap { compiler.compileModule(it) }
         val commands = compiled.map {
             it.validate(CommandBuilder.Validator.AccumulateErrors, Validated.traverse())

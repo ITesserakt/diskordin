@@ -28,3 +28,6 @@ annotation class Aliases(vararg val aliases: String)
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 annotation class Hide
+
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+annotation class Ignore

@@ -7,6 +7,7 @@ import org.tesserakt.diskordin.commands.CommandBuilder
 
 internal const val PREFIX = "org.tesserakt.diskordin.commands"
 private const val COMMAND = "$PREFIX.Command"
+internal const val IGNORE = "$PREFIX.Ignore"
 
 private inline fun <reified T : Any> AnnotationParameterValueList.getValueAs(parameterName: String) =
     getValue(parameterName) as? T
@@ -15,6 +16,7 @@ class CommandModuleCompiler(private val extensions: Set<CompilerExtension<*>>) {
     fun compileModule(module: ClassInfo): List<CommandBuilder> {
         val extensions = extensions.filterIsInstance<ModuleCompilerExtension<*>>()
         val commands = module.declaredMethodInfo
+            .filter { !it.hasAnnotation(IGNORE) }
             .filter { it.hasAnnotation(COMMAND) }
 
         val features = extensions.map { it.compileModule(module) }.toSet()
