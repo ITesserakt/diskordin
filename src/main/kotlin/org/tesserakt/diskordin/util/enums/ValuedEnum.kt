@@ -47,7 +47,7 @@ class ValuedEnum<E, I>(override val code: I, val integral: Integral<I>) : IValue
 inline operator fun <reified E, N : Any> ValuedEnum<E, N>.not() where E : Enum<E>, E : IValued<E, N> =
     ValuedEnum<E, N>(ValuedEnum.all<E, N>(integral).code - code, integral)
 
-inline fun <reified E, N : Any> ValuedEnum<E, N>.asSet(): EnumSet<E>
+inline fun <reified E, N : Any> IValued<E, N>.asSet(): EnumSet<E>
         where E : Enum<E>, E : IValued<E, N> = EnumSet.allOf(E::class.java).apply {
     removeIf {
         code and it.code != it.code

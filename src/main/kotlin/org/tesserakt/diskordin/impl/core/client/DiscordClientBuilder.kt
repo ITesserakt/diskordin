@@ -28,7 +28,6 @@ import org.tesserakt.diskordin.impl.util.typeclass.suspended
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.enums.not
 import org.tesserakt.diskordin.util.enums.or
 import org.tesserakt.diskordin.util.typeclass.Suspended
 import java.util.concurrent.ConcurrentHashMap
@@ -128,12 +127,12 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         ): BootstrapContext<ForIO, F> {
             val strategy = builder.gatewaySettings.intents
 
-            val intents = if (strategy is IntentsStrategy.EnableOnly)
+            val intents: ValuedEnum<Intents, Short> = if (strategy is IntentsStrategy.EnableOnly)
                 strategy.enabled
                     .map { (_, code) -> ValuedEnum<Intents, Short>(code, Short.integral()) }
                     .fold(ValuedEnum(0, Short.integral())) { acc, i -> acc or i }
             else {
-                !Intents.GuildPresences or Intents.GuildPresences //Fixme: replace with ValuedEnum.all
+                ValuedEnum.all(Short.integral())
             }
 
             return BootstrapContext(

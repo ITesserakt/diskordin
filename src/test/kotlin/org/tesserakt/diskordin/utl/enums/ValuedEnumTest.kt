@@ -40,7 +40,7 @@ class ValuedEnumTest : StringSpec() {
     }
 }
 
-private inline fun <reified E, I, T : ValuedEnum<E, I>> contain(other: IValued<E, I>): Matcher<T>
+private inline fun <reified E, I : Any, T : ValuedEnum<E, I>> contain(other: IValued<E, I>): Matcher<T>
         where E : Enum<E>, E : IValued<E, I> = object : Matcher<T> {
     override fun test(value: T): MatcherResult = MatcherResult(value.contains(other),
         { "Enum should contain element(s) ${other.asSet()};" },
