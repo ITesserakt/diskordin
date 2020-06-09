@@ -53,6 +53,7 @@ dependencies {
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
+    testImplementation("io.kotest:kotest-runner-console-jvm:$kotest_version")
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
