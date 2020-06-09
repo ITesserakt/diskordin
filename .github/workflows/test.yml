@@ -14,12 +14,12 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          version: ${{matrix.jdk}}
+          java-version: ${{matrix.jdk}}
       - name: Build and test
         env:
           jvm: ${{matrix.jdk}}
           token: ${{secrets.discord_token}}
-          test_count: ${{secrets.test_depth}}
+          kotest.proptest.default.iteration.count: ${{secrets.test_depth}}
         run: |
           chmod +x gradlew
           ./gradlew :build :diskordin-commands:build

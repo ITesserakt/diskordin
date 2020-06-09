@@ -1,11 +1,10 @@
 package org.tesserakt.diskordin.utl.enums
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.*
 import io.kotest.property.Arb
-import io.kotest.property.RandomSource
 import io.kotest.property.arbitrary.enum
+import io.kotest.property.checkAll
 import org.tesserakt.diskordin.core.data.Permission
 import org.tesserakt.diskordin.core.data.Permission.*
 import org.tesserakt.diskordin.gateway.shard.Intents
@@ -25,11 +24,9 @@ class ValuedEnumTest : StringSpec() {
         }
 
         "Double invert should be equal to initial" {
-            Arb.enum<Intents>()
-                .generate(RandomSource.Default).take(20)
-                .forAll {
-                    (!!it.value).code shouldBe it.value.code
-                }
+            checkAll(Arb.enum()) { x: Intents ->
+                (!!x).code shouldBe x.code
+            }
         }
 
         "Code of valued should not change when converting" {

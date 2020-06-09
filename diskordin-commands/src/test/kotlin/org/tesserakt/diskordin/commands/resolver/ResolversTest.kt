@@ -17,6 +17,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.beOfType
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.PropertyTesting
 import io.kotest.property.arbitrary.arb
 import io.kotest.property.arbitrary.string
 import io.kotest.property.arbitrary.stringPattern
@@ -32,7 +33,7 @@ import java.math.BigInteger
 import kotlin.math.log10
 
 class ResolversTest : FunSpec() {
-    private val testCount = System.getenv("test_count")?.toInt()?.coerceAtMost(256) ?: 256
+    private val testCount = PropertyTesting.defaultIterationCount.coerceAtMost(256)
 
     private fun <T : Any, F, C : CommandContext<F>> Monad<F>.test(
         resolver: TypeResolver<T, F, C>,

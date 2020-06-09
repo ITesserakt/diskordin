@@ -5,25 +5,33 @@ import arrow.fx.fix
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestCaseConfig
-import io.kotest.core.test.TestResult
+import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.shouldBe
+import okhttp3.OkHttpClient
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @ExperimentalTime
 @DiscordClientBuilder.InternalTestAPI
 class DiscordClientBuilderTest : StringSpec() {
+    private var sideEffect: Boolean = false
+
     private fun DiscordClientBuilder.Companion.test(f: DiscordClientBuilder<ForIO>.() -> Unit = {}) =
         default {
             f()
             +disableTokenVerification()
+            +overrideHttpClient {
+                sideEffect = true
+                OkHttpClient()
+            }
         }
 
     init {
-        //to check whether http client started
-        defaultTestConfig = TestCaseConfig(timeout = 1.seconds)
+        afterTest {
+            sideEffect.shouldBeFalse()
+
+            sideEffect = false
+            DiscordClient.client.set(null).fix().unsafeRunSync()
+        }
 
         "Single creation of DiscordClientBuilder should not produce error" {
             shouldNotThrow<IllegalStateException> {
@@ -45,9 +53,5 @@ class DiscordClientBuilderTest : StringSpec() {
                 DiscordClientBuilder.test()
             }
         }
-    }
-
-    override fun afterTest(testCase: TestCase, result: TestResult) {
-        DiscordClient.client.set(null).fix().unsafeRunSync()
     }
 }
