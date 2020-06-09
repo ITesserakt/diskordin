@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.utl.enums
+package org.tesserakt.diskordin.util.enums
 
 import arrow.typeclasses.Hash
 import arrow.typeclasses.Monoid
@@ -17,7 +17,6 @@ import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.util.enums.*
 import org.tesserakt.diskordin.util.typeclass.Integral
 
 class ValuedEnumLaws : FreeSpec({

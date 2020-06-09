@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.utl.enums
+package org.tesserakt.diskordin.util.enums
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.*
@@ -9,7 +9,6 @@ import org.tesserakt.diskordin.core.data.Permission
 import org.tesserakt.diskordin.core.data.Permission.*
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.util.enums.*
 import java.util.*
 
 class ValuedEnumTest : StringSpec() {
