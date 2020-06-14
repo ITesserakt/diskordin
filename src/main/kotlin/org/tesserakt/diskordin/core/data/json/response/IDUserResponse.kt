@@ -14,7 +14,7 @@ class IDUserResponse(
     val locale: String? = null,
     val verified: Boolean? = null,
     val email: String? = null,
-    val flags: Short? = null,
+    val flags: Int? = null,
     val premiumType: Int? = null
 ) : DiscordResponse<IUser, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IUser = IdUser(this)

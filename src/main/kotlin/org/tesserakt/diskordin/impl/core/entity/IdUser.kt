@@ -18,8 +18,8 @@ internal class IdUser(raw: IDUserResponse) : IUser {
     override val locale: String? by lazy { raw.locale ?: delegate.locale }
     override val verified: Boolean by lazy { raw.verified ?: delegate.verified }
     override val email: String? by lazy { raw.email ?: delegate.email }
-    override val flags: ValuedEnum<IUser.Flags, Short> by lazy {
-        raw.flags?.let { ValuedEnum<IUser.Flags, Short>(it, Short.integral()) } ?: delegate.flags
+    override val flags: ValuedEnum<IUser.Flags, Int> by lazy {
+        raw.flags?.let { ValuedEnum<IUser.Flags, Int>(it, Int.integral()) } ?: delegate.flags
     }
     override val premiumType: IUser.Type? by lazy {
         raw.premiumType?.let { type -> IUser.Type.values().find { it.ordinal == type } } ?: delegate.premiumType

@@ -18,7 +18,7 @@ internal class MessageUser(private val raw: MessageUserResponse) : IUser {
     override val locale: String? by lazy { delegate.locale }
     override val verified: Boolean by lazy { delegate.verified }
     override val email: String? by lazy { delegate.email }
-    override val flags: ValuedEnum<IUser.Flags, Short> by lazy { delegate.flags }
+    override val flags: ValuedEnum<IUser.Flags, Int> by lazy { delegate.flags }
     override val premiumType: IUser.Type? by lazy { delegate.premiumType }
     override val username: String = raw.username
     override val discriminator: Short = raw.discriminator

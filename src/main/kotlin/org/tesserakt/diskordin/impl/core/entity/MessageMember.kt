@@ -24,7 +24,7 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override val locale: String? by lazy { delegate.locale }
     override val verified: Boolean by lazy { delegate.verified }
     override val email: String? by lazy { delegate.email }
-    override val flags: ValuedEnum<IUser.Flags, Short> by lazy { delegate.flags }
+    override val flags: ValuedEnum<IUser.Flags, Int> by lazy { delegate.flags }
     override val premiumType: IUser.Type? by lazy { delegate.premiumType }
     private val delegate by lazy { client.getMember(id, guildId).unsafeRunSync() }
     override val guild: IdentifiedF<ForIO, IGuild> = guildId identify { client.getGuild(it) }

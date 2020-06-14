@@ -30,7 +30,7 @@ class ValuedEnum<E, I>(override val code: I, val integral: Integral<I>) : IValue
     companion object {
         fun <E, N> none(integral: Integral<N>)
                 where E : Enum<E>, N : Any, E : IValued<E, N> = integral.run {
-            ValuedEnum<E, N>(0.fromInt(), integral)
+            ValuedEnum<E, N>(zero, integral)
         }
 
         inline fun <reified E, N> all(integral: Integral<N>)
@@ -38,7 +38,7 @@ class ValuedEnum<E, I>(override val code: I, val integral: Integral<I>) : IValue
             ValuedEnum<E, N>(
                 E::class.java.enumConstants
                     .map { it.code }
-                    .fold(0.fromInt()) { acc, n -> acc + n }, integral
+                    .fold(zero) { acc, n -> acc + n }, integral
             )
         }
     }
@@ -56,5 +56,5 @@ inline fun <reified E, N : Any> IValued<E, N>.asSet(): EnumSet<E>
 
 fun <E, N : Any> EnumSet<E>.enhance(integral: Integral<N>)
         where E : Enum<E>, E : IValued<E, N> = with(integral) {
-    ValuedEnum<E, N>(map { it.code }.fold(0.fromInt()) { acc, n -> acc + n }, integral)
+    ValuedEnum<E, N>(map { it.code }.fold(zero) { acc, n -> acc + n }, integral)
 }
