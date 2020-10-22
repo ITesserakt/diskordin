@@ -5,6 +5,7 @@ import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import okhttp3.OkHttpClient
+import org.tesserakt.diskordin.rest.withoutRest
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -31,18 +32,18 @@ class DiscordClientBuilderTest : StringSpec() {
         }
 
         "Single creation of DiscordClientBuilder should not produce error" {
-            DiscordClientBuilder.test().shouldBeRight()
+            DiscordClientBuilder.test().withoutRest().shouldBeRight()
         }
 
         "Twice creation without close should produce error" {
-            DiscordClientBuilder.test()
-            DiscordClientBuilder.test() shouldBeLeft DiscordClient.AlreadyStarted
+            DiscordClientBuilder.test().withoutRest()
+            DiscordClientBuilder.test().withoutRest() shouldBeLeft DiscordClient.AlreadyStarted
         }
 
         "Twice creation with close should not produce error" {
-            val client = DiscordClientBuilder.test()
+            val client = DiscordClientBuilder.test().withoutRest()
             client.map { it.logout() }
-            DiscordClientBuilder.test().shouldBeRight()
+            DiscordClientBuilder.test().withoutRest().shouldBeRight()
         }
     }
 }

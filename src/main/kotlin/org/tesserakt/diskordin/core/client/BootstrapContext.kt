@@ -14,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 
 data class BootstrapContext(
     val cache: EntityCache,
-    val restClient: Eval<RestClient>,
+    val restClient: RestClient,
     val gatewayContext: Gateway
 ) {
     data class Gateway(

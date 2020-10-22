@@ -1,11 +1,11 @@
 package org.tesserakt.diskordin.impl.core.client
 
+import arrow.core.Either
 import arrow.core.Eval
 import arrow.core.computations.either
 import arrow.core.extensions.eval.applicative.just
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.seconds
-import arrow.syntax.function.partially1
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -24,6 +24,7 @@ import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.or
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -51,7 +52,9 @@ class DiscordClientBuilder private constructor() {
     }
 
     operator fun Eval<OkHttpClient>.unaryPlus() {
-        httpClient = this
+        httpClient = map {
+            it.newBuilder().addInterceptor(AuthorityInterceptor(token)).build()
+        }
     }
 
     operator fun GatewayBuilder.unaryPlus() {
@@ -87,32 +90,46 @@ class DiscordClientBuilder private constructor() {
     object VerificationStub
     object CompressionStub
 
-    companion object {
-        suspend operator fun invoke(
-            init: suspend DiscordClientBuilder.() -> Unit = {}
-        ) = either<DomainError, IDiscordClient> {
-            val builder = DiscordClientBuilder().apply { this.init() }
+    @Suppress("NOTHING_TO_INLINE")
+    inner class RestBuildPhase internal constructor(
+        private val _discordApiURL: URL
+    ) {
+        val RestBuildPhase.discordApiURL get() = _discordApiURL
+        val RestBuildPhase.httpClient get() = this@DiscordClientBuilder.httpClient
+        val RestBuildPhase.schedule get() = restSchedule
 
+        suspend infix fun defineRestBackend(
+            block: DiscordClientBuilder.RestBuildPhase.() -> RestClient
+        ): Either<DomainError, IDiscordClient> {
+            val restClient = run(block)
+            val gatewayInfo = Eval.later {
+                runBlocking {
+                    restClient.call {
+                        gatewayService.getGatewayBot()
+                    }
+                }
+            }
+
+            return ContextBuildPhase(restClient, gatewayInfo).create()
+        }
+    }
+
+    inner class ContextBuildPhase(private val restClient: RestClient, private val gatewayStats: Eval<IGatewayStats>) {
+        suspend fun create(): Either<DomainError, IDiscordClient> = either {
+            val builder = this@DiscordClientBuilder
             val token = System.getenv("token") ?: builder.token
 
-            val httpClient = builder.httpClient.map {
-                it.newBuilder().addInterceptor(AuthorityInterceptor(token)).build()
-            }
-            val retrofit = httpClient.map(::setupRetrofit.partially1("https://discord.com/api/"))
-            val rest = retrofit.map { RestClient.byRetrofit(it, builder.restSchedule) }.memoize()
-            val gatewayInfo = rest.map { runBlocking { it.call { gatewayService.getGatewayBot() } } }.memoize()
-
-            val shardSettings = formShardSettings(token, builder, gatewayInfo)
-            val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
+            val shardContext = formShardSettings(token, builder, gatewayStats)
+            val connectionContext = formConnectionSettings(builder.httpClient, builder, shardContext)
             val gatewayContext = formGatewaySettings(builder, connectionContext)
-            val globalContext = formBootstrapContext(builder, rest, gatewayContext)
+            val globalContext = formBootstrapContext(builder, restClient, gatewayContext)
 
             DiscordClient(globalContext).bind()
         }
 
         private fun formBootstrapContext(
             builder: DiscordClientBuilder,
-            rest: Eval<RestClient>,
+            rest: RestClient,
             gatewayContext: BootstrapContext.Gateway
         ): BootstrapContext {
             val strategy = builder.gatewaySettings.intents
@@ -165,5 +182,19 @@ class DiscordClientBuilder private constructor() {
             builder.gatewaySettings.initialPresence,
             builder.gatewaySettings.intents
         )
+    }
+
+    companion object {
+        suspend operator fun invoke(
+            init: suspend DiscordClientBuilder.() -> Unit = {}
+        ): RestBuildPhase {
+            val builder = DiscordClientBuilder().apply {
+                +overrideHttpClient(httpClient)
+                this.init()
+            }
+
+            @Suppress("BlockingMethodInNonBlockingContext")
+            return builder.RestBuildPhase(URL("https://discord.com/api/"))
+        }
     }
 }

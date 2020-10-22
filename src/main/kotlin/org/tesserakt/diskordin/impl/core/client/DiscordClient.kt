@@ -49,7 +49,7 @@ internal class DiscordClient private constructor(
 
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
-    override val rest: RestClient get() = context.restClient.memoize().extract()
+    override val rest: RestClient get() = context.restClient
 
     private val gateway: Promise<Gateway> = Promise.unsafe()
     private val logoutToken = Promise.unsafe<Unit>()

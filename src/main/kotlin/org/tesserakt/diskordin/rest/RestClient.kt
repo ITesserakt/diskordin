@@ -11,51 +11,21 @@ import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import org.tesserakt.diskordin.rest.service.*
-import retrofit2.Retrofit
-import retrofit2.create
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
-class RestClient(
-    private val schedule: Schedule<*, *>,
-    private val _channelService: ChannelService,
-    private val _emojiService: EmojiService,
-    private val _gatewayService: GatewayService,
-    private val _guildService: GuildService,
-    private val _inviteService: InviteService,
-    private val _userService: UserService,
-    private val _voiceService: VoiceService,
-    private val _webhookService: WebhookService
+abstract class RestClient(
+    private val schedule: Schedule<*, *>
 ) {
-    companion object {
-        fun byRetrofit(retrofit: Retrofit, schedule: Schedule<*, *>) = RestClient(
-            schedule,
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create(),
-            retrofit.create()
-        )
-    }
+    companion object;
 
-    val RestClient.channelService: ChannelService
-        get() = _channelService
-    val RestClient.emojiService: EmojiService
-        get() = _emojiService
-    val RestClient.gatewayService: GatewayService
-        get() = _gatewayService
-    val RestClient.guildService: GuildService
-        get() = _guildService
-    val RestClient.inviteService: InviteService
-        get() = _inviteService
-    val RestClient.userService: UserService
-        get() = _userService
-    val RestClient.voiceService: VoiceService
-        get() = _voiceService
-    val RestClient.webhookService: WebhookService
-        get() = _webhookService
+    abstract val RestClient.channelService: ChannelService
+    abstract val RestClient.emojiService: EmojiService
+    abstract val RestClient.gatewayService: GatewayService
+    abstract val RestClient.guildService: GuildService
+    abstract val RestClient.inviteService: InviteService
+    abstract val RestClient.userService: UserService
+    abstract val RestClient.voiceService: VoiceService
+    abstract val RestClient.webhookService: WebhookService
 
     @Suppress("UNCHECKED_CAST")
     suspend fun <R> callRaw(

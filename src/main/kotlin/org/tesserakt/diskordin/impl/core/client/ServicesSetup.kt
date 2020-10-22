@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.integrations.retrofit.adapter.CallKindAdapterFactory
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
@@ -13,20 +12,8 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.tesserakt.diskordin.util.StreamAdapter
-import org.tesserakt.diskordin.util.gson
-import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
-
-internal fun setupRetrofit(discordApiUrl: String, httpClient: OkHttpClient) = Retrofit.Builder()
-    .client(httpClient)
-    .baseUrl(discordApiUrl)
-    .addConverterFactory(GsonConverterFactory.create(gson))
-    .addConverterFactory(SnowflakeTypeAdapter())
-    .addCallAdapterFactory(CallKindAdapterFactory.create())
-    .build()
 
 internal fun defaultHttpClient() = OkHttpClient().newBuilder()
     .retryOnConnectionFailure(true)
