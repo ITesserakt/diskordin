@@ -1,55 +1,31 @@
 package org.tesserakt.diskordin.commands.feature
 
 import arrow.Kind
-import arrow.core.*
-import arrow.core.extensions.either.applicativeError.applicativeError
+import arrow.core.Nel
+import arrow.core.nel
 import arrow.typeclasses.ApplicativeError
-import io.github.classgraph.ClassRefTypeSignature
-import io.github.classgraph.ReferenceTypeSignature
-import io.github.classgraph.TypeSignature
 import org.tesserakt.diskordin.commands.ValidationError
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubclassOf
 
 data class ReturnType(
     val commandName: String,
-    val returnType: TypeSignature,
-    val moduleType: ClassRefTypeSignature
+    private val _returnType: KType
 ) : PersistentFeature<ReturnType> {
-    data class InvalidReturnType(val commandName: String, val actual: TypeSignature) :
-        ValidationError("Return type of $commandName doesn't match with Kind<F, *>. Actual: $actual")
+    data class InvalidReturnType(val commandName: String, val actual: KType) :
+        ValidationError("Return type of $commandName doesn't match to Unit. Actual: $actual")
 
-    data class UnresolvedType(val type: TypeSignature) :
+    data class UnresolvedType(val type: KType) :
         ValidationError("$type doesn't resolved. Try rescan including this class")
 
-    data class DifferentReturnType(val commandName: String) :
-        ValidationError("Return type of command $commandName doesn't equal to type defined in CommandModule")
-
-    private fun <G> TypeSignature.asKinded(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
-        if (this@asKinded !is ClassRefTypeSignature) return@run raiseError<ReferenceTypeSignature>(
-            InvalidReturnType(commandName, this@asKinded).nel()
-        )
-
-        val type = this@asKinded
-        return@run when {
-            type.classInfo == null -> raiseError(UnresolvedType(type).nel())
-
-            type.baseClassName == "arrow.Kind" -> type.just()
-
-            type.classInfo.implementsInterface("arrow.Kind") ->
-                type.classInfo.typeSignature.superinterfaceSignatures.first { it.baseClassName == "arrow.Kind" }.just()
-
-            else -> raiseError(InvalidReturnType(commandName, type).nel())
-        }
-    }
+    val returnType = Unit::class
 
     override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, ReturnType> = AE.run {
-        val kind = returnType.asKinded(Either.applicativeError()).fix()
-        val moduleDataClass = moduleType.typeArguments[0]
-
-        return kind.flatMap {
-            if (it is ClassRefTypeSignature && it.typeArguments[0] == moduleDataClass)
-                ReturnType(commandName, it, moduleType).right()
-            else
-                DifferentReturnType(commandName).nel().left()
-        }.fromEither(::identity)
+        when {
+            _returnType.isMarkedNullable -> raiseError(InvalidReturnType(commandName, _returnType).nel())
+            _returnType.classifier is KClass<*> && returnType.isSubclassOf(_returnType.classifier as KClass<*>) -> this@ReturnType.just()
+            else -> raiseError(UnresolvedType(_returnType).nel())
+        }
     }
 }

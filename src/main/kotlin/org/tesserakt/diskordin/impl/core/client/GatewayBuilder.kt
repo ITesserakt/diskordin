@@ -2,7 +2,8 @@
 
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.fx.typeclasses.Concurrent
+import arrow.fx.IO
+import arrow.fx.extensions.io.environment.environment
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -14,13 +15,14 @@ import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.util.enums.IValued
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KClass
 
 @RequestBuilder
-class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewaySettings<F>>() {
-    data class GatewaySettings<F>(
+class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
+    data class GatewaySettings(
         val coroutineContext: CoroutineContext,
         val compression: String,
-        val interceptors: List<Interceptor<out Interceptor.Context, F>>,
+        val interceptors: List<Interceptor<out Interceptor.Context>>,
         val guildSubscriptionsStrategy: GuildSubscriptionsStrategy,
         val compressionStrategy: CompressionStrategy,
         val shardCount: Int,
@@ -30,13 +32,13 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
     ) : JsonRequest()
 
     private var compression = ""
-    private var gatewayContext: CoroutineContext = CC.dispatchers().io()
-    private val interceptors: MutableList<Interceptor<out Interceptor.Context, F>> = mutableListOf(
-        WebSocketStateInterceptor(CC),
-        HeartbeatInterceptor(CC),
-        HeartbeatACKInterceptor(CC),
-        HelloChain(CC),
-        ShardApprover(CC)
+    private var gatewayContext: CoroutineContext = IO.environment().dispatchers().io()
+    private val interceptors: MutableList<Interceptor<out Interceptor.Context>> = mutableListOf(
+        WebSocketStateInterceptor(),
+        HeartbeatInterceptor(),
+        HeartbeatACKInterceptor(),
+        HelloChain(),
+        ShardApproval()
     )
     private var guildSubscriptionsStrategy: GuildSubscriptionsStrategy =
         GuildSubscriptionsStrategy.SubscribeTo(emptyList())
@@ -47,7 +49,7 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
     private var intents: IntentsStrategy = IntentsStrategy.EnableAll
 
     @Suppress("UNCHECKED_CAST")
-    operator fun Interceptor<*, F>.unaryPlus() {
+    operator fun Interceptor<*>.unaryPlus() {
         interceptors += this
     }
 
@@ -98,27 +100,33 @@ class GatewayBuilder<F>(CC: Concurrent<F>) : BuilderBase<GatewayBuilder.GatewayS
         gatewayContext = this
     }
 
-    inline fun GatewayBuilder<F>.gatewayInterceptor(value: Interceptor<out Interceptor.Context, F>) = value
+    inline fun GatewayBuilder.gatewayInterceptor(value: Interceptor<out Interceptor.Context>) = value
+    inline fun <reified C : Interceptor.Context> GatewayBuilder.gatewayInterceptor(crossinline block: suspend (C) -> Unit) =
+        object : Interceptor<C> {
+            override val selfContext: KClass<C> = C::class
 
-    inline fun GatewayBuilder<F>.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
-    inline fun GatewayBuilder<F>.compressShards(vararg shardIndexes: Int) = shardIndexes
-    inline fun GatewayBuilder<F>.useShards(count: Int) = ShardCount(count)
-    inline fun GatewayBuilder<F>.thresholdOverrides(vararg overrides: Pair<ShardIndex, LargeThreshold>) =
+            override suspend fun intercept(context: C) = block(context)
+        }
+
+    inline fun GatewayBuilder.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
+    inline fun GatewayBuilder.compressShards(vararg shardIndexes: Int) = shardIndexes
+    inline fun GatewayBuilder.useShards(count: Int) = ShardCount(count)
+    inline fun GatewayBuilder.thresholdOverrides(vararg overrides: Pair<ShardIndex, LargeThreshold>) =
         overrides.toMap()
 
-    inline fun GatewayBuilder<F>.initialPresence(builder: PresenceBuilder.() -> Unit) =
+    inline fun GatewayBuilder.initialPresence(builder: PresenceBuilder.() -> Unit) =
         PresenceBuilder().apply(builder)
 
-    inline fun GatewayBuilder<F>.featureOverrides(shardIndex: Int, value: ValuedEnum<Intents, Short>) =
+    inline fun GatewayBuilder.featureOverrides(shardIndex: Int, value: ValuedEnum<Intents, Short>) =
         shardIndex to value.code
 
-    inline fun GatewayBuilder<F>.featureOverrides(shardIndex: Int, value: IValued<Intents, Short>) =
+    inline fun GatewayBuilder.featureOverrides(shardIndex: Int, value: IValued<Intents, Short>) =
         shardIndex to value.code
 
-    inline fun GatewayBuilder<F>.coroutineContext(context: CoroutineContext) = context
+    inline fun GatewayBuilder.coroutineContext(context: CoroutineContext) = context
 
     @Suppress("UNCHECKED_CAST")
-    override fun create(): GatewaySettings<F> = GatewaySettings(
+    override fun create(): GatewaySettings = GatewaySettings(
         gatewayContext,
         compression,
         interceptors,

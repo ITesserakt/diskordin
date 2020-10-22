@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
-import arrow.core.ListK
 import arrow.fx.ForIO
-import arrow.fx.IO
+import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
@@ -17,13 +16,13 @@ interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder
     val attachments: List<IAttachment>?
     val isPinned: Boolean
 
-    fun pin(): IO<Unit>
-    fun unpin(): IO<Unit>
-    fun addReaction(emoji: IEmoji): IO<Unit>
-    fun deleteOwnReaction(emoji: IEmoji): IO<Unit>
-    fun deleteReaction(emoji: IEmoji, user: IUser): IO<Unit>
-    fun deleteReaction(emoji: IEmoji, userId: Snowflake): IO<Unit>
-    fun deleteAllReactions(emoji: IEmoji): IO<Unit>
-    fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): IO<ListK<IUser>>
-    fun deleteAllReactions(): IO<Unit>
+    suspend fun pin()
+    suspend fun unpin()
+    suspend fun addReaction(emoji: IEmoji)
+    suspend fun deleteOwnReaction(emoji: IEmoji)
+    suspend fun deleteReaction(emoji: IEmoji, user: IUser)
+    suspend fun deleteReaction(emoji: IEmoji, userId: Snowflake)
+    suspend fun deleteAllReactions(emoji: IEmoji)
+    fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): Stream<IUser>
+    suspend fun deleteAllReactions()
 }

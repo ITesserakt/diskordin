@@ -28,16 +28,16 @@ internal class Connection(raw: ConnectionResponse) : IConnection {
 
     override fun toString(): String {
         return StringBuilder("Connection(")
-            .appendln("type='$type', ")
-            .appendln("isRevoked=$isRevoked, ")
-            .appendln("integrations=${integrations.contentToString()}, ")
-            .appendln("isVerified=$isVerified, ")
-            .appendln("isFriendSyncing=$isFriendSyncing, ")
-            .appendln("isShowingActivity=$isShowingActivity, ")
-            .appendln("visibility=$visibility, ")
-            .appendln("id=$id, ")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("type='$type', ")
+            .appendLine("isRevoked=$isRevoked, ")
+            .appendLine("integrations=${integrations.contentToString()}, ")
+            .appendLine("isVerified=$isVerified, ")
+            .appendLine("isFriendSyncing=$isFriendSyncing, ")
+            .appendLine("isShowingActivity=$isShowingActivity, ")
+            .appendLine("visibility=$visibility, ")
+            .appendLine("id=$id, ")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 }

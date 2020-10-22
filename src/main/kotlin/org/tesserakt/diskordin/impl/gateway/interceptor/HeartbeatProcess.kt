@@ -1,7 +1,15 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import arrow.fx.typeclasses.Concurrent
-import arrow.fx.typeclasses.milliseconds
+import arrow.core.Either
+import arrow.fx.coroutines.ForkConnected
+import arrow.fx.coroutines.Schedule
+import arrow.fx.coroutines.retry
+import arrow.fx.coroutines.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor.Context
 import org.tesserakt.diskordin.gateway.interceptor.sendPayload
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
@@ -9,32 +17,28 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import java.time.Instant
 
 class HeartbeatProcess(private val interval: Long) {
-    private val power = 100
+    private data class RestartException(val shardId: Int) : Throwable("Shard #$shardId is going to restart")
 
-    fun <F> start(CC: Concurrent<F>, context: Context) = CC.fx.concurrent {
-        var isExiting = false
+    @ExperimentalCoroutinesApi
+    suspend fun start(context: Context) {
+        context.shard.state.map {
+            if (it != Shard.State.Connected)
+                throw RestartException(context.shard.shardData.index)
 
-        while (!isExiting) {
-            val result = !context.sendPayload(Heartbeat(context.shard.sequence), CC).attempt()
-            result.map { context.shard.lastHeartbeat = Instant.now() }
-
-            isExiting = !waitForInterval(interval) { context.shard.state }
-        }
-    }
-
-    private inline fun <F> Concurrent<F>.waitForInterval(interval: Long, crossinline state: () -> Shard.State) =
-        fx.concurrent {
-            var isExiting = false
-            var remaining = interval
-            while (remaining > 0) {
-                if (state() != Shard.State.Connected) {
-                    isExiting = true
-                    break
+            ForkConnected {
+                while (true) {
+                    retry(Schedule.exponential(1.seconds)) {
+                        Either.catch { context.sendPayload(Heartbeat(context.shard.sequence.value)) }
+                            .map { context.shard._heartbeats.value = Instant.now() }
+                    }
+                    delay(interval)
                 }
-
-                remaining -= power
-                !sleep(power.milliseconds)
             }
-            isExiting
-        }
+        }.catch {
+            if (it is RestartException) {
+                context.controller.closeShard(it.shardId)
+                context.controller.openShard(it.shardId, context.shard.sequence)
+            }
+        }.collect()
+    }
 }

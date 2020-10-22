@@ -2,6 +2,7 @@
 
 package org.tesserakt.diskordin.core.data
 
+import arrow.core.Ordering
 import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Order
 import arrow.typeclasses.Show
@@ -75,7 +76,7 @@ fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionErr
 }
 
 interface SnowflakeOrder : Order<Snowflake> {
-    override fun Snowflake.compare(b: Snowflake): Int = this.compareTo(b)
+    override fun Snowflake.compare(b: Snowflake): Ordering = Ordering.fromInt(compareTo(b))
 }
 
 inline fun Snowflake.Companion.order(): Order<Snowflake> = object : SnowflakeOrder {}

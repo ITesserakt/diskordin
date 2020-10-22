@@ -3,33 +3,32 @@
 package org.tesserakt.diskordin.core.data.event
 
 import arrow.core.ForId
-import arrow.core.extensions.id.applicative.just
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.listk.monadFilter.filterMap
-import arrow.core.identity
 import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.extensions.io.applicative.map
+import arrow.fx.coroutines.stream.Chunk
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.filterOption
 import org.tesserakt.diskordin.core.data.event.guild.IGuildEvent
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.identifyId
 import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.PresenceUpdate
 import kotlin.time.ExperimentalTime
 
 class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<ForId> {
-    override val guild = raw.guildId identify { client.getGuild(it) }
-    val roles = raw.roles.map { id ->
-        guild().map { it.getRole(id) }
-    }.sequence(IO.applicative()).map { it.filterMap(::identity) }
+    override val guild = raw.guildId.identify<IGuild> { client.getGuild(it) }
+    val roles = Stream.chunk(Chunk.array(raw.roles))
+        .effectMap { guild().getRole(it) }
+        .filterOption()
+
     @ExperimentalTime
     val game = raw.game?.unwrap()
     val status = UserStatus.valueOf(raw.status.toUpperCase())
+
     @ExperimentalTime
     val activities = raw.activities.map { it.unwrap() }
     val clientStatus = when {
@@ -41,9 +40,9 @@ class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<
             ClientStatus.Web(UserStatus.valueOf(raw.clientStatus.web.toUpperCase()))
         else -> null
     }
-    override val user = raw.user.id identify { raw.user.unwrap().just() }
+    override val user = raw.user.id.identifyId { raw.user.unwrap() }
 
     init {
-        cache.putIfAbsent(user.id, user().extract())
+        cache.putIfAbsent(user.id, user())
     }
 }

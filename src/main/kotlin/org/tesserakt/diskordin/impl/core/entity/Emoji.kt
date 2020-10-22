@@ -3,17 +3,12 @@ package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ForId
 import arrow.core.Id
-import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.listk.monadFilter.filterMap
-import arrow.core.identity
 import arrow.core.some
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.extensions.io.applicative.map
-import arrow.fx.fix
+import arrow.fx.coroutines.stream.Chunk
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.filterOption
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -27,8 +22,8 @@ internal open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
 
     override fun toString(): String {
         return StringBuilder("Emoji(")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 }
@@ -37,19 +32,19 @@ internal class CustomEmoji constructor(
     raw: EmojiResponse<ICustomEmoji>,
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
-    override fun edit(builder: EmojiEditBuilder.() -> Unit) = rest.call(guild.id.some(), Id.functor()) {
+    override suspend fun edit(builder: EmojiEditBuilder.() -> Unit) = rest.call(guild.id.some(), Id.functor()) {
         emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder))
-    }.map { it.extract() }
+    }.extract()
 
-    override val guild = guildId identify {
+    override val guild = guildId.identify<IGuild> {
         client.getGuild(it)
     }
 
-    override val roles = raw.roles.orEmpty().map { id ->
-        guild().map { it.getRole(id) }
-    }.sequence(IO.applicative()).map { it.filterMap(::identity) }
+    override val roles = Stream.chunk(Chunk.array(raw.roles.orEmpty()))
+        .effectMap { guild().getRole(it) }
+        .filterOption()
 
-    override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identify { raw.user.unwrap().just() }
+    override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identifyId { raw.user.unwrap() }
 
     override val requireColons: Boolean = raw.require_colons ?: false
 
@@ -61,21 +56,21 @@ internal class CustomEmoji constructor(
 
     override val mention: String = "<${if (isAnimated) "a" else ""}:$name:${id.asString()}>"
 
-    override fun delete(reason: String?) = rest.effect {
+    override suspend fun delete(reason: String?) = rest.effect {
         emojiService.deleteGuildEmoji(guild.id, id)
-    }.fix()
+    }
 
     override fun toString(): String {
         return StringBuilder("CustomEmoji(")
-            .appendln("guild=$guild, ")
-            .appendln("roles=$roles, ")
-            .appendln("creator=$creator, ")
-            .appendln("requireColons=$requireColons, ")
-            .appendln("isManaged=$isManaged, ")
-            .appendln("isAnimated=$isAnimated, ")
-            .appendln("id=$id, ")
-            .appendln("mention='$mention'")
-            .appendln(") ${super.toString()}")
+            .appendLine("guild=$guild, ")
+            .appendLine("roles=$roles, ")
+            .appendLine("creator=$creator, ")
+            .appendLine("requireColons=$requireColons, ")
+            .appendLine("isManaged=$isManaged, ")
+            .appendLine("isAnimated=$isAnimated, ")
+            .appendLine("id=$id, ")
+            .appendLine("mention='$mention'")
+            .appendLine(") ${super.toString()}")
             .toString()
     }
 }

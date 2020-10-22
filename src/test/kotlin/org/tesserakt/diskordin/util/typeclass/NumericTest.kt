@@ -6,6 +6,7 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.RandomSource
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import org.tesserakt.diskordin.impl.util.typeclass.BigDecimalK
@@ -59,9 +60,14 @@ private fun <N : Number> Numeric<N>.test() = stringSpec {
         }
     }
     "Absolute" {
+        fun <T> Arb<Arb<T>>.flatten() = generate(RandomSource.Default)
+            .map { it.value.generate(RandomSource.Default) }
+            .flatten().map { it.value }
+            .let { arb { _ -> it } }
+
         val numbers = Arb.bind(Arb.long(), Arb.int(), Arb.double(), Arb.float()) { long, int, double, float ->
             arb { sequenceOf(long.fromLong(), double.fromDouble(), int.fromInt(), float.fromFloat()) }
-        }.flatMap { it }
+        }.flatten()
 
         checkAll(numbers) { a: N ->
             (a.abs() >= zero) shouldBe true

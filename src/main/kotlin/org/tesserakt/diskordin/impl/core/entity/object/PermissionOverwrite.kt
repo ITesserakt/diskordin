@@ -25,11 +25,11 @@ internal class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrit
 
     override fun toString(): String {
         return StringBuilder("PermissionOverwrite(")
-            .appendln("type=$type, ")
-            .appendln("targetId=$targetId, ")
-            .appendln("allowed=$allowed, ")
-            .appendln("denied=$denied")
-            .appendln(")")
+            .appendLine("type=$type, ")
+            .appendLine("targetId=$targetId, ")
+            .appendLine("allowed=$allowed, ")
+            .appendLine("denied=$denied")
+            .appendLine(")")
             .toString()
     }
 

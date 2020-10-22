@@ -1,16 +1,16 @@
 package org.tesserakt.diskordin.commands.resolver
 
-import arrow.mtl.EitherT
-import arrow.typeclasses.Applicative
+import arrow.core.left
+import arrow.core.right
 import org.tesserakt.diskordin.commands.CommandContext
 
-class BooleanResolver<F>(private val AP: Applicative<F>) : TypeResolver<Boolean, F, CommandContext<F>> {
+class BooleanResolver : TypeResolver<Boolean, CommandContext> {
     data class BooleanConversionError(val input: String) : ConversionError(input, "Boolean")
 
-    override fun parse(context: CommandContext<F>, input: String): EitherT<out ParseError, F, Boolean> =
+    override suspend fun parse(context: CommandContext, input: String) =
         when (input.toLowerCase()) {
-            "true" -> EitherT.just(AP, true)
-            "false" -> EitherT.just(AP, false)
-            else -> EitherT.left(AP, BooleanConversionError(input))
+            "true" -> true.right()
+            "false" -> false.right()
+            else -> BooleanConversionError(input).left()
         }
 }

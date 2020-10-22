@@ -1,13 +1,10 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.listk.monadFilter.filterMap
-import arrow.core.identity
 import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.applicative
-import arrow.fx.extensions.io.applicative.just
-import arrow.fx.extensions.io.applicative.map
+import arrow.fx.coroutines.stream.Chunk
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.filterOption
+import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
@@ -26,29 +23,26 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override val email: String? by lazy { delegate.email }
     override val flags: ValuedEnum<IUser.Flags, Int> by lazy { delegate.flags }
     override val premiumType: IUser.Type? by lazy { delegate.premiumType }
-    private val delegate by lazy { client.getMember(id, guildId).unsafeRunSync() }
-    override val guild: IdentifiedF<ForIO, IGuild> = guildId identify { client.getGuild(it) }
+    private val delegate by lazy { runBlocking { client.getMember(id, guildId) } }
+    override val guild: IdentifiedF<ForIO, IGuild> = guildId.identify<IGuild> { client.getGuild(it) }
     override val nickname: String? = raw.nick
 
-    override val roles = raw.roles.map { id ->
-        guild()
-            .map { it.getRole(id) }
-    }
-        .sequence(IO.applicative())
-        .map { it.filterMap(::identity) }
+    override val roles = Stream.chunk(Chunk.array(raw.roles))
+        .effectMap { guild().getRole(it) }
+        .filterOption()
 
     override val joinTime: Instant = raw.joined_at
 
-    override fun addRole(role: IRole, reason: String?) =
+    override suspend fun addRole(role: IRole, reason: String?) =
         delegate.addRole(role, reason)
 
-    override fun addRole(roleId: Snowflake, reason: String?) =
+    override suspend fun addRole(roleId: Snowflake, reason: String?) =
         delegate.addRole(roleId, reason)
 
-    override fun removeRole(role: IRole, reason: String?) =
+    override suspend fun removeRole(role: IRole, reason: String?) =
         delegate.removeRole(role, reason)
 
-    override fun removeRole(roleId: Snowflake, reason: String?) =
+    override suspend fun removeRole(roleId: Snowflake, reason: String?) =
         delegate.removeRole(roleId, reason)
 
     override val username: String by lazy { delegate.username }
@@ -57,20 +51,20 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
 
     override val isBot: Boolean by lazy { delegate.isBot }
 
-    override fun asMember(guildId: Snowflake): IO<IMember> = delegate.just()
+    override suspend fun asMember(guildId: Snowflake): IMember = delegate
 
     override val id: Snowflake by lazy { delegate.id }
     override val mention: String by lazy { delegate.mention }
 
-    override fun edit(builder: MemberEditBuilder.() -> Unit): IO<IMember> = delegate.edit(builder)
+    override suspend fun edit(builder: MemberEditBuilder.() -> Unit): IMember = delegate.edit(builder)
 
     override fun toString(): String {
         return StringBuilder("MessageMember(")
-            .appendln("guild=$guild, ")
-            .appendln("nickname=$nickname, ")
-            .appendln("roles=$roles, ")
-            .appendln("joinTime=$joinTime")
-            .appendln(")")
+            .appendLine("guild=$guild, ")
+            .appendLine("nickname=$nickname, ")
+            .appendLine("roles=$roles, ")
+            .appendLine("joinTime=$joinTime")
+            .appendLine(")")
             .toString()
     }
 }

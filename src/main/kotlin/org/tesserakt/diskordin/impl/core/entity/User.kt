@@ -7,9 +7,7 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
-import arrow.fx.IO
-import arrow.fx.extensions.io.monad.map
-import arrow.fx.fix
+import kotlinx.coroutines.flow.flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.entity.*
@@ -46,9 +44,9 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val id: Snowflake = raw.id
 
-    override fun asMember(guildId: Snowflake): IO<IMember> = rest.call(guildId, Id.functor()) {
+    override suspend fun asMember(guildId: Snowflake): IMember = rest.call(guildId, Id.functor()) {
         guildService.getMember(guildId, id)
-    }.map { it.extract() }
+    }.extract()
 
     override fun toString(): String {
         return "User(" +
@@ -71,40 +69,46 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
 }
 
 internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
-    override fun joinIntoDM(to: Snowflake): IO<IPrivateChannel> = rest.call {
+    override suspend fun joinIntoDM(to: Snowflake): IPrivateChannel = rest.call {
         userService.joinToDM(DMCreateBuilder().apply {
             recipientId = to
         }.create())
-    }.fix()
+    }
 
-    override val guilds = rest.call(ListK.functor()) {
-        userService.getCurrentUserGuilds(UserGuildsQuery().create())
-    }.map { it.fix() }
+    override val guilds = flow {
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserGuilds(UserGuildsQuery().create())
+        }.fix().forEach { emit(it) }
+    }
 
-    override val privateChannels = rest.call(ListK.functor()) {
-        userService.getUserDMs()
-    }.map { it.fix() }
+    override val privateChannels = flow {
+        rest.call(ListK.functor()) {
+            userService.getUserDMs()
+        }.fix().forEach { emit(it) }
+    }
 
-    override val connections = rest.call(ListK.functor()) {
-        userService.getCurrentUserConnections()
-    }.map { it.fix() }
+    override val connections = flow {
+        rest.call(ListK.functor()) {
+            userService.getCurrentUserConnections()
+        }.fix().forEach { emit(it) }
+    }
 
-    override fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
+    override suspend fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)
 
-    override fun leaveGuild(guildId: Snowflake) = rest.effect {
+    override suspend fun leaveGuild(guildId: Snowflake) = rest.effect {
         userService.leaveGuild(guildId)
-    }.fix()
+    }
 
-    override fun edit(builder: UserEditBuilder.() -> Unit): IO<ISelf> = rest.call(Id.functor()) {
+    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf = rest.call(Id.functor()) {
         userService.editCurrentUser(builder.build(::UserEditBuilder))
-    }.map { it.extract() }
+    }.extract()
 
     override fun toString(): String {
         return StringBuilder("Self(")
-            .appendln("guilds=$guilds, ")
-            .appendln("privateChannels=$privateChannels, ")
-            .appendln("connections=$connections")
-            .appendln(") ${super.toString()}")
+            .appendLine("guilds=$guilds, ")
+            .appendLine("privateChannels=$privateChannels, ")
+            .appendLine("connections=$connections")
+            .appendLine(") ${super.toString()}")
             .toString()
     }
 }

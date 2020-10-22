@@ -1,7 +1,5 @@
 package org.tesserakt.diskordin.core.data.json.response
 
-import arrow.core.Option
-import arrow.core.none
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 
@@ -18,8 +16,9 @@ fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.EmptyContext>.unwrap()
 fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.GuildContext>.unwrap(guildId: Snowflake) =
     unwrap(UnwrapContext.GuildContext(guildId))
 
-fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.PartialGuildContext>.unwrap(guildId: Option<Snowflake> = none()) =
-    unwrap(UnwrapContext.PartialGuildContext(guildId.orNull()))
+@JvmName("unwrapNullable")
+fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.PartialGuildContext>.unwrap(guildId: Snowflake? = null) =
+    unwrap(UnwrapContext.PartialGuildContext(guildId))
 
 sealed class UnwrapContext {
     object EmptyContext : UnwrapContext()

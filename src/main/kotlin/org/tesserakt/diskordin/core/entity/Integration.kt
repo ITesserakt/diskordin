@@ -2,12 +2,11 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
 import arrow.fx.ForIO
-import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import java.time.Instant
 
-interface IIntegration : IEntity, INamed, IGuildObject<ForIO>, IDeletable,
+interface IIntegration : IEntity, INamed, IGuildObject, IDeletable,
     IEditable<IIntegration, IntegrationEditBuilder> {
     val type: String
     val enabled: Boolean
@@ -19,9 +18,9 @@ interface IIntegration : IEntity, INamed, IGuildObject<ForIO>, IDeletable,
     val account: IAccount
     val syncedAt: Instant
 
-    fun sync(): IO<Unit>
+    suspend fun sync()
 
-    fun edit(expireBehavior: Int, expireGracePeriod: Int, enableEmoticons: Boolean) = edit {
+    suspend fun edit(expireBehavior: Int, expireGracePeriod: Int, enableEmoticons: Boolean) = edit {
         this.enableEmoticons = enableEmoticons
         this.expireBehavior = expireBehavior
         this.expireGracePeriod = expireGracePeriod

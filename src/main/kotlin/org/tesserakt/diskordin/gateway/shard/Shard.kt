@@ -1,34 +1,41 @@
+@file:Suppress("PropertyName")
+
 package org.tesserakt.diskordin.gateway.shard
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.GatewayConnection
 import java.time.Instant
 import kotlin.math.abs
 
+@Suppress("MemberVisibilityCanBePrivate")
+@ExperimentalCoroutinesApi
 data class Shard(
     val token: String,
     val shardData: Data,
-    val connection: GatewayConnection,
-    val lifecycle: GatewayLifecycleManager
+    internal val connection: GatewayConnection,
+    internal val lifecycle: GatewayLifecycleManager
 ) {
-    data class Data(val current: Int, val total: Int)
+    data class Data(val index: Int, val total: Int)
     enum class State {
-        Disconnected, Connecting, Connected, Handshaking
+        Disconnected, Connecting, Connected, Handshaking, Closing
     }
 
-    lateinit var sessionId: String internal set
-    var sequence: Int? = null
-        internal set
-    var state: State = State.Disconnected
-        internal set
-    var lastHeartbeat: Instant? = null
-        internal set
-    var lastHeartbeatACK: Instant? = null
-        internal set
+    internal val _state: MutableStateFlow<State> = MutableStateFlow(State.Disconnected)
+    val state: StateFlow<State> = _state
 
-    fun ping() = if (lastHeartbeatACK != null && lastHeartbeat != null)
-        abs(lastHeartbeatACK!!.toEpochMilli() - lastHeartbeat!!.toEpochMilli())
+    internal val _heartbeats = MutableStateFlow<Instant?>(null)
+    internal val _heartbeatACKs = MutableStateFlow<Instant?>(null)
+    internal val _sessionId = MutableStateFlow<String?>(null)
+    val sessionId: StateFlow<String?> = _sessionId
+    internal val _sequence = MutableStateFlow<Int?>(null)
+    val sequence: StateFlow<Int?> = _sequence
+
+    fun ping() = if (_heartbeatACKs.value != null && _heartbeats.value != null)
+        abs(_heartbeatACKs.value!!.toEpochMilli() - _heartbeats.value!!.toEpochMilli())
     else Long.MIN_VALUE
 
-    fun isReady() = this::sessionId.isInitialized && sessionId.isNotEmpty()
+    fun isReady() = sessionId.value != null
 }

@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.commands
 import arrow.core.Validated
 import arrow.core.extensions.validated.foldable.firstOption
 import arrow.core.extensions.validated.traverse.traverse
+import arrow.core.getOrHandle
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestCaseConfig
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -22,9 +23,9 @@ class CommandRegistryTest : FunSpec() {
         defaultTestConfig = TestCaseConfig(timeout = 1.seconds, threads = 1)
 
         test("Empty registry should not contain any commands") {
-            val client = DiscordClientBuilder.default {
+            val client = DiscordClientBuilder {
                 +disableTokenVerification()
-            }
+            }.getOrHandle { error(it) }
 
             val emptyRegistry = client.commands.registry.extract()
 

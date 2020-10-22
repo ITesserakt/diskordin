@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.gateway.shard
 
-import arrow.fx.IO
-import arrow.fx.extensions.io.concurrent.concurrent
-import arrow.fx.extensions.io.concurrent.fork
-import arrow.fx.fix
+import arrow.fx.coroutines.ForkConnected
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
@@ -21,8 +20,10 @@ class ShardController internal constructor(
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
     private val logger = KotlinLogging.logger { }
+
+    @ExperimentalCoroutinesApi
     private val shards = mutableListOf<Shard>()
-    private val observer = ConnectionObserver()
+    private val observer = ConnectionObserver(this)
 
     private val connectionProperties = Identify.ConnectionProperties(
         System.getProperty("os.name"),
@@ -47,7 +48,8 @@ class ShardController internal constructor(
 
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
-    suspend fun openShard(shardIndex: Int, sequence: () -> Int?) {
+    @ExperimentalCoroutinesApi
+    suspend fun openShard(shardIndex: Int, sequence: StateFlow<Int?>) {
         require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
         val identify = Identify(
             context.token,
@@ -60,32 +62,36 @@ class ShardController internal constructor(
             isShardSubscribed(shardIndex)
         )
 
-        connection[shardIndex]
-            .sendPayload(identify, sequence(), shardIndex, IO.concurrent())
-            .fix().suspended()
+        connection[shardIndex].sendPayload(identify, sequence.value, shardIndex)
     }
 
-    fun approveShard(shard: Shard, sessionId: String) {
-        shard.sessionId = sessionId
+    @ExperimentalCoroutinesApi
+    suspend fun approveShard(shard: Shard, sessionId: String) {
+        shard._sessionId.value = sessionId
         shards += shard
-        observer.observe(shard).fork().unsafeRunSync()
+        ForkConnected { observer.observe(shard) }
     }
 
+    @ExperimentalCoroutinesApi
     fun closeShard(shardIndex: Int) {
         require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
+        val shard = shards.find { it.shardData.index == shardIndex }
+
+        if (shard == null || shard.state.value == Shard.State.Closing) return
+        shard._state.value = Shard.State.Closing
 
         logger.info("Closing shard #$shardIndex")
         lifecycles[shardIndex].stop()
-        shards.first { it.shardData.current == shardIndex }.let {
-            it.state = Shard.State.Disconnected
+        shard.let {
+            it._state.value = Shard.State.Disconnected
             shards.remove(it)
         }
     }
 
+    @ExperimentalCoroutinesApi
     suspend fun resumeShard(shard: Shard) {
-        val resume = Resume(shard.token, shard.sessionId, shard.sequence)
-        connection[shard.shardData.current]
-            .sendPayload(resume, shard.sequence, shard.shardData.current, IO.concurrent())
-            .fix().suspended()
+        lifecycles[shard.shardData.index].start()
+        val resume = Resume(shard.token, shard.sessionId.value!!, shard.sequence.value)
+        connection[shard.shardData.index].sendPayload(resume, shard.sequence.value, shard.shardData.index)
     }
 }

@@ -1,42 +1,58 @@
 package org.tesserakt.diskordin.commands.compiler
 
-import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.extensions.io.async.async
 import io.github.classgraph.ClassGraph
 import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import org.tesserakt.diskordin.commands.Command
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.commands.CommandModule
+import org.tesserakt.diskordin.commands.Ignore
+import org.tesserakt.diskordin.commands.compiler.extension.FunctionBodyCompiler
+import org.tesserakt.diskordin.commands.compiler.extension.FunctionParametersCompiler
+import org.tesserakt.diskordin.commands.compiler.extension.ModuleInstanceCompiler
+import org.tesserakt.diskordin.commands.compiler.extension.ReturnTypeCompiler
 
 @Suppress("unused")
-class Test : CommandModule<ForIO, CommandContext<ForIO>>(IO.async()) {
+class Test : CommandModule<CommandContext>() {
     @Command
-    fun test() {
+    fun CommandContext.test() {
     }
 
     @Command
-    fun broken() {
+    @Ignore
+    suspend fun broken() {
+    }
+
+    companion object : CommandModule.Factory {
+        override fun create(): CommandModule<*> = Test()
     }
 }
 
 class CommandModuleLoaderTest : StringSpec() {
     private val graph: ClassGraph = ClassGraph()
-        .whitelistClasses("org.tesserakt.diskordin.commands.compiler.Test")
+        .acceptPackages("org.tesserakt.diskordin.commands.compiler")
         .enableMethodInfo()
         .enableAnnotationInfo()
 
     init {
         "Loader should produce error for invalid command" {
-            val compiler = CommandModuleCompiler(emptySet())
+            val compiler = CommandModuleCompiler(
+                setOf(
+                    FunctionBodyCompiler(),
+                    ReturnTypeCompiler(),
+                    FunctionParametersCompiler(),
+                    ModuleInstanceCompiler()
+                )
+            ) //all persistent compilers
             val loader = CommandModuleLoader(compiler, graph, defaultTestConfig?.threads ?: 1)
+            val summary = loader.load()
 
-            loader.load().attempt().unsafeRunSync() shouldBeRight {
-                it.compiledCommands shouldBe 2
-                it.loadedModules shouldBe 1
-                it.result.shouldBeRight()
+            assertSoftly(summary) {
+                compiledCommands shouldBe 1
+                loadedModules shouldBe 1
+                result.shouldBeRight()
             }
         }
     }

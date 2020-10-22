@@ -14,10 +14,10 @@ internal class Attachment(raw: AttachmentResponse) : IAttachment {
 
     override fun toString(): String {
         return StringBuilder("Attachment(")
-            .appendln("url='$url', ")
-            .appendln("id=$id, ")
-            .appendln("fileName='$fileName'")
-            .appendln(")")
+            .appendLine("url='$url', ")
+            .appendLine("id=$id, ")
+            .appendLine("fileName='$fileName'")
+            .appendLine(")")
             .toString()
     }
 }

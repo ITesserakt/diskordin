@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
 
-import arrow.core.none
 import org.tesserakt.diskordin.core.data.json.response.ReactionResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IEmoji
@@ -12,14 +11,14 @@ internal class Reaction(raw: ReactionResponse) : IReaction {
 
     override val selfReacted: Boolean = raw.me
 
-    override val emoji: IEmoji = raw.emoji.unwrap(none())
+    override val emoji: IEmoji = raw.emoji.unwrap()
 
     override fun toString(): String {
         return StringBuilder("Reaction(")
-            .appendln("count=$count, ")
-            .appendln("selfReacted=$selfReacted, ")
-            .appendln("emoji=$emoji")
-            .appendln(")")
+            .appendLine("count=$count, ")
+            .appendLine("selfReacted=$selfReacted, ")
+            .appendLine("emoji=$emoji")
+            .appendLine(")")
             .toString()
     }
 }

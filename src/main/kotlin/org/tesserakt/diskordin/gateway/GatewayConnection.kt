@@ -1,11 +1,12 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.fx.Schedule
-import arrow.fx.retry
-import arrow.fx.typeclasses.Concurrent
-import arrow.fx.typeclasses.milliseconds
+import arrow.core.left
+import arrow.core.right
+import arrow.fx.IO
+import arrow.fx.coroutines.ForkConnected
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.extensions.io.environment.environment
 import arrow.syntax.function.partially1
-import com.tinder.scarlet.Stream
 import com.tinder.scarlet.websocket.WebSocketEvent
 import com.tinder.scarlet.ws.Receive
 import com.tinder.scarlet.ws.Send
@@ -23,12 +24,11 @@ interface GatewayConnection {
     fun receive(): Stream<WebSocketEvent>
 }
 
-fun <F> GatewayConnection.sendPayload(
+suspend fun GatewayConnection.sendPayload(
     data: GatewayCommand,
     sequenceId: Int?,
-    shardIndex: Int,
-    CC: Concurrent<F>
-) = CC.fx.async {
+    shardIndex: Int
+) {
     val connection = this@sendPayload
     val logger = KotlinLogging.logger("[Shard #$shardIndex]")
 
@@ -42,9 +42,9 @@ fun <F> GatewayConnection.sendPayload(
     }.invoke(sequenceId)
     val json = payload.toJson()
 
-    !effect(CC.dispatchers().io()) { connection.send(json) }
-        .flatMap {
-            if (it) logger.debug("---> SENT ${payload.opcode()}").just()
-            else raiseError(IllegalStateException("Payload was not send"))
-        }.retry(CC, Schedule.exponential<F, Throwable>(CC, 500.milliseconds).jittered(CC))
+    ForkConnected(IO.environment().dispatchers().io()) {
+        val isSent = connection.send(json)
+        if (isSent) logger.debug("---> SENT ${payload.opcode()}").right()
+        else IllegalStateException("Payload was not send").left()
+    }
 }

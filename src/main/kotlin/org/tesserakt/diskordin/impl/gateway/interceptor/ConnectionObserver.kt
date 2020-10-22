@@ -1,26 +1,22 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import arrow.fx.IO
-import arrow.fx.Schedule
-import arrow.fx.extensions.io.concurrent.concurrent
-import arrow.fx.extensions.io.monad.flatTap
-import arrow.fx.extensions.io.monad.monad
-import arrow.fx.repeat
-import arrow.fx.typeclasses.seconds
-import kotlinx.coroutines.Dispatchers
+import arrow.fx.coroutines.Schedule
+import arrow.fx.coroutines.repeat
+import arrow.fx.coroutines.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
 import org.tesserakt.diskordin.gateway.shard.Shard
+import org.tesserakt.diskordin.gateway.shard.ShardController
 
-class ConnectionObserver {
+class ConnectionObserver(private val shardController: ShardController) {
     private val logger = KotlinLogging.logger { }
 
-    fun observe(shard: Shard) = IO.effect(Dispatchers.Unconfined) { shard.state }
-        .flatTap {
-            if (it == Shard.State.Connected && shard.ping() >= 60000) {
-                logger.warn("Shard #${shard.shardData.current} does not respond. Restarting")
-                shard.state = Shard.State.Disconnected
-                shard.lifecycle.restart()
-            }
-            IO.unit
-        }.repeat(IO.concurrent(), Schedule.spaced(IO.monad(), 1.seconds))
+    @ExperimentalCoroutinesApi
+    suspend fun observe(shard: Shard) = repeat(Schedule.spaced(1.seconds)) {
+        if (shard._state.value == Shard.State.Connected && shard.ping() >= 60000) {
+            logger.warn("Shard #${shard.shardData.index} does not respond. Restarting")
+            shardController.closeShard(shard.shardData.index)
+            shardController.resumeShard(shard)
+        }
+    }
 }

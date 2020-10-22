@@ -9,6 +9,7 @@ import arrow.typeclasses.MonadError
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.asSnowflakeSafe
 import org.tesserakt.diskordin.impl.core.client.VerificationError.*
+import org.tesserakt.diskordin.util.DomainError
 import java.util.*
 
 internal fun <F> String.verify(ME: MonadError<F, VerificationError>): Kind<F, Snowflake> = ME.run {
@@ -41,7 +42,7 @@ private fun <F> padBase64String(encoded: String, AE: ApplicativeError<F, Verific
     return encoded.padEnd(encoded.length + padding, '=').just()
 }
 
-internal sealed class VerificationError(val message: String) {
+internal sealed class VerificationError(val message: String) : DomainError() {
     object BlankString : VerificationError("Token cannot be blank")
     object InvalidCharacters : VerificationError("Token contains invalid characters!")
     object InvalidConstruction : VerificationError("Token does not fit into right form!")

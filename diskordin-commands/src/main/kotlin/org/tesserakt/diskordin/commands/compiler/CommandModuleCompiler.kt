@@ -4,10 +4,8 @@ import io.github.classgraph.AnnotationParameterValueList
 import io.github.classgraph.ClassInfo
 import io.github.classgraph.MethodInfo
 import org.tesserakt.diskordin.commands.CommandBuilder
-
-internal const val PREFIX = "org.tesserakt.diskordin.commands"
-private const val COMMAND = "$PREFIX.Command"
-internal const val IGNORE = "$PREFIX.Ignore"
+import org.tesserakt.diskordin.commands.compiler.CompilerExtension.Constants.COMMAND
+import org.tesserakt.diskordin.commands.compiler.CompilerExtension.Constants.IGNORE
 
 private inline fun <reified T : Any> AnnotationParameterValueList.getValueAs(parameterName: String) =
     getValue(parameterName) as? T

@@ -5,7 +5,7 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
-abstract class TokenInterceptor<F> : Interceptor<TokenInterceptor.Context, F> {
+abstract class TokenInterceptor : Interceptor<TokenInterceptor.Context> {
     class Context(
         val token: IToken,
         controller: ShardController,

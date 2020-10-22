@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.fx.fix
+import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.IDUserResponse
 import org.tesserakt.diskordin.core.entity.IUser
@@ -10,7 +10,7 @@ import org.tesserakt.diskordin.util.enums.ValuedEnum
 
 internal class IdUser(raw: IDUserResponse) : IUser {
     private val delegate by lazy {
-        client.rest.call { userService.getUser(raw.id) }.fix().unsafeRunSync()
+        runBlocking { client.rest.call { userService.getUser(id) } }
     }
 
     override val avatar: String? by lazy { raw.avatar ?: delegate.avatar }
@@ -28,13 +28,13 @@ internal class IdUser(raw: IDUserResponse) : IUser {
     override val discriminator: Short by lazy { raw.discriminator?.toShort() ?: delegate.discriminator }
     override val isBot: Boolean by lazy { raw.bot ?: delegate.isBot }
 
-    override fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
+    override suspend fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
 
     override fun toString(): String {
         return StringBuilder("IdUser(")
-            .appendln("id=$id, ")
-            .appendln("mention='$mention'")
-            .appendln(")")
+            .appendLine("id=$id, ")
+            .appendLine("mention='$mention'")
+            .appendLine(")")
             .toString()
     }
 

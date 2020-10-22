@@ -19,13 +19,13 @@ internal class Region(raw: VoiceRegionResponse) : IRegion {
 
     override fun toString(): String {
         return StringBuilder("Region(")
-            .appendln("id='$id', ")
-            .appendln("isOptimal=$isOptimal, ")
-            .appendln("isVIP=$isVIP, ")
-            .appendln("isDeprecated=$isDeprecated, ")
-            .appendln("isCustom=$isCustom, ")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("id='$id', ")
+            .appendLine("isOptimal=$isOptimal, ")
+            .appendLine("isVIP=$isVIP, ")
+            .appendLine("isDeprecated=$isDeprecated, ")
+            .appendLine("isCustom=$isCustom, ")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 }

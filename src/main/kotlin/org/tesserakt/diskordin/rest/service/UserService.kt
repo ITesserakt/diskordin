@@ -4,7 +4,6 @@ package org.tesserakt.diskordin.rest.service
 
 import arrow.core.Id
 import arrow.core.ListK
-import arrow.integrations.retrofit.adapter.CallK
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 import org.tesserakt.diskordin.core.data.json.request.GroupDMCreateRequest
@@ -22,33 +21,33 @@ import retrofit2.http.*
 
 interface UserService {
     @GET("/api/v6/users/@me")
-    fun getCurrentUser(): CallK<Id<UserResponse<ISelf>>>
+    suspend fun getCurrentUser(): Id<UserResponse<ISelf>>
 
     @GET("/api/v6/users/{id}")
-    fun getUser(@Path("id") id: Snowflake): CallK<Id<UserResponse<IUser>>>
+    suspend fun getUser(@Path("id") id: Snowflake): Id<UserResponse<IUser>>
 
     @PATCH("/api/v6/users/@me")
-    fun editCurrentUser(@Body request: UserEditRequest): CallK<Id<UserResponse<ISelf>>>
+    suspend fun editCurrentUser(@Body request: UserEditRequest): Id<UserResponse<ISelf>>
 
     @GET("/api/v6/users/@me/guilds")
-    fun getCurrentUserGuilds(@QueryMap query: Query): CallK<ListK<UserGuildResponse>>
+    suspend fun getCurrentUserGuilds(@QueryMap query: Query): ListK<UserGuildResponse>
 
     @DELETE("/api/v6/users/@me/guilds/{id}")
-    fun leaveGuild(@Path("id") id: Snowflake): CallK<Unit>
+    suspend fun leaveGuild(@Path("id") id: Snowflake): Unit
 
     @GET("/api/v6/users/@me/channels")
-    fun getUserDMs(): CallK<ListK<ChannelResponse<IPrivateChannel>>>
+    suspend fun getUserDMs(): ListK<ChannelResponse<IPrivateChannel>>
 
     @POST("/api/v6/users/@me/channels")
-    fun joinToDM(@Body request: DMCreateRequest): CallK<Id<ChannelResponse<IPrivateChannel>>>
+    suspend fun joinToDM(@Body request: DMCreateRequest): Id<ChannelResponse<IPrivateChannel>>
 
     @Deprecated(
         "GameBridge SDK is deprecated for now",
         ReplaceWith("UserService.joinToDM()", "org.tesserakt.diskordin.rest.service.UserService")
     )
     @POST("/api/v6/users/@me/channels")
-    fun joinToGroupDM(@Body request: GroupDMCreateRequest): CallK<Id<ChannelResponse<IGroupPrivateChannel>>>
+    suspend fun joinToGroupDM(@Body request: GroupDMCreateRequest): Id<ChannelResponse<IGroupPrivateChannel>>
 
     @GET("/api/v6/users/@me/connections")
-    fun getCurrentUserConnections(): CallK<ListK<ConnectionResponse>>
+    suspend fun getCurrentUserConnections(): ListK<ConnectionResponse>
 }

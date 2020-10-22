@@ -1,17 +1,12 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Eval
+import arrow.core.computations.either
 import arrow.core.extensions.eval.applicative.just
-import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.Schedule
-import arrow.fx.extensions.io.concurrent.concurrent
-import arrow.fx.extensions.io.monad.monad
-import arrow.fx.extensions.io.monadDefer.monadDefer
-import arrow.fx.fix
-import arrow.fx.typeclasses.Concurrent
-import arrow.fx.typeclasses.seconds
+import arrow.fx.coroutines.Schedule
+import arrow.fx.coroutines.seconds
 import arrow.syntax.function.partially1
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -24,12 +19,11 @@ import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
 import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.impl.util.typeclass.suspended
 import org.tesserakt.diskordin.rest.RestClient
+import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.or
-import org.tesserakt.diskordin.util.typeclass.Suspended
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -37,14 +31,12 @@ inline class ShardCount(val v: Int)
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
-class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
+class DiscordClientBuilder private constructor() {
     private var httpClient: Eval<OkHttpClient> = Eval.later(::defaultHttpClient)
     private var token: String = "Invalid"
     private var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
-    private var gatewaySettings: GatewayBuilder.GatewaySettings<F> = GatewayBuilder(CC).create()
-    private var restSchedule: Schedule<ForIO, Throwable, *> = Schedule.withMonad(IO.monad()) {
-        (spaced<Throwable>(1.seconds) and recurs(5)).jittered(IO.monadDefer())
-    }
+    private var gatewaySettings: GatewayBuilder.GatewaySettings = GatewayBuilder().create()
+    private var restSchedule: Schedule<*, *> = (Schedule.spaced<Any>(1.seconds) and Schedule.recurs(5)).jittered()
 
     operator fun String.unaryPlus() {
         token = this
@@ -62,11 +54,11 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         httpClient = this
     }
 
-    operator fun GatewayBuilder<F>.unaryPlus() {
+    operator fun GatewayBuilder.unaryPlus() {
         this@DiscordClientBuilder.gatewaySettings = this.create()
     }
 
-    operator fun Schedule<ForIO, Throwable, *>.unaryPlus() {
+    operator fun Schedule<*, *>.unaryPlus() {
         restSchedule = this
     }
 
@@ -74,21 +66,21 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
         cache = NoopMap()
     }
 
-    inline fun DiscordClientBuilder<F>.context(coroutineContext: CoroutineContext) = coroutineContext
-    inline fun DiscordClientBuilder<F>.overrideHttpClient(client: Eval<OkHttpClient>) = client
-    inline fun DiscordClientBuilder<F>.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
+    inline fun DiscordClientBuilder.context(coroutineContext: CoroutineContext) = coroutineContext
+    inline fun DiscordClientBuilder.overrideHttpClient(client: Eval<OkHttpClient>) = client
+    inline fun DiscordClientBuilder.overrideHttpClient(noinline client: () -> OkHttpClient): Eval<OkHttpClient> =
         Eval.later(client)
 
-    inline fun DiscordClientBuilder<F>.token(value: String) = value
-    inline fun DiscordClientBuilder<F>.withCache(value: MutableMap<Snowflake, IEntity>) = value
-    inline fun DiscordClientBuilder<F>.disableCaching() = Unit
+    inline fun DiscordClientBuilder.token(value: String) = value
+    inline fun DiscordClientBuilder.withCache(value: MutableMap<Snowflake, IEntity>) = value
+    inline fun DiscordClientBuilder.disableCaching() = Unit
 
     @InternalTestAPI
-    inline fun DiscordClientBuilder<F>.disableTokenVerification() = VerificationStub
-    inline fun <F> DiscordClientBuilder<F>.gatewaySettings(f: GatewayBuilder<F>.() -> Unit) =
-        GatewayBuilder(CC).apply(f)
+    inline fun DiscordClientBuilder.disableTokenVerification() = VerificationStub
+    inline fun DiscordClientBuilder.gatewaySettings(f: GatewayBuilder.() -> Unit) =
+        GatewayBuilder().apply(f)
 
-    inline fun DiscordClientBuilder<F>.restRetrySchedule(value: Schedule<ForIO, Throwable, *>) = value
+    inline fun DiscordClientBuilder.restRetrySchedule(value: Schedule<*, *>) = value
 
     @RequiresOptIn("This statement should be used only in tests")
     annotation class InternalTestAPI
@@ -96,41 +88,39 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
     object CompressionStub
 
     companion object {
-        operator fun <F> invoke(
-            CC: Concurrent<F>,
-            effectRunner: Suspended<F>,
-            init: DiscordClientBuilder<F>.() -> Unit = {}
-        ): IDiscordClient {
-            val builder = DiscordClientBuilder(CC).apply(init)
+        suspend operator fun invoke(
+            init: suspend DiscordClientBuilder.() -> Unit = {}
+        ) = either<DomainError, IDiscordClient> {
+            val builder = DiscordClientBuilder().apply { this.init() }
+
             val token = System.getenv("token") ?: builder.token
+
             val httpClient = builder.httpClient.map {
-                it.newBuilder()
-                    .addInterceptor(AuthorityInterceptor(token))
-                    .build()
+                it.newBuilder().addInterceptor(AuthorityInterceptor(token)).build()
             }
             val retrofit = httpClient.map(::setupRetrofit.partially1("https://discord.com/api/"))
-            val rest = retrofit
-                .map { RestClient.byRetrofit(it, builder.restSchedule, IO.concurrent()) }.memoize()
-            val gatewayInfo = rest.map { it.call { gatewayService.getGatewayBot() }.fix().unsafeRunSync() }.memoize()
+            val rest = retrofit.map { RestClient.byRetrofit(it, builder.restSchedule) }.memoize()
+            val gatewayInfo = rest.map { runBlocking { it.call { gatewayService.getGatewayBot() } } }.memoize()
 
             val shardSettings = formShardSettings(token, builder, gatewayInfo)
             val connectionContext = formConnectionSettings(httpClient, builder, shardSettings)
-            val gatewayContext = formGatewaySettings(builder, CC, effectRunner, connectionContext)
+            val gatewayContext = formGatewaySettings(builder, connectionContext)
             val globalContext = formBootstrapContext(builder, rest, gatewayContext)
-            return DiscordClient(globalContext).unsafeRunSync()
+
+            DiscordClient(globalContext).bind()
         }
 
-        private fun <F> formBootstrapContext(
-            builder: DiscordClientBuilder<F>,
-            rest: Eval<RestClient<ForIO>>,
-            gatewayContext: BootstrapContext.Gateway<F>
-        ): BootstrapContext<ForIO, F> {
+        private fun formBootstrapContext(
+            builder: DiscordClientBuilder,
+            rest: Eval<RestClient>,
+            gatewayContext: BootstrapContext.Gateway
+        ): BootstrapContext {
             val strategy = builder.gatewaySettings.intents
 
             val intents: ValuedEnum<Intents, Short> = if (strategy is IntentsStrategy.EnableOnly)
                 strategy.enabled
                     .map { (_, code) -> ValuedEnum<Intents, Short>(code, Short.integral()) }
-                    .fold(ValuedEnum(0, Short.integral())) { acc, i -> acc or i }
+                    .fold(ValuedEnum.none(Short.integral())) { acc, i -> acc or i }
             else {
                 ValuedEnum.all(Short.integral())
             }
@@ -142,22 +132,18 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             )
         }
 
-        private fun <F> formGatewaySettings(
-            builder: DiscordClientBuilder<F>,
-            CC: Concurrent<F>,
-            runner: Suspended<F>,
+        private fun formGatewaySettings(
+            builder: DiscordClientBuilder,
             connectionContext: BootstrapContext.Gateway.Connection
-        ): BootstrapContext.Gateway<F> = BootstrapContext.Gateway(
+        ): BootstrapContext.Gateway = BootstrapContext.Gateway(
             builder.gatewaySettings.coroutineContext,
             builder.gatewaySettings.interceptors,
-            CC,
-            runner,
             connectionContext
         )
 
-        private fun <F> formConnectionSettings(
+        private fun formConnectionSettings(
             httpClient: Eval<OkHttpClient>,
-            builder: DiscordClientBuilder<F>,
+            builder: DiscordClientBuilder,
             shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
         ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(
             httpClient,
@@ -166,9 +152,9 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             shardSettings
         )
 
-        private fun <F> formShardSettings(
+        private fun formShardSettings(
             token: String,
-            builder: DiscordClientBuilder<F>,
+            builder: DiscordClientBuilder,
             gatewayInfo: Eval<IGatewayStats>
         ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
             token,
@@ -179,8 +165,5 @@ class DiscordClientBuilder<F> private constructor(val CC: Concurrent<F>) {
             builder.gatewaySettings.initialPresence,
             builder.gatewaySettings.intents
         )
-
-        inline fun default(noinline init: DiscordClientBuilder<ForIO>.() -> Unit) =
-            invoke(IO.concurrent(), IO.suspended(), init)
     }
 }

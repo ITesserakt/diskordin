@@ -12,6 +12,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import org.tesserakt.diskordin.util.StreamAdapter
 import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import retrofit2.Retrofit
@@ -49,7 +50,8 @@ internal fun setupScarlet(path: String, lifecycle: Lifecycle, httpClient: OkHttp
     )
     val configuration = Scarlet.Configuration(
         backoffStrategy = ExponentialWithJitterBackoffStrategy(1000, 5000),
-        lifecycle = lifecycle
+        lifecycle = lifecycle,
+        streamAdapterFactories = listOf(StreamAdapter.Factory)
     )
 
     return Scarlet(protocol, configuration)

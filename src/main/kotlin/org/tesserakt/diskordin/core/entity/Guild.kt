@@ -6,8 +6,9 @@ import arrow.core.ForId
 import arrow.core.ListK
 import arrow.core.Option
 import arrow.fx.ForIO
-import arrow.fx.IO
+import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -26,7 +27,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val iconHash: String?
     val splashHash: String?
     val owner: IdentifiedF<ForIO, IMember>
-    val afkChannel: IdentifiedF<ForId, IVoiceChannel>?
+    val afkChannel: IdentifiedIO<IVoiceChannel>?
+
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
@@ -73,34 +75,35 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     }
 
     fun getRole(id: Snowflake): Option<IRole>
-    fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji>
-    fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji>
-    fun editOwnNickname(newNickname: String): IO<String?>
-    fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<ITextChannel>
-    fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel>
-    fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember>
-    fun kick(member: IMember, reason: String?): IO<Unit>
-    fun kick(memberId: Snowflake, reason: String?): IO<Unit>
-    fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>>
-    fun getBan(userId: Snowflake): IO<IBan>
-    @OptIn(ExperimentalTime::class)
-    fun ban(member: IMember, builder: BanQuery.() -> Unit): IO<Unit>
-
-    fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>>
+    suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
+    suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji
+    suspend fun editOwnNickname(newNickname: String): String?
+    suspend fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
+    suspend fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
+    suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IMember
+    suspend fun kick(member: IMember, reason: String?)
+    suspend fun kick(memberId: Snowflake, reason: String?)
+    suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole>
+    suspend fun getBan(userId: Snowflake): IBan
 
     @OptIn(ExperimentalTime::class)
-    fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit): IO<Unit>
+    suspend fun ban(member: IMember, builder: BanQuery.() -> Unit)
 
-    fun pardon(userId: Snowflake, reason: String?): IO<Unit>
-    fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int>
-    fun addIntegration(id: Snowflake, type: String): IO<Unit>
+    suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember>
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit)
+
+    suspend fun pardon(userId: Snowflake, reason: String?)
+    suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
+    suspend fun addIntegration(id: Snowflake, type: String)
     fun getEveryoneRole(): IdentifiedF<ForId, IRole>
     fun <C : IGuildChannel> getChannel(id: Snowflake): C
 
-    val invites: IO<ListK<IGuildInvite>>
-    val emojis: IO<ListK<ICustomEmoji>>
-    val bans: IO<ListK<IBan>>
-    val integrations: IO<ListK<IIntegration>>
+    val invites: Stream<IGuildInvite>
+    val emojis: Stream<ICustomEmoji>
+    val bans: Stream<IBan>
+    val integrations: Stream<IIntegration>
     val roles: List<IRole>
     val channels: List<IGuildChannel>
 
@@ -123,6 +126,6 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
         AllMembers;
     }
 
-    fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IO<IRole>
-    fun moveChannels(vararg builder: Pair<Snowflake, Int>): IO<Unit>
+    suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole
+    suspend fun moveChannels(vararg builder: Pair<Snowflake, Int>)
 }

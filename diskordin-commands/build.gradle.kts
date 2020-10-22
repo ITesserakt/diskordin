@@ -24,11 +24,14 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation(project(":"))
+
     implementation(arrow("core"))
     implementation(arrow("fx"))
+    implementation(arrow("fx-coroutines"))
     implementation(arrow("mtl"))
     implementation(arrow("ui"))
     implementation(arrow("syntax"))
+
     implementation("io.github.classgraph:classgraph:4.8.65")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
@@ -36,7 +39,7 @@ dependencies {
     implementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
 
     testImplementation(arrow("fx-rx2"))
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")

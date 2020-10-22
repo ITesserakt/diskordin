@@ -1,55 +1,41 @@
 package org.tesserakt.diskordin.commands.feature
 
-import arrow.Kind
 import arrow.core.Nel
 import arrow.core.nel
 import arrow.typeclasses.ApplicativeError
 import io.github.classgraph.ClassRefTypeSignature
-import io.github.classgraph.TypeSignature
-import org.tesserakt.diskordin.commands.CommandContext
+import io.github.classgraph.MethodParameterInfo
 import org.tesserakt.diskordin.commands.ValidationError
-import kotlin.reflect.KClass
-
-private const val COMMAND_CONTEXT = "org.tesserakt.diskordin.commands.CommandContext"
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.KType
 
 data class FunctionParameters(
     val commandName: String,
-    val contextType: TypeSignature,
-    val parameters: List<TypeSignature>
+    val function: KFunction<*>,
+    val moduleType: KType,
+    val parameters: List<KParameter>,
+    private val _parameters: List<MethodParameterInfo>,
+    private val _moduleContext: ClassRefTypeSignature
 ) : PersistentFeature<FunctionParameters> {
-    data class DuplicatedParameters(val commandName: String, val parameterNames: List<TypeSignature>) :
-        ValidationError("$commandName has duplicated next parameters: $parameterNames")
+    data class DuplicatedParameters(val commandName: String, val parameterNames: List<KParameter>) :
+        ValidationError("$commandName has duplicated these parameters: $parameterNames")
 
-    data class MissedParameters(val commandName: String, val parameters: List<KClass<*>>) :
-        ValidationError("$commandName should contain next parameters: ${parameters.map { it.simpleName }}")
+    data class MissedParameters(val commandName: String, val contextName: String, val parameters: List<KParameter>) :
+        ValidationError("$commandName should contain `$contextName`, but has these parameters: $parameters")
 
-    data class NonCoincidingContext(
-        val commandName: String,
-        val actualContextType: TypeSignature,
-        val declaredContextType: TypeSignature
-    ) : ValidationError("Context of $commandName should be equal with declared as type parameter in CommandModule. Actual: $actualContextType, declared: $declaredContextType")
+    private fun ClassRefTypeSignature.isSuperClassOf(type: ClassRefTypeSignature) =
+        loadClass().isAssignableFrom(type.loadClass())
 
-    private fun ClassRefTypeSignature.subtypeOf(className: String) =
-        if (this.classInfo == null) this.loadClass().interfaces.contains(Class.forName(className))
-        else classInfo.implementsInterface(className) or classInfo.extendsSuperclass(className)
+    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
+        val contextParams = _parameters.map { it.typeSignatureOrTypeDescriptor }
+            .filterIsInstance<ClassRefTypeSignature>()
+            .filter { it == _moduleContext || it.isSuperClassOf(_moduleContext) }
 
-    private fun <G> ClassRefTypeSignature.compareWithTypeBound(AE: ApplicativeError<G, Nel<ValidationError>>) =
-        if (this == contextType) AE.just(this)
-        else AE.raiseError(NonCoincidingContext(commandName, this, contextType).nel())
-
-    private fun <G> List<TypeSignature>.validateContextParameter(AE: ApplicativeError<G, Nel<ValidationError>>) =
-        AE.run {
-            val classRefParams = filterIsInstance<ClassRefTypeSignature>()
-            val contextParams = classRefParams.filter { it.subtypeOf(COMMAND_CONTEXT) }
-
-            when (contextParams.size) {
-                1 -> contextParams.first().compareWithTypeBound(AE)
-                0 -> raiseError(MissedParameters(commandName, listOf(CommandContext::class)).nel())
-                else -> raiseError(DuplicatedParameters(commandName, contextParams).nel())
-            }
+        when (contextParams.size) {
+            1 -> this@FunctionParameters.just()
+            0 -> raiseError(MissedParameters(commandName, _moduleContext.toStringWithSimpleNames(), parameters).nel())
+            else -> raiseError(DuplicatedParameters(commandName, parameters).nel())
         }
-
-    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, FunctionParameters> = AE.run {
-        parameters.validateContextParameter(AE).map { this@FunctionParameters }
     }
 }

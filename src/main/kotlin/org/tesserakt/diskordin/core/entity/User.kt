@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.core.entity
 
-import arrow.core.ListK
-import arrow.fx.IO
+import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import org.tesserakt.diskordin.impl.util.typeclass.integral
@@ -47,19 +46,19 @@ interface IUser : IMentioned, INamed {
         VerifiedBotDeveloper(1 shl 17)
     }
 
-    infix fun asMember(guildId: Snowflake): IO<IMember>
+    suspend infix fun asMember(guildId: Snowflake): IMember
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
-    val guilds: IO<ListK<IGuild>>
-    val privateChannels: IO<ListK<IPrivateChannel>>
-    val connections: IO<ListK<IConnection>>
+    val guilds: Flow<IGuild>
+    val privateChannels: Flow<IPrivateChannel>
+    val connections: Flow<IConnection>
 
-    fun leaveGuild(guild: IGuild): IO<Unit>
-    fun leaveGuild(guildId: Snowflake): IO<Unit>
-    fun joinIntoDM(to: IUser): IO<IPrivateChannel> = joinIntoDM(to.id)
-    fun joinIntoDM(to: Snowflake): IO<IPrivateChannel>
-    fun edit(username: String, avatar: String) = edit {
+    suspend fun leaveGuild(guild: IGuild)
+    suspend fun leaveGuild(guildId: Snowflake)
+    suspend fun joinIntoDM(to: IUser): IPrivateChannel = joinIntoDM(to.id)
+    suspend fun joinIntoDM(to: Snowflake): IPrivateChannel
+    suspend fun edit(username: String, avatar: String) = edit {
         this.username = username
         this.avatar = avatar
     }

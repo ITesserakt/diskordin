@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import arrow.fx.typeclasses.Async
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.json.IToken
@@ -9,28 +9,27 @@ import org.tesserakt.diskordin.gateway.json.token.ConnectionFailed
 import org.tesserakt.diskordin.gateway.json.token.ConnectionOpened
 import org.tesserakt.diskordin.gateway.shard.Shard
 
-class WebSocketStateInterceptor<F>(private val A: Async<F>) : TokenInterceptor<F>() {
+class WebSocketStateInterceptor : TokenInterceptor() {
     private val logger = KotlinLogging.logger("[Gateway]")
 
-    override fun intercept(context: Context) = context.run {
-        A.fx.async {
-            !effect { logStateUpdates(context.token) }
+    @ExperimentalCoroutinesApi
+    override suspend fun intercept(context: Context) = context.run {
+        logStateUpdates(context.token)
 
-//            if (context.token is ConnectionFailed && context.shard.isReady())
-//                !effect { context.controller.resumeShard(context.shard) }
+        if (context.token is ConnectionFailed && context.shard.isReady())
+            context.controller.resumeShard(context.shard)
 
-            when (context.token) {
-                is ConnectionOpened -> shard.state = Shard.State.Connecting
-                is ConnectionFailed, is ConnectionClosed -> shard.state = Shard.State.Disconnected
-            }
+        when (context.token) {
+            is ConnectionOpened -> shard._state.value = Shard.State.Connecting
+            is ConnectionFailed, is ConnectionClosed -> shard._state.value = Shard.State.Disconnected
         }
     }
 
     private fun Context.logStateUpdates(state: IToken) = when (state) {
-        is ConnectionOpened -> logger.info("Shard #${shard.shardData.current} reached")
-        is ConnectionClosed -> logger.warn("Shard #${shard.shardData.current} closed: ${state.reason}")
+        is ConnectionOpened -> logger.info("Shard #${shard.shardData.index} reached")
+        is ConnectionClosed -> logger.warn("Shard #${shard.shardData.index} closed: ${state.reason}")
         is ConnectionFailed -> logger.error(
-            "Shard #${shard.shardData.current} met with error:", state.error
+            "Shard #${shard.shardData.index} met with error:", state.error
         )
         else -> Unit
     }

@@ -1,27 +1,25 @@
 package org.tesserakt.diskordin.commands
 
-import arrow.core.extensions.id.comonad.extract
 import arrow.fx.ForIO
-import arrow.fx.typeclasses.Async
-import org.tesserakt.diskordin.commands.util.fromIO
-import org.tesserakt.diskordin.core.data.Identified
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.entity.*
 
-interface CommandContext<F> : IDiscordObject {
+interface CommandContext : IDiscordObject {
     val message: Identified<IMessage>
     val author: Identified<IUser>
     val commandArgs: Array<String>
-    val channel: IdentifiedF<F, IMessageChannel>
+    val channel: IdentifiedIO<IMessageChannel>
 }
 
-interface GuildCommandContext<F> : CommandContext<F> {
+interface GuildCommandContext : CommandContext {
     val guild: IdentifiedF<ForIO, IGuild>
-    override val channel: IdentifiedF<F, ITextChannel>
-    fun authorAsMember(A: Async<F>): IdentifiedF<F, IMember> =
-        author.map { it.extract().asMember(guild.state).fromIO(A) }
+    override val channel: IdentifiedIO<ITextChannel>
+    suspend fun authorAsMember(): IdentifiedIO<IMember> {
+        val author = author()
+        return author.id.identify<IMember> { author.asMember(guild.id) }
+    }
 }
 
-interface DMCommandContext<F> : CommandContext<F> {
-    override val channel: IdentifiedF<F, IPrivateChannel>
+interface DMCommandContext : CommandContext {
+    override val channel: IdentifiedIO<IPrivateChannel>
 }

@@ -2,27 +2,21 @@ package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.Either
 import arrow.core.ListK
+import arrow.core.computations.either
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.list.foldable.find
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
-import arrow.core.getOrHandle
-import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.Ref
-import arrow.fx.extensions.fx
-import arrow.fx.extensions.io.applicative.just
-import arrow.fx.extensions.io.functor.map
-import arrow.fx.extensions.io.monad.flatTap
-import arrow.fx.extensions.io.monadDefer.monadDefer
-import arrow.fx.fix
-import arrow.fx.typeclasses.ConcurrentSyntax
+import arrow.core.left
+import arrow.fx.coroutines.ConcurrentVar
+import arrow.fx.coroutines.ForkConnected
+import arrow.fx.coroutines.Promise
+import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.WebSocketStateHolder
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
@@ -33,29 +27,34 @@ import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.util.DomainError
 
-internal class DiscordClient<F> private constructor(
-    internal val context: BootstrapContext<ForIO, F>
+internal class DiscordClient private constructor(
+    selfId: Snowflake,
+    internal val context: BootstrapContext
 ) : IDiscordClient {
-    companion object {
-        internal val client = Ref.unsafe<ForIO, DiscordClient<*>?>(null, IO.monadDefer())
+    object AlreadyStarted : DomainError()
 
-        operator fun <F> invoke(context: BootstrapContext<ForIO, F>) = client.updateAndGet {
-            if (it != null) throw IllegalStateException("Discord client already created")
-            DiscordClient(context)
-        }.map { it!! }
+    companion object {
+        internal val client = ConcurrentVar.unsafeEmpty<DiscordClient>()
+
+        suspend operator fun invoke(context: BootstrapContext) = either<DomainError, IDiscordClient> {
+            val selfId = !context.gatewayContext.connectionContext.shardSettings.token.verify(Either.monadError())
+            if (client.isEmpty()) {
+                client.put(DiscordClient(selfId, context))
+                client.read()
+            } else AlreadyStarted.left().bind()
+        }
     }
 
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
-    override val rest: RestClient<ForIO> get() = context.restClient.memoize().extract()
+    override val rest: RestClient get() = context.restClient.memoize().extract()
 
-    private lateinit var gateway: Gateway<F>
+    private val gateway: Promise<Gateway> = Promise.unsafe()
+    private val logoutToken = Promise.unsafe<Unit>()
 
-    override val self: IdentifiedF<ForIO, ISelf> = token.verify(Either.monadError())
-        .getOrHandle {
-            error(it.message)
-        } identify {
+    override val self: IdentifiedIO<ISelf> = selfId.identify<ISelf> {
         rest.call { userService.getCurrentUser() }
     }
 
@@ -63,26 +62,21 @@ internal class DiscordClient<F> private constructor(
     override val guilds get() = cache.values.filterIsInstance<IGuild>()
 
     @ExperimentalCoroutinesApi
-    @FlowPreview
-    @Suppress("UNCHECKED_CAST")
-    override fun login() {
-        gateway = Gateway.create(context.gatewayContext)
-        gateway.run()
+    override suspend fun login() {
+        gateway.complete(Gateway.create(context.gatewayContext))
+        ForkConnected {
+            gateway.get().run().drain()
+        }
     }
 
-    @Deprecated("Will be removed in future releases")
-    override fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit) = IO.fx {
-        this.block(this@DiscordClient)
-        logout()
+    @ExperimentalCoroutinesApi
+    override suspend fun logout() {
+        gateway.tryGet()?.close()
+        DiscordClient.client.tryTake()
+        logoutToken.complete(Unit)
     }
 
-    override fun logout() {
-        if (::gateway.isInitialized)
-            gateway.close()
-        DiscordClient.client.set(null).fix().unsafeRunSync()
-    }
-
-    override fun createGuild(
+    override suspend fun createGuild(
         name: String,
         region: IRegion,
         icon: String,
@@ -90,7 +84,7 @@ internal class DiscordClient<F> private constructor(
         defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
         explicitContentFilter: IGuild.ExplicitContentFilter,
         builder: GuildCreateBuilder.() -> Unit
-    ): IO<IGuild> = rest.call {
+    ): IGuild = rest.call {
         val inst = GuildCreateBuilder(
             name,
             region.name,
@@ -100,40 +94,40 @@ internal class DiscordClient<F> private constructor(
             explicitContentFilter
         ).apply(builder)
         guildService.createGuild(inst.create())
+    }
+
+    override suspend fun getInvite(code: String): IInvite = rest.call { inviteService.getInvite(code) }
+
+    override suspend fun deleteInvite(code: String, reason: String?) =
+        rest.effect { inviteService.deleteInvite(code) }
+
+    override suspend fun getRegions(): ListK<IRegion> = rest.call(ListK.functor()) {
+        voiceService.getVoiceRegions()
     }.fix()
 
-    override fun getInvite(code: String): IO<IInvite> = rest.call { inviteService.getInvite(code) }.fix()
+    override suspend fun getChannel(id: Snowflake) = cache[id] as IChannel?
+        ?: rest.call { channelService.getChannel(id) }.also { cache[id] = it }
 
-    override fun deleteInvite(code: String, reason: String?) =
-        rest.effect { inviteService.deleteInvite(code) }.fix()
+    override suspend fun getGuild(id: Snowflake) = guilds.find { it.id == id }.orNull()
+        ?: rest.call { guildService.getGuild(id) }.also { cache[id] = it }
 
-    override fun getRegions(): IO<ListK<IRegion>> = rest.call(ListK.functor()) {
-        voiceService.getVoiceRegions()
-    }.map { it.fix() }
-
-    override fun getChannel(id: Snowflake) = (cache[id] as IChannel?)?.just()
-        ?: rest.call { channelService.getChannel(id) }.flatTap { cache[id] = it; just() }
-
-    override fun getGuild(id: Snowflake) = guilds.find { it.id == id }.orNull()?.just()
-        ?: rest.call { guildService.getGuild(id) }.flatTap { cache[id] = it; just() }
-
-    override fun getUser(id: Snowflake) =
-        users.find { it.id == id }.orNull()?.just() ?: rest.call { userService.getUser(id) }.flatTap {
-            cache[id] = it; just()
+    override suspend fun getUser(id: Snowflake) =
+        users.find { it.id == id }.orNull() ?: rest.call { userService.getUser(id) }.also {
+            cache[id] = it
         }
 
-    override fun getMember(userId: Snowflake, guildId: Snowflake) =
+    override suspend fun getMember(userId: Snowflake, guildId: Snowflake) =
         cache.values.filterIsInstance<IMember>()
             .filter { it.guild.id == guildId }
-            .find { it.id == userId }.orNull()?.just() ?: getUser(userId).flatMap { it.asMember(guildId) }.flatTap {
-            cache[userId] = it; just()
+            .find { it.id == userId }.orNull() ?: getUser(userId).asMember(guildId).also {
+            cache[userId] = it
         }
 
-    override fun getMessage(channelId: Snowflake, messageId: Snowflake): IO<IMessage> =
+    override suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): IMessage =
         cache.values.filterIsInstance<IMessage>()
             .filter { it.channel.id == channelId }
-            .find { it.id == messageId }.orNull()?.just()
+            .find { it.id == messageId }.orNull()
             ?: rest.call {
                 channelService.getMessage(channelId, messageId)
-            }.flatTap { cache += it.id to it; just() }
+            }.also { cache += it.id to it; }
 }

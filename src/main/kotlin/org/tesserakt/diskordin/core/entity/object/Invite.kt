@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
 import arrow.core.ForId
-import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.json.response.InviteResponse
 import org.tesserakt.diskordin.core.entity.IChannel
@@ -26,4 +25,4 @@ interface IInvite : IDiscordObject {
     }
 }
 
-interface IGuildInvite : IInvite, IGuildObject<ForIO>
+interface IGuildInvite : IInvite, IGuildObject

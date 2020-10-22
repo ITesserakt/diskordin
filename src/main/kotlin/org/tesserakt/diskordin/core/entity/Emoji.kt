@@ -1,9 +1,7 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
-import arrow.core.ListK
-import arrow.fx.ForIO
-import arrow.fx.IO
+import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
@@ -25,15 +23,15 @@ interface IEmoji : INamed {
     }
 }
 
-interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject<ForIO>,
+interface ICustomEmoji : IEmoji, IDeletable, IMentioned, IGuildObject,
     IEditable<ICustomEmoji, EmojiEditBuilder> {
-    val roles: IO<ListK<IRole>>
+    val roles: Stream<IRole>
     val creator: IdentifiedF<ForId, IUser>?
     val requireColons: Boolean
     val isManaged: Boolean
     val isAnimated: Boolean
 
-    fun edit(name: String, roles: Array<Snowflake>) = edit {
+    suspend fun edit(name: String, roles: Array<Snowflake>) = edit {
         this.name = name
         this.roles = roles
     }

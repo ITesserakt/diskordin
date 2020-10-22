@@ -2,8 +2,6 @@ package org.tesserakt.diskordin.core.client
 
 import arrow.core.ListK
 import arrow.fx.ForIO
-import arrow.fx.IO
-import arrow.fx.typeclasses.ConcurrentSyntax
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
@@ -16,24 +14,19 @@ interface IDiscordClient : IDiscordObject {
     val webSocketStateHolder: WebSocketStateHolder
     val token: String
     val self: IdentifiedF<ForIO, ISelf>
-    val rest: RestClient<ForIO>
+    val rest: RestClient
 
     /*
     Performs a login to discord servers and enables the Gateway
      */
-    fun login()
+    suspend fun login()
 
-    /*
-    Should be used when need fast connect to Discord. Does not runs the Gateway
-     */
-    fun use(block: suspend ConcurrentSyntax<ForIO>.(IDiscordClient) -> Unit): IO<Unit>
-
-    fun logout()
-    fun getUser(id: Snowflake): IO<IUser>
-    fun getGuild(id: Snowflake): IO<IGuild>
-    fun getChannel(id: Snowflake): IO<IChannel>
-    fun getMember(userId: Snowflake, guildId: Snowflake): IO<IMember>
-    fun createGuild(
+    suspend fun logout()
+    suspend fun getUser(id: Snowflake): IUser
+    suspend fun getGuild(id: Snowflake): IGuild
+    suspend fun getChannel(id: Snowflake): IChannel
+    suspend fun getMember(userId: Snowflake, guildId: Snowflake): IMember
+    suspend fun createGuild(
         name: String,
         region: IRegion,
         icon: String,
@@ -41,12 +34,12 @@ interface IDiscordClient : IDiscordObject {
         defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
         explicitContentFilter: IGuild.ExplicitContentFilter,
         builder: GuildCreateBuilder.() -> Unit
-    ): IO<IGuild>
+    ): IGuild
 
-    fun getInvite(code: String): IO<IInvite>
-    fun deleteInvite(code: String, reason: String?): IO<Unit>
-    fun getRegions(): IO<ListK<IRegion>>
-    fun getMessage(channelId: Snowflake, messageId: Snowflake): IO<IMessage>
+    suspend fun getInvite(code: String): IInvite
+    suspend fun deleteInvite(code: String, reason: String?)
+    suspend fun getRegions(): ListK<IRegion>
+    suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): IMessage
 
     val users: List<IUser>
     val guilds: List<IGuild>

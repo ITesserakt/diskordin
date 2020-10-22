@@ -3,10 +3,8 @@
 package org.tesserakt.diskordin.commands.integration
 
 import arrow.core.Eval
-import arrow.core.extensions.either.monad.flatTap
-import arrow.core.flatMap
 import arrow.core.getOrHandle
-import arrow.core.right
+import arrow.fx.IO
 import io.github.classgraph.ClassGraph
 import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.CommandRegistry
@@ -41,13 +39,13 @@ private val workersCount = 2.coerceAtLeast(
 private var loggerPrivate: Logger = QuietLogger
 private var commandsContextPrivate = Commands(ResolversProvider(emptyMap()), Eval.now(CommandRegistry.EMPTY))
 
-inline fun <F> DiscordClientBuilder<F>.commandFramework(
-    builder: CommandFrameworkBuilder<F>.() -> Unit = {
+inline fun DiscordClientBuilder.commandFramework(
+    builder: CommandFrameworkBuilder.() -> Unit = {
         +resolvers()
     }
-) = CommandFrameworkBuilder(CC).apply(builder).create()
+) = CommandFrameworkBuilder().apply(builder).create()
 
-operator fun CommandFramework.unaryPlus() {
+suspend operator fun CommandFramework.unaryPlus() {
     loggerPrivate = logger
 
     val registry = Eval.later {
@@ -58,17 +56,15 @@ operator fun CommandFramework.unaryPlus() {
 
         val compiler = CommandModuleCompiler(defaultExtension + extraExtensions)
 
-        CommandModuleLoader(compiler, graph, workersCount)
-    }.map { loader ->
-        val summary = loader.load().attempt().unsafeRunSync()
+        val loader = CommandModuleLoader(compiler, graph, workersCount)
+
+        val summary = IO { loader.load() }.unsafeRunSync()
         val realLogger = KotlinLogging.logger("[Discord client]")
 
-        summary.flatTap { logger.logSummary(it).right() }
-            .map { logger.logs }
-            .map { it.forEach(realLogger::info) }
+        summary.also { logger.logSummary(it) }
+        logger.logs.forEach(realLogger::info)
 
-        summary.mapLeft { it }
-            .flatMap { it.result.mapLeft { msg -> IllegalStateException(it.errorsToString(msg)) } }
+        summary.result.mapLeft { IllegalStateException(summary.errorsToString(it)) }
             .getOrHandle { throw it }
     }.memoize()
 

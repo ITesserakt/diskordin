@@ -32,9 +32,9 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val iconUrl: String? = raw.icon_url
         override fun toString(): String {
             return StringBuilder("Footer(")
-                .appendln("text='$text', ")
-                .appendln("iconUrl=$iconUrl")
-                .appendln(")")
+                .appendLine("text='$text', ")
+                .appendLine("iconUrl=$iconUrl")
+                .appendLine(")")
                 .toString()
         }
     }
@@ -52,9 +52,9 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val url: String? = raw.url
         override fun toString(): String {
             return StringBuilder("Provider(")
-                .appendln("name=$name, ")
-                .appendln("url=$url")
-                .appendln(")")
+                .appendLine("name=$name, ")
+                .appendLine("url=$url")
+                .appendLine(")")
                 .toString()
         }
     }
@@ -67,10 +67,10 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val iconUrl: String? = raw.icon_url
         override fun toString(): String {
             return StringBuilder("Author(")
-                .appendln("name=$name, ")
-                .appendln("url=$url, ")
-                .appendln("iconUrl=$iconUrl")
-                .appendln(")")
+                .appendLine("name=$name, ")
+                .appendLine("url=$url, ")
+                .appendLine("iconUrl=$iconUrl")
+                .appendLine(")")
                 .toString()
         }
     }
@@ -83,30 +83,30 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val inline: Boolean? = raw.inline
         override fun toString(): String {
             return StringBuilder("Field(")
-                .appendln("name='$name', ")
-                .appendln("value='$value', ")
-                .appendln("inline=$inline")
-                .appendln(")")
+                .appendLine("name='$name', ")
+                .appendLine("value='$value', ")
+                .appendLine("inline=$inline")
+                .appendLine(")")
                 .toString()
         }
     }
 
     override fun toString(): String {
         return StringBuilder("Embed(")
-            .appendln("title=$title, ")
-            .appendln("type=$type, ")
-            .appendln("description=$description, ")
-            .appendln("url=$url, ")
-            .appendln("timestamp=$timestamp, ")
-            .appendln("color=$color, ")
-            .appendln("footer=$footer, ")
-            .appendln("image=$image, ")
-            .appendln("thumbnail=$thumbnail, ")
-            .appendln("video=$video, ")
-            .appendln("provider=$provider, ")
-            .appendln("author=$author, ")
-            .appendln("fields=$fields")
-            .appendln(")")
+            .appendLine("title=$title, ")
+            .appendLine("type=$type, ")
+            .appendLine("description=$description, ")
+            .appendLine("url=$url, ")
+            .appendLine("timestamp=$timestamp, ")
+            .appendLine("color=$color, ")
+            .appendLine("footer=$footer, ")
+            .appendLine("image=$image, ")
+            .appendLine("thumbnail=$thumbnail, ")
+            .appendLine("video=$video, ")
+            .appendLine("provider=$provider, ")
+            .appendLine("author=$author, ")
+            .appendLine("fields=$fields")
+            .appendLine(")")
             .toString()
     }
 }

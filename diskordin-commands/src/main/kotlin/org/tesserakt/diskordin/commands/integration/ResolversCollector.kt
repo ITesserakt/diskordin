@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.commands.integration
 
-import arrow.fx.typeclasses.Async
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.commands.resolver.*
 import org.tesserakt.diskordin.core.entity.IUser
@@ -11,30 +10,30 @@ import kotlin.reflect.KClass
 
 @Suppress("NOTHING_TO_INLINE")
 @RequestBuilder
-class ResolversCollector<F>(A: Async<F>) {
+class ResolversCollector {
     private val builtInResolvers = {
-        String::class bindWith StringResolver(A)
-        Char::class bindWith CharResolver(A)
-        Boolean::class bindWith BooleanResolver(A)
-        Int::class bindWith IntResolver(A)
-        Float::class bindWith FloatResolver(A)
-        Long::class bindWith LongResolver(A)
-        Short::class bindWith ShortResolver(A)
-        Double::class bindWith DoubleResolver(A)
-        BigDecimal::class bindWith BigDecimalResolver(A)
-        BigInteger::class bindWith BigIntegerResolver(A)
-        Byte::class bindWith ByteResolver(A)
-        IUser::class bindWith UserResolver(A)
+        String::class bindWith StringResolver()
+        Char::class bindWith CharResolver()
+        Boolean::class bindWith BooleanResolver()
+        Int::class bindWith IntResolver()
+        Float::class bindWith FloatResolver()
+        Long::class bindWith LongResolver()
+        Short::class bindWith ShortResolver()
+        Double::class bindWith DoubleResolver()
+        BigDecimal::class bindWith BigDecimalResolver()
+        BigInteger::class bindWith BigIntegerResolver()
+        Byte::class bindWith ByteResolver()
+        IUser::class bindWith UserResolver()
     }
 
-    private val _resolvers = mutableMapOf<KClass<*>, TypeResolver<*, *, *>>()
-    internal val resolvers: Map<KClass<*>, TypeResolver<*, *, *>> = _resolvers
+    private val _resolvers = mutableMapOf<KClass<*>, TypeResolver<*, *>>()
+    internal val resolvers: Map<KClass<*>, TypeResolver<*, *>> = _resolvers
 
     init {
         builtInResolvers()
     }
 
-    infix fun <T : Any, F, C : CommandContext<F>> KClass<T>.bindWith(resolver: TypeResolver<T, F, C>) {
+    infix fun <T : Any, C : CommandContext> KClass<T>.bindWith(resolver: TypeResolver<T, C>) {
         _resolvers += this to resolver
     }
 }

@@ -4,14 +4,12 @@ package org.tesserakt.diskordin.impl.core.entity
 import arrow.core.Id
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.fx.IO
-import arrow.fx.extensions.io.applicative.map
-import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.Permission
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
+import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.IRole
 import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
@@ -26,10 +24,10 @@ internal class Role constructor(
     raw: RoleResponse,
     guildId: Snowflake
 ) : IRole {
-    override fun edit(builder: RoleEditBuilder.() -> Unit): IO<IRole> = rest.call(guild.id, Id.functor()) {
+    override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {
         val inst = builder.instance(::RoleEditBuilder)
         guildService.editRole(guild.id, id, inst.create(), inst.reason)
-    }.map { it.extract() }
+    }.extract()
 
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
 
@@ -43,7 +41,7 @@ internal class Role constructor(
 
     override val isEveryone: Boolean = id == guildId
 
-    override val guild = guildId identify {
+    override val guild = guildId.identify<IGuild> {
         client.getGuild(it)
     }
 
@@ -51,23 +49,23 @@ internal class Role constructor(
 
     override val name: String = raw.name
 
-    override fun delete(reason: String?) = rest.effect {
+    override suspend fun delete(reason: String?) = rest.effect {
         guildService.deleteRole(guild.id, id, reason)
-    }.fix()
+    }
 
     @ExperimentalUnsignedTypes
     override fun toString(): String {
         return StringBuilder("Role(")
-            .appendln("permissions=$permissions, ")
-            .appendln("color=$color, ")
-            .appendln("isHoisted=$isHoisted, ")
-            .appendln("isMentionable=$isMentionable, ")
-            .appendln("id=$id, ")
-            .appendln("isEveryone=$isEveryone, ")
-            .appendln("guild=$guild, ")
-            .appendln("mention='$mention', ")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("permissions=$permissions, ")
+            .appendLine("color=$color, ")
+            .appendLine("isHoisted=$isHoisted, ")
+            .appendLine("isMentionable=$isMentionable, ")
+            .appendLine("id=$id, ")
+            .appendLine("isEveryone=$isEveryone, ")
+            .appendLine("guild=$guild, ")
+            .appendLine("mention='$mention', ")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 }

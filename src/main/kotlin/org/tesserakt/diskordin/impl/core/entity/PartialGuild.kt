@@ -3,7 +3,8 @@ package org.tesserakt.diskordin.impl.core.entity
 import arrow.core.ForId
 import arrow.core.ListK
 import arrow.fx.ForIO
-import arrow.fx.IO
+import arrow.fx.coroutines.stream.Stream
+import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
@@ -39,86 +40,91 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override val premiumSubscriptions: Int? by lazy { delegate.premiumSubscriptions }
     override val features: EnumSet<IGuild.Feature> by lazy { delegate.features }
 
-    private val delegate by lazy { client.getGuild(id).unsafeRunSync() }
+    private val delegate by lazy { runBlocking { client.getGuild(id) } }
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }
     override val owner: IdentifiedF<ForIO, IMember> by lazy { delegate.owner }
-    override val afkChannel: IdentifiedF<ForId, IVoiceChannel>? by lazy { delegate.afkChannel }
+    override val afkChannel by lazy { delegate.afkChannel }
+
     @ExperimentalTime
     override val afkChannelTimeout: Duration by lazy { delegate.afkChannelTimeout }
     override val verificationLevel: IGuild.VerificationLevel by lazy { delegate.verificationLevel }
 
     override fun getRole(id: Snowflake) = delegate.getRole(id)
 
-    override fun getEmoji(emojiId: Snowflake): IO<ICustomEmoji> = delegate.getEmoji(emojiId)
+    override suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji = delegate.getEmoji(emojiId)
 
-    override fun createEmoji(name: String, image: File, roles: Array<Snowflake>): IO<ICustomEmoji> =
+    override suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji =
         delegate.createEmoji(name, image, roles)
 
-    override fun editOwnNickname(newNickname: String): IO<String?> =
+    override suspend fun editOwnNickname(newNickname: String): String? =
         delegate.editOwnNickname(newNickname)
 
-    override fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): IO<ITextChannel> =
+    override suspend fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
         delegate.addTextChannel(name, builder)
 
-    override fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IO<IVoiceChannel> =
+    override suspend fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel =
         delegate.addVoiceChannel(name, builder)
 
-    override fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IO<IMember> =
+    override suspend fun addMember(
+        userId: Snowflake,
+        accessToken: String,
+        builder: MemberAddBuilder.() -> Unit
+    ): IMember =
         delegate.addMember(userId, accessToken, builder)
 
-    override fun kick(member: IMember, reason: String?) = delegate.kick(member, reason)
+    override suspend fun kick(member: IMember, reason: String?) = delegate.kick(member, reason)
 
-    override fun kick(memberId: Snowflake, reason: String?) = delegate.kick(memberId, reason)
+    override suspend fun kick(memberId: Snowflake, reason: String?) = delegate.kick(memberId, reason)
 
-    override fun moveRoles(vararg builder: Pair<Snowflake, Int>): IO<ListK<IRole>> =
+    override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole> =
         delegate.moveRoles(*builder)
 
-    override fun getBan(userId: Snowflake): IO<IBan> = delegate.getBan(userId)
+    override suspend fun getBan(userId: Snowflake): IBan = delegate.getBan(userId)
 
     @ExperimentalTime
-    override fun ban(member: IMember, builder: BanQuery.() -> Unit) = delegate.ban(member, builder)
+    override suspend fun ban(member: IMember, builder: BanQuery.() -> Unit) = delegate.ban(member, builder)
 
     @ExperimentalTime
-    override fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = delegate.ban(memberId, builder)
+    override suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit) = delegate.ban(memberId, builder)
 
-    override fun pardon(userId: Snowflake, reason: String?) = delegate.pardon(userId, reason)
+    override suspend fun pardon(userId: Snowflake, reason: String?) = delegate.pardon(userId, reason)
 
-    override fun getPruneCount(builder: PruneQuery.() -> Unit): IO<Int> = delegate.getPruneCount(builder)
+    override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int = delegate.getPruneCount(builder)
 
-    override fun addIntegration(id: Snowflake, type: String): IO<Unit> = delegate.addIntegration(id, type)
+    override suspend fun addIntegration(id: Snowflake, type: String) = delegate.addIntegration(id, type)
 
     override fun getEveryoneRole() = delegate.getEveryoneRole()
 
     override fun <C : IGuildChannel> getChannel(id: Snowflake) = delegate.getChannel<C>(id)
 
-    override val invites: IO<ListK<IGuildInvite>> by lazy { delegate.invites }
-    override val emojis: IO<ListK<ICustomEmoji>> by lazy { delegate.emojis }
-    override val bans: IO<ListK<IBan>> by lazy { delegate.bans }
-    override val integrations: IO<ListK<IIntegration>> by lazy { delegate.integrations }
+    override val invites: Stream<IGuildInvite> by lazy { delegate.invites }
+    override val emojis: Stream<ICustomEmoji> by lazy { delegate.emojis }
+    override val bans: Stream<IBan> by lazy { delegate.bans }
+    override val integrations: Stream<IIntegration> by lazy { delegate.integrations }
     override val roles by lazy { delegate.roles }
     override val channels by lazy { delegate.channels }
     override val id: Snowflake = raw.id
     override val name: String = raw.name
 
-    override fun delete(reason: String?) = delegate.delete(reason)
+    override suspend fun delete(reason: String?) = delegate.delete(reason)
 
-    override fun edit(builder: GuildEditBuilder.() -> Unit): IO<IGuild> = delegate.edit(builder)
+    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)
 
-    override fun getMembers(query: MemberQuery.() -> Unit): IO<ListK<IMember>> = delegate.getMembers(query)
+    override suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember> = delegate.getMembers(query)
 
-    override fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IO<IRole> =
+    override suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole =
         delegate.addRole(name, color, builder)
 
-    override fun moveChannels(vararg builder: Pair<Snowflake, Int>): IO<Unit> = delegate.moveChannels(*builder)
+    override suspend fun moveChannels(vararg builder: Pair<Snowflake, Int>): Unit = delegate.moveChannels(*builder)
 
     override fun toString(): String {
         return StringBuilder("PartialGuild(")
-            .appendln("iconHash=$iconHash, ")
-            .appendln("id=$id, ")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("iconHash=$iconHash, ")
+            .appendLine("id=$id, ")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 }

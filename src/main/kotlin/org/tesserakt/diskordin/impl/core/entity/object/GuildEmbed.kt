@@ -12,15 +12,15 @@ import org.tesserakt.diskordin.core.entity.client
 internal class GuildEmbed(raw: GuildEmbedResponse) : IGuildEmbed {
     override val enabled: Boolean = raw.enabled
 
-    override val channel: IdentifiedF<ForIO, IGuildChannel>? = raw.channel_id?.identify {
-        client.getChannel(it).map { it as IGuildChannel }
+    override val channel: IdentifiedF<ForIO, IGuildChannel>? = raw.channel_id?.identify<IGuildChannel> {
+        client.getChannel(it) as IGuildChannel
     }
 
     override fun toString(): String {
         return StringBuilder("GuildEmbed(")
-            .appendln("enabled=$enabled, ")
-            .appendln("channel=$channel")
-            .appendln(")")
+            .appendLine("enabled=$enabled, ")
+            .appendLine("channel=$channel")
+            .appendLine(")")
             .toString()
     }
 }

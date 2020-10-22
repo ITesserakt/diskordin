@@ -1,23 +1,14 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-
 import arrow.core.ForId
-import arrow.core.extensions.id.applicative.just
-import arrow.fx.IO
-import arrow.fx.extensions.fx
-import arrow.fx.extensions.io.monad.flatMap
-import arrow.fx.extensions.io.monad.map
-import arrow.fx.fix
+import arrow.fx.coroutines.stream.toList
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.AccountResponse
 import org.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.core.entity.IIntegration
-import org.tesserakt.diskordin.core.entity.IUser
+import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
-import org.tesserakt.diskordin.core.entity.client
-import org.tesserakt.diskordin.core.entity.rest
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -25,35 +16,35 @@ internal class Integration(
     raw: GuildIntegrationResponse,
     guildId: Snowflake
 ) : IIntegration {
-    override fun sync() = rest.effect {
+    override suspend fun sync() = rest.effect {
         guildService.syncIntegration(guild.id, id)
-    }.fix()
+    }
 
-    override val guild = guildId identify { client.getGuild(it) }
+    override val guild = guildId.identify<IGuild> { client.getGuild(it) }
 
-    override fun delete(reason: String?) = rest.effect {
+    override suspend fun delete(reason: String?) = rest.effect {
         guildService.deleteIntegration(guild.id, id)
-    }.fix()
+    }
 
-    override fun edit(builder: IntegrationEditBuilder.() -> Unit): IO<IIntegration> = rest.effect {
+    override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit) = rest.effect {
         guildService.editIntegration(guild.id, id, builder.build(::IntegrationEditBuilder))
-    }.flatMap { IO.fx { guild().bind().integrations.bind().first { it.id == id } } }
+    }.let { guild().integrations.toList().first { it.id == id } }
 
     override fun toString(): String {
         return StringBuilder("Integration(")
-            .appendln("guild=$guild, ")
-            .appendln("type='$type', ")
-            .appendln("enabled=$enabled, ")
-            .appendln("syncing=$syncing, ")
-            .appendln("role=$role, ")
-            .appendln("expireBehavior=$expireBehavior, ")
-            .appendln("expireGracePeriod=$expireGracePeriod, ")
-            .appendln("user=$user, ")
-            .appendln("account=$account, ")
-            .appendln("syncedAt=$syncedAt, ")
-            .appendln("id=$id, ")
-            .appendln("name='$name'")
-            .appendln(")")
+            .appendLine("guild=$guild, ")
+            .appendLine("type='$type', ")
+            .appendLine("enabled=$enabled, ")
+            .appendLine("syncing=$syncing, ")
+            .appendLine("role=$role, ")
+            .appendLine("expireBehavior=$expireBehavior, ")
+            .appendLine("expireGracePeriod=$expireGracePeriod, ")
+            .appendLine("user=$user, ")
+            .appendLine("account=$account, ")
+            .appendLine("syncedAt=$syncedAt, ")
+            .appendLine("id=$id, ")
+            .appendLine("name='$name'")
+            .appendLine(")")
             .toString()
     }
 
@@ -63,15 +54,15 @@ internal class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role = raw.role_id identify { id ->
-        guild().map { it.getRole(id).orNull()!! }
+    override val role = raw.role_id.identify<IRole> { id ->
+        guild().getRole(id).orNull()!!
     }
 
     override val expireBehavior: Int = raw.expire_behavior
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: IdentifiedF<ForId, IUser> = raw.user.id identify { raw.user.unwrap().just() }
+    override val user: IdentifiedF<ForId, IUser> = raw.user.id identifyId { raw.user.unwrap() }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 

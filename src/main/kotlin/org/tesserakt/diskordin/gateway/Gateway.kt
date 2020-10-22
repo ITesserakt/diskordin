@@ -1,15 +1,18 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.extensions.list.foldable.traverse_
+import arrow.core.Either
+import arrow.core.identity
+import arrow.fx.coroutines.Fiber
+import arrow.fx.coroutines.ForkConnected
+import arrow.fx.coroutines.parTraverse
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.flatten
 import arrow.syntax.function.memoize
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.LifecycleState
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
@@ -27,18 +30,16 @@ import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
 import org.tesserakt.diskordin.impl.core.client.setupScarlet
 
 @Suppress("UNCHECKED_CAST")
-class Gateway<F>(
-    private val context: BootstrapContext.Gateway<F>,
+class Gateway(
+    private val context: BootstrapContext.Gateway,
     private val connections: List<GatewayConnection>,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
     private val tokenInterceptors = context.interceptors
-        .filter { it.selfContext == TokenInterceptor.Context::class }
-        .map { it as TokenInterceptor<F> }
+        .filter { it.selfContext == TokenInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
 
     private val eventInterceptors = context.interceptors
-        .filter { it.selfContext == EventInterceptor.Context::class }
-        .map { it as EventInterceptor<F> }
+        .filter { it.selfContext == EventInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
 
     private val controller = ShardController(
         context.connectionContext.shardSettings,
@@ -46,12 +47,12 @@ class Gateway<F>(
         lifecycles
     )
 
-    @FlowPreview
-    internal fun run(): Job {
+    @ExperimentalCoroutinesApi
+    internal fun run(): Stream<Fiber<Unit>> {
         lifecycles.forEach { it.start() }
 
-        return connections.map { it.receive().asFlow() }.withIndex().asFlow()
-            .flatMapMerge(connections.size) { (index, it) ->
+        return Stream.iterable(connections.map { it.receive() }.withIndex())
+            .effectMap { (index, it) ->
                 val shard = Shard(
                     context.connectionContext.shardSettings.token,
                     Shard.Data(index, context.connectionContext.shardSettings.shardCount.extract()),
@@ -60,33 +61,44 @@ class Gateway<F>(
                 )
 
                 it.map { WebSocketEventTransformer.transform(it) }
-                    .onEach { shard.sequence = it.seq ?: shard.sequence }
-                    .map { payload ->
-                        if (payload.isTokenPayload) processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
-                            TokenInterceptor.Context(it, controller, shard)
-                        } else processIncoming(payload, eventInterceptors, RawEventTransformer) {
-                            EventInterceptor.Context(it, controller, shard)
+                    .effectTap { shard._sequence.value = it.seq ?: shard.sequence.value }
+                    .effectMap { payload ->
+                        ForkConnected {
+                            if (payload.isTokenPayload)
+                                processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
+                                    TokenInterceptor.Context(it, controller, shard)
+                                } else processIncoming(payload, eventInterceptors, RawEventTransformer) {
+                                EventInterceptor.Context(it, controller, shard)
+                            }
                         }
-                    }.map { context.runner.run { it.suspended() } }
-            }.launchIn(CoroutineScope(context.scheduler))
+                    }
+            }.flatten()
     }
 
+    @ExperimentalCoroutinesApi
     internal fun close() {
         for (it in 0 until context.connectionContext.shardSettings.shardCount.extract()) {
             controller.closeShard(it)
         }
     }
 
-    private fun <P : IPayload, C : Interceptor.Context, I : Interceptor<C, F>, E> processIncoming(
+    private suspend fun <P : IPayload, C : Interceptor.Context, I : Interceptor<C>, E> processIncoming(
         payload: Payload<*>,
         interceptors: List<I>,
         transformer: Transformer<Payload<P>, E>,
         interceptorContext: (response: E) -> C
-    ) = context.CC.run {
-        val incoming = transformer.transform(payload as Payload<P>)
+    ) {
+        @Suppress("UNCHECKED_CAST") val incoming = transformer.transform(payload as Payload<P>)
         @Suppress("NAME_SHADOWING") val interceptorContext = interceptorContext(incoming)
 
-        interceptors.traverse_(this) { it.intercept(interceptorContext).fork(context.scheduler) }
+        interceptors.parTraverse {
+            Either.catch { it.intercept(interceptorContext) } to KotlinLogging.logger("[${it.name}]")
+        }.forEach { (either, logger) ->
+            either.fold({
+                logger.error(it) { "Unexpected fail on interceptor while processing ${payload.name}#${payload.opcode}" }
+                logger.debug { payload.rawData }
+            }, ::identity)
+        }
     }
 
     companion object Factory {
@@ -134,7 +146,7 @@ class Gateway<F>(
             }
         }
 
-        fun <F> create(context: BootstrapContext.Gateway<F>): Gateway<F> {
+        fun create(context: BootstrapContext.Gateway): Gateway {
             val connections = connections(context.connectionContext)
             return Gateway(context, connections.map { it.first }, connections.map { it.second })
         }

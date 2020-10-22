@@ -3,7 +3,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.util.*
 
-val kotlin_version: String = "1.3.72"
+val kotlin_version: String = "1.4.10"
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -11,7 +11,6 @@ val retrofit_version: String by extra
 val scarlet_version: String by extra
 val kotlin_logging_version: String by extra
 val slf4j_version: String by extra
-val kluent_version: String by extra
 val kotest_version: String by extra
 
 val publicationName = "diskordin"
@@ -20,7 +19,7 @@ fun arrow(module: String, version: String = arrow_version): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.jetbrains.kotlin.jvm") version "1.4.10"
     id("com.jfrog.bintray") version "1.8.4"
     `maven-publish`
 }
@@ -32,18 +31,19 @@ val jvmVersion = System.getenv("jvm") ?: "1.8"
 repositories {
     jcenter()
     maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") }
 }
 
 dependencies {
     implementation(kotlin("stdlib", kotlin_version))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutines_version")
 
     implementation(arrow("core"))
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
     implementation(arrow("integrations-retrofit-adapter"))
     implementation(arrow("ui"))
+    implementation(arrow("fx-coroutines"))
 
     implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")
@@ -53,8 +53,7 @@ dependencies {
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
-    testImplementation("io.kotest:kotest-runner-console-jvm:$kotest_version")
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotest_version")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")
@@ -68,7 +67,7 @@ tasks.test {
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses")
     }
 }
 tasks.compileTestKotlin {

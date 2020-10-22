@@ -2,6 +2,7 @@
 
 package org.tesserakt.diskordin.impl.util.typeclass
 
+import arrow.core.Ordering
 import arrow.core.extensions.*
 import org.tesserakt.diskordin.util.typeclass.Numeric
 import java.math.BigDecimal
@@ -146,10 +147,10 @@ interface BigDecimalNumeric : Numeric<BigDecimal> {
         else -> toBigDecimal()
     }
 
-    override fun BigDecimal.compare(b: BigDecimal): Int = this.compareTo(b)
+    override fun BigDecimal.compare(b: BigDecimal): Ordering = Ordering.fromInt(this.compareTo(b))
 
-    override val MAX_VALUE get() = BigDecimal("1e1000000000") //does not maximum, but enough
-    override val MIN_VALUE get() = BigDecimal("-1e1000000000")
+    override val MAX_VALUE: BigDecimal get() = BigDecimal(10).pow(1024) //does not maximum, but enough
+    override val MIN_VALUE get() = -MAX_VALUE
 }
 
 private val int = object : IntNumeric {}

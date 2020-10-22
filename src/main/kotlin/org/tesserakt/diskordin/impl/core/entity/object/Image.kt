@@ -10,10 +10,10 @@ internal class Image(raw: ImageResponse) : IImage {
     override val width: Int? = raw.width
     override fun toString(): String {
         return StringBuilder("Image(")
-            .appendln("url=$url, ")
-            .appendln("height=$height, ")
-            .appendln("width=$width")
-            .appendln(")")
+            .appendLine("url=$url, ")
+            .appendLine("height=$height, ")
+            .appendLine("width=$width")
+            .appendLine(")")
             .toString()
     }
 }
