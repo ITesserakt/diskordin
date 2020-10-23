@@ -6,11 +6,10 @@ import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.net.URL
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class RetrofitService(private val httpClient: Eval<OkHttpClient>, private val discordApiUrl: URL) :
+class RetrofitService(private val httpClient: Eval<OkHttpClient>, private val discordApiUrl: String) :
     ReadOnlyProperty<Nothing?, Eval<Retrofit>> {
     override operator fun getValue(thisRef: Nothing?, property: KProperty<*>) = httpClient.map {
         Retrofit.Builder()

@@ -24,7 +24,6 @@ import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.NoopMap
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.or
-import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -92,7 +91,7 @@ class DiscordClientBuilder private constructor() {
 
     @Suppress("NOTHING_TO_INLINE")
     inner class RestBuildPhase internal constructor(
-        private val _discordApiURL: URL
+        private val _discordApiURL: String
     ) {
         val RestBuildPhase.discordApiURL get() = _discordApiURL
         val RestBuildPhase.httpClient get() = this@DiscordClientBuilder.httpClient
@@ -194,7 +193,7 @@ class DiscordClientBuilder private constructor() {
             }
 
             @Suppress("BlockingMethodInNonBlockingContext")
-            return builder.RestBuildPhase(URL("https://discord.com/api/"))
+            return builder.RestBuildPhase("https://discord.com")
         }
     }
 }

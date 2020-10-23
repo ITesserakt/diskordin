@@ -5,5 +5,5 @@ import org.tesserakt.diskordin.rest.KtorRestClient
 
 suspend fun DiscordClientBuilder.RestBuildPhase.ktorBackend() = defineRestBackend {
     val ktor by KtorService(httpClient)
-    KtorRestClient(ktor, "https://discord.com", schedule)
+    KtorRestClient(ktor, discordApiURL, schedule)
 }
