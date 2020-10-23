@@ -4,10 +4,7 @@ import arrow.core.Id
 import arrow.core.ListK
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
-import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import org.tesserakt.diskordin.core.data.json.response.InviteResponse
-import org.tesserakt.diskordin.core.data.json.response.MessageResponse
-import org.tesserakt.diskordin.core.data.json.response.UserResponse
+import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -54,6 +51,12 @@ interface ChannelService {
         @Part("payload_json") request: MessageCreateRequest
     ): Id<MessageResponse>
 
+    @POST("/api/channels/{channelId}/messages/{messageId}/crosspost")
+    suspend fun crosspostMessage(
+        @Path("channelId") channelId: Snowflake,
+        @Path("messageId") messageId: Snowflake
+    ): Id<MessageResponse>
+
     @PATCH("/api/v6/channels/{channelId}/messages/{messageId}")
     suspend fun editMessage(
         @Path("channelId") channelId: Snowflake,
@@ -73,6 +76,13 @@ interface ChannelService {
         @Path("id") channelId: Snowflake,
         @Body request: BulkDeleteRequest
     )
+
+    //TODO add webhooks support
+    @POST("/api/v6/channels/{id}/followers")
+    suspend fun followNewsChannel(
+        @Path("id") id: Snowflake,
+        @Body request: FollowRequest
+    ): Id<FollowedChannelResponse>
 
     @GET("/api/v6/channels/{id}/pins")
     suspend fun getPinnedMessages(@Path("id") id: Snowflake): ListK<MessageResponse>

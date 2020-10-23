@@ -8,8 +8,6 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.callback
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -37,14 +35,16 @@ internal class Message(raw: MessageResponse) : IMessage {
         channelService.removeReaction(channel.id, id, emoji.name, userId)
     }
 
-    override fun reactedUsers(
+    override suspend fun reactedUsers(
         emoji: IEmoji,
         builder: ReactedUsersQuery.() -> Unit
-    ): Stream<IUser> = Stream.callback {
-        rest.call(ListK.functor()) {
-            channelService.getReactions(channel.id, id, emoji.name, builder.query(::ReactedUsersQuery))
-        }.fix().forEach(::emit)
-    }
+    ) = rest.call(ListK.functor()) {
+        channelService.getReactions(channel.id, id, emoji.name, builder.query(::ReactedUsersQuery))
+    }.fix()
+
+    override suspend fun crosspostToFollowers(): IMessage? =
+        if (channel() is IAnnouncementChannel) (channel() as IAnnouncementChannel).crosspostToFollowers(id)
+        else null
 
     override suspend fun deleteAllReactions() = rest.effect {
         channelService.removeAllReactions(channel.id, id)

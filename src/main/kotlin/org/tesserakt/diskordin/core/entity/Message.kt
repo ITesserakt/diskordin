@@ -1,8 +1,8 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
+import arrow.core.ListK
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
@@ -23,6 +23,7 @@ interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder
     suspend fun deleteReaction(emoji: IEmoji, user: IUser)
     suspend fun deleteReaction(emoji: IEmoji, userId: Snowflake)
     suspend fun deleteAllReactions(emoji: IEmoji)
-    fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): Stream<IUser>
+    suspend fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): ListK<IUser>
     suspend fun deleteAllReactions()
+    suspend fun crosspostToFollowers(): IMessage?
 }

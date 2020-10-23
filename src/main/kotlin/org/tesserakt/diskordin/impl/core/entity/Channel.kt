@@ -39,7 +39,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     final override suspend fun delete(reason: String?) = rest.call(Id.functor()) {
         channelService.deleteChannel(id, reason)
-    }.let { Unit }
+    }.let { }
 
     override fun toString(): String {
         return StringBuilder("Channel(")
@@ -109,7 +109,7 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 }
 
 internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
-    override fun getPinnedMessages() = Stream.callback {
+    override val pins = Stream.callback {
         rest.call(ListK.functor()) {
             channelService.getPinnedMessages(id)
         }.fix().forEach { emit(it) }
@@ -169,6 +169,10 @@ internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) :
             .appendLine("messages=$cachedMessages")
             .appendLine(") ${super.toString()}")
             .toString()
+    }
+
+    override suspend fun crosspostToFollowers(messageId: Snowflake): IMessage = rest.call {
+        channelService.crosspostMessage(id, messageId)
     }
 }
 

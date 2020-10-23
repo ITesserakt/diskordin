@@ -8,10 +8,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
-import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import org.tesserakt.diskordin.core.data.json.response.InviteResponse
-import org.tesserakt.diskordin.core.data.json.response.MessageResponse
-import org.tesserakt.diskordin.core.data.json.response.UserResponse
+import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -53,6 +50,9 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
             append("payload_json", request.toJson())
         }) { method = HttpMethod.Post }
 
+    override suspend fun crosspostMessage(channelId: Snowflake, messageId: Snowflake): Id<MessageResponse> =
+        ktor.post("$discordApiURL/api/v6/channels/$channelId/messages/$messageId/crosspost")
+
     override suspend fun editMessage(
         channelId: Snowflake,
         messageId: Snowflake,
@@ -68,6 +68,11 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
 
     override suspend fun bulkDeleteMessages(channelId: Snowflake, request: BulkDeleteRequest): Unit =
         ktor.post("$discordApiURL/api/v6/channels/$channelId/messages/bulk-delete") {
+            body = request
+        }
+
+    override suspend fun followNewsChannel(id: Snowflake, request: FollowRequest): Id<FollowedChannelResponse> =
+        ktor.post("$discordApiURL/api/v6/channels/$id/followers") {
             body = request
         }
 

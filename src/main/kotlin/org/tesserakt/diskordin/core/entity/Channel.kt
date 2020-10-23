@@ -87,15 +87,17 @@ interface ITextChannel : IGuildChannel, IMessageChannel,
 
     @ExperimentalUnsignedTypes
     val rateLimit: UShort
-
-    fun getPinnedMessages(): Stream<IMessage>
+    val pins: Stream<IMessage>
 }
 
 interface IGuildCategory : IGuildChannel {
     val parentId: Snowflake?
 }
 
-interface IAnnouncementChannel : IGuildChannel, IMessageChannel
+interface IAnnouncementChannel : IGuildChannel, IMessageChannel {
+    suspend fun crosspostToFollowers(message: IMessage) = crosspostToFollowers(message.id)
+    suspend fun crosspostToFollowers(messageId: Snowflake): IMessage
+}
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
     val owner: IdentifiedF<ForIO, IUser>?
