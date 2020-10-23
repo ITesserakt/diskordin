@@ -76,23 +76,8 @@ internal class DiscordClient private constructor(
         logoutToken.complete(Unit)
     }
 
-    override suspend fun createGuild(
-        name: String,
-        region: IRegion,
-        icon: String,
-        verificationLevel: IGuild.VerificationLevel,
-        defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
-        explicitContentFilter: IGuild.ExplicitContentFilter,
-        builder: GuildCreateBuilder.() -> Unit
-    ): IGuild = rest.call {
-        val inst = GuildCreateBuilder(
-            name,
-            region.name,
-            icon,
-            verificationLevel,
-            defaultMessageNotificationLevel,
-            explicitContentFilter
-        ).apply(builder)
+    override suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild = rest.call {
+        val inst = GuildCreateBuilder(name).apply(builder)
         guildService.createGuild(inst.create())
     }
 

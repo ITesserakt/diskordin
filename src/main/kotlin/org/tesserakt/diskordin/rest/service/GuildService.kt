@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package org.tesserakt.diskordin.rest.service
 
@@ -27,7 +27,7 @@ interface GuildService {
 
     @Deprecated("Bots can use this only 10 times")
     @DELETE("/api/v6/guilds/{id}")
-    suspend fun deleteGuild(@Path("id") id: Snowflake): Unit
+    suspend fun deleteGuild(@Path("id") id: Snowflake)
 
     @PATCH("/api/v6/guilds/{id}/members/@me/nick")
     suspend fun editCurrentNickname(
@@ -52,7 +52,7 @@ interface GuildService {
     suspend fun editGuildChannelPositions(
         @Path("id") id: Snowflake,
         @Body request: Array<PositionEditRequest>
-    ): Unit
+    )
 
     @GET("/api/v6/guilds/{guildId}/members/{userId}")
     suspend fun getMember(
@@ -79,14 +79,14 @@ interface GuildService {
         @Path("userId") userId: Snowflake,
         @Body request: MemberEditRequest,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @DELETE("/api/v6/guilds/{guildId}/members/{userId}")
     suspend fun removeMember(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @PUT("/api/v6/guilds/{guildId}/members/{userId}/roles/{roleId}")
     suspend fun addMemberRole(
@@ -94,7 +94,7 @@ interface GuildService {
         @Path("userId") userId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @DELETE("/api/v6/guilds/{guildId}/members/{userId}/roles/{roleId}")
     suspend fun deleteMemberRole(
@@ -102,7 +102,7 @@ interface GuildService {
         @Path("userId") userId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @GET("/api/v6/guilds/{id}/roles")
     suspend fun getRoles(@Path("id") id: Snowflake): ListK<RoleResponse>
@@ -133,7 +133,7 @@ interface GuildService {
         @Path("guildId") guildId: Snowflake,
         @Path("roleId") roleId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @GET("/api/v6/guilds/{id}/bans")
     suspend fun getBans(@Path("id") id: Snowflake): ListK<BanResponse>
@@ -149,14 +149,14 @@ interface GuildService {
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @QueryMap query: Query
-    ): Unit
+    )
 
     @DELETE("/api/v6/guilds/{guildId}/bans/{userId}")
     suspend fun removeBan(
         @Path("guildId") guildId: Snowflake,
         @Path("userId") userId: Snowflake,
         @Header("X-Audit-Log-Reason") reason: String?
-    ): Unit
+    )
 
     @GET("/api/v6/guilds/{id}/prune")
     suspend fun getPruneCount(
@@ -178,26 +178,26 @@ interface GuildService {
     suspend fun createIntegration(
         @Path("id") id: Snowflake,
         @Body request: IntegrationCreateRequest
-    ): Unit
+    )
 
     @PATCH("/api/v6/guilds/{guildId}/integrations/{intId}")
     suspend fun editIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake,
         @Body request: IntegrationEditRequest
-    ): Unit
+    )
 
     @DELETE("/api/v6/guilds/{guildId}/integrations/{intId}")
     suspend fun deleteIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake
-    ): Unit
+    )
 
     @POST("/api/v6/guilds/{guildId}/integrations/{intId}")
     suspend fun syncIntegration(
         @Path("guildId") guildId: Snowflake,
         @Path("intId") integrationId: Snowflake
-    ): Unit
+    )
 
     @GET("/api/v6/guilds/{id}/embed")
     suspend fun getEmbed(@Path("id") id: Snowflake): Id<GuildEmbedResponse>

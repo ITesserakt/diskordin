@@ -26,16 +26,7 @@ interface IDiscordClient : IDiscordObject {
     suspend fun getGuild(id: Snowflake): IGuild
     suspend fun getChannel(id: Snowflake): IChannel
     suspend fun getMember(userId: Snowflake, guildId: Snowflake): IMember
-    suspend fun createGuild(
-        name: String,
-        region: IRegion,
-        icon: String,
-        verificationLevel: IGuild.VerificationLevel,
-        defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel,
-        explicitContentFilter: IGuild.ExplicitContentFilter,
-        builder: GuildCreateBuilder.() -> Unit
-    ): IGuild
-
+    suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild
     suspend fun getInvite(code: String): IInvite
     suspend fun deleteInvite(code: String, reason: String?)
     suspend fun getRegions(): ListK<IRegion>
