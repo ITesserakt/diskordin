@@ -4,8 +4,12 @@ plugins {
     kotlin("jvm")
 }
 
+val ktorVersion: String by extra
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
 val jvmVersion = System.getenv("jvm") ?: "1.8"
+
+fun ktor(module: String, version: String = ktorVersion) =
+    "io.ktor:ktor-$module:$version"
 
 fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
@@ -22,11 +26,13 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
-    implementation(project(":"))
-    implementation(project(":diskordin-commands"))
-    implementation(project(":diskordin-ktor-integration"))
+    implementation(ktor("client-core"))
+    implementation(ktor("client-okhttp"))
+    implementation(ktor("client-gson"))
 
-    implementation(arrow("core"))
+    implementation(arrow("fx-coroutines"))
+
+    implementation(project(":"))
 }
 
 tasks.compileKotlin {

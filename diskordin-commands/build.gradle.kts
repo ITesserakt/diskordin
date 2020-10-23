@@ -53,7 +53,7 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
-    withType<Test> {
+    test {
         useJUnitPlatform()
     }
 }

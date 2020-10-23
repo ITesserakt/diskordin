@@ -12,14 +12,18 @@ import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.util.typeAdapter.*
 import java.time.Instant
 
+val gsonBuilder: GsonBuilder.() -> Unit = {
+    setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+    registerTypeAdapter(Snowflake::class.java, SnowflakeTypeAdapter())
+    registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
+    registerTypeAdapter(ListK::class.java, ListKTypeAdapter())
+    registerTypeAdapter(Id::class.java, IdTypeAdapter())
+    registerTypeAdapter(Payload::class.java, PayloadSerializer())
+    serializeNulls()
+}
+
 val gson: Gson = GsonBuilder()
-    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-    .registerTypeAdapter(Snowflake::class.java, SnowflakeTypeAdapter())
-    .registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
-    .registerTypeAdapter(ListK::class.java, ListKTypeAdapter())
-    .registerTypeAdapter(Id::class.java, IdTypeAdapter())
-    .registerTypeAdapter(Payload::class.java, PayloadSerializer())
-    .serializeNulls()
+    .apply(gsonBuilder)
     .create()
 
 fun <T> T.toJson(): String = gson.toJson(this)
