@@ -8,7 +8,8 @@ data class InviteResponse<out I : IInvite>(
     val code: String,
     val guild: GuildResponse? = null,
     val channel: ChannelResponse<*>,
-    val target_user: UserResponse<IUser>,
+    val inviter: UserResponse<IUser>,
+    val target_user: UserResponse<IUser>? = null,
     val target_user_type: Int? = null,
     val approximate_presence_count: Int? = null,
     val approximate_member_count: Int? = null

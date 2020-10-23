@@ -11,6 +11,4 @@ class InviteServiceImpl(private val ktor: HttpClient, private val discordApiUrl:
         ktor.get("$discordApiUrl/api/v6/invites/$code")
 
     override suspend fun deleteInvite(code: String): Unit = ktor.delete("$discordApiUrl/api/v6/invites/$code")
-
-    override suspend fun acceptInvite(code: String): Unit = ktor.post("$discordApiUrl/api/v6/invites/$code")
 }
