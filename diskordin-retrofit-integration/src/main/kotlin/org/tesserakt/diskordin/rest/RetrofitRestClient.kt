@@ -20,6 +20,7 @@ class RetrofitRestClient(
     private val _userService: UserService by lazy { retrofit.create() }
     private val _voiceService: VoiceService by lazy { retrofit.create() }
     private val _webhookService: WebhookService by lazy { retrofit.create() }
+    private val _templateService: TemplateService by lazy { retrofit.create() }
 
     override val RestClient.channelService: ChannelService get() = _channelService
     override val RestClient.emojiService: EmojiService get() = _emojiService
@@ -29,6 +30,7 @@ class RetrofitRestClient(
     override val RestClient.userService: UserService get() = _userService
     override val RestClient.voiceService: VoiceService get() = _voiceService
     override val RestClient.webhookService: WebhookService get() = _webhookService
+    override val RestClient.templateService: TemplateService get() = _templateService
 }
 
 fun RestClient.Companion.byRetrofit(retrofit: Eval<Retrofit>, schedule: Schedule<*, *>): RestClient =

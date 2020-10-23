@@ -21,6 +21,8 @@ class NoopRestClient(schedule: Schedule<*, *>) : RestClient(schedule) {
         get() = throw NotImplementedError()
     override val RestClient.webhookService: WebhookService
         get() = throw NotImplementedError()
+    override val RestClient.templateService: TemplateService
+        get() = throw NotImplementedError()
 }
 
 suspend fun DiscordClientBuilder.RestBuildPhase.withoutRest() = defineRestBackend {

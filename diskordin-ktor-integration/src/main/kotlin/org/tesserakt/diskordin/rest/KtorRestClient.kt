@@ -20,6 +20,7 @@ class KtorRestClient(
     private val _userService: UserService by lazy { UserServiceImpl(ktor, discordApiUrl) }
     private val _voiceService: VoiceService by lazy { VoiceServiceImpl(ktor, discordApiUrl) }
     private val _webhookService: WebhookService by lazy { WebhookServiceImpl(ktor, discordApiUrl) }
+    private val _templateService: TemplateService by lazy { TemplateServiceImpl(ktor, discordApiUrl) }
 
     override val RestClient.channelService: ChannelService get() = _channelService
     override val RestClient.emojiService: EmojiService get() = _emojiService
@@ -29,4 +30,5 @@ class KtorRestClient(
     override val RestClient.userService: UserService get() = _userService
     override val RestClient.voiceService: VoiceService get() = _voiceService
     override val RestClient.webhookService: WebhookService get() = _webhookService
+    override val RestClient.templateService: TemplateService get() = _templateService
 }

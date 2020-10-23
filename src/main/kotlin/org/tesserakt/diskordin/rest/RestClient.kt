@@ -26,6 +26,7 @@ abstract class RestClient(
     abstract val RestClient.userService: UserService
     abstract val RestClient.voiceService: VoiceService
     abstract val RestClient.webhookService: WebhookService
+    abstract val RestClient.templateService: TemplateService
 
     @Suppress("UNCHECKED_CAST")
     suspend fun <R> callRaw(
