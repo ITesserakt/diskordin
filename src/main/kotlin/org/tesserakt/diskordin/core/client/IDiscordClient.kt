@@ -24,6 +24,7 @@ interface IDiscordClient : IDiscordObject {
     suspend fun logout()
     suspend fun getUser(id: Snowflake): IUser
     suspend fun getGuild(id: Snowflake): IGuild
+    suspend fun getGuildPreview(id: Snowflake): IGuildPreview
     suspend fun getChannel(id: Snowflake): IChannel
     suspend fun getMember(userId: Snowflake, guildId: Snowflake): IMember
     suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild

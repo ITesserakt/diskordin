@@ -49,18 +49,77 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val features: EnumSet<Feature>
 
     enum class Feature {
+        /**
+         * Guild has access to set an invite splash background
+         */
         INVITE_SPLASH,
+
+        /**
+         * Guild has access to set 384kbps bitrate in voice (previously VIP voice servers)
+         */
         VIP_REGIONS,
+
+        /**
+         * Guild has access to set a vanity URL
+         */
         VANITY_URL,
+
+        /**
+         * Guild is verified
+         */
         VERIFIED,
+
+        /**
+         * Guild is partnered
+         */
         PARTNERED,
-        PUBLIC,
+
+        /**
+         * Guild can enable welcome screen and discovery, and receives community updates
+         */
+        COMMUNITY,
+
+        /**
+         * Guild has access to use commerce features (i.e. create store channels)
+         */
         COMMERCE,
+
+        /**
+         * Guild has access to create news channels
+         */
         NEWS,
+
+        /**
+         * Guild is lurkable and able to be discovered in the directory
+         */
         DISCOVERABLE,
+
+        /**
+         * Guild is able to be featured in the directory
+         */
         FEATURABLE,
+
+        /**
+         * 	Guild has access to set an animated guild icon
+         */
         ANIMATED_ICON,
-        BANNER
+
+        /**
+         * Guild has access to set a guild banner image
+         */
+        BANNER,
+
+        /**
+         * Guild has enabled the welcome screen
+         */
+        WELCOME_SCREEN_ENABLED,
+
+        /**
+         * Guild has enabled the preview
+         */
+        PREVIEW_ENABLED,
+        ENABLED_DISCOVERABLE_BEFORE,
+        MORE_EMOJI
     }
 
     enum class PremiumTier {

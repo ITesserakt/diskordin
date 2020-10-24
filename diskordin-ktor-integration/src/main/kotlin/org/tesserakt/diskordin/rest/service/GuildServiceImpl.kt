@@ -19,6 +19,9 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
 
     override suspend fun getGuild(id: Snowflake): Id<GuildResponse> = ktor.get("$discordApiUrl/api/v6/guilds/$id")
 
+    override suspend fun getGuildPreview(id: Snowflake): Id<GuildPreviewResponse> =
+        ktor.get("$discordApiUrl/api/v6/guilds/$id/preview")
+
     override suspend fun editGuild(id: Snowflake, request: GuildEditRequest): Id<GuildResponse> =
         ktor.patch("$discordApiUrl//api/v6/guilds/$id")
 

@@ -19,6 +19,9 @@ interface GuildService {
     @GET("/api/v6/guilds/{id}")
     suspend fun getGuild(@Path("id") id: Snowflake): Id<GuildResponse>
 
+    @GET("/api/v6/guilds/{id}/preview")
+    suspend fun getGuildPreview(@Path("id") id: Snowflake): Id<GuildPreviewResponse>
+
     @PATCH("/api/v6/guilds/{id}")
     suspend fun editGuild(
         @Path("id") id: Snowflake,

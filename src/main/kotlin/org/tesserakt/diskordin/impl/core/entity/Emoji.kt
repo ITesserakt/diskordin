@@ -40,7 +40,7 @@ internal class CustomEmoji constructor(
         client.getGuild(it)
     }
 
-    override val roles = Stream.chunk(Chunk.array(raw.roles.orEmpty()))
+    override val roles = Stream.chunk(Chunk.iterable(raw.roles.orEmpty()))
         .effectMap { guild().getRole(it) }
         .filterOption()
 

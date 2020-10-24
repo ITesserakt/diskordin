@@ -96,6 +96,10 @@ internal class DiscordClient private constructor(
     override suspend fun getGuild(id: Snowflake) = guilds.find { it.id == id }.orNull()
         ?: rest.call { guildService.getGuild(id) }.also { cache[id] = it }
 
+    override suspend fun getGuildPreview(id: Snowflake): IGuildPreview = rest.call {
+        guildService.getGuildPreview(id)
+    }
+
     override suspend fun getUser(id: Snowflake) =
         users.find { it.id == id }.orNull() ?: rest.call { userService.getUser(id) }.also {
             cache[id] = it
