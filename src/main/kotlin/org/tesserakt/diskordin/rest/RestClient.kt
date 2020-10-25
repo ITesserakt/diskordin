@@ -5,10 +5,13 @@ import arrow.core.Id
 import arrow.core.Option
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
+import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.callback
 import arrow.typeclasses.Functor
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import org.tesserakt.diskordin.rest.service.*
 
@@ -63,3 +66,26 @@ suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.Partial
     FN: Functor<G>,
     f: suspend RestClient.() -> Kind<G, R>
 ) = FN.call(UnwrapContext.PartialGuildContext(guildId.orNull()), f)
+
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.stream(
+    f: suspend RestClient.() -> Iterable<R>
+) = Stream.callback {
+    callRaw(f).map { it.unwrap() }.forEach(::emit)
+    end()
+}
+
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient.stream(
+    guildId: Snowflake,
+    f: suspend RestClient.() -> Iterable<R>
+) = Stream.callback {
+    callRaw(f).map { it.unwrap(guildId) }.forEach(::emit)
+    end()
+}
+
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.stream(
+    guildId: Option<Snowflake>,
+    f: suspend RestClient.() -> Iterable<R>
+) = Stream.callback {
+    callRaw(f).map { it.unwrap(guildId.orNull()) }.forEach(::emit)
+    end()
+}

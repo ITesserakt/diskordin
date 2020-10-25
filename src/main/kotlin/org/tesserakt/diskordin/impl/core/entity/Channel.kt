@@ -1,15 +1,9 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.Id
-import arrow.core.ListK
 import arrow.core.NonEmptyList
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.core.extensions.listk.functor.functor
-import arrow.core.extensions.listk.functor.map
-import arrow.core.fix
-import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.callback
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -25,6 +19,7 @@ import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.stream
 import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
 
@@ -51,10 +46,8 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
             .toString()
     }
 
-    override val invites = Stream.callback {
-        rest.call(ListK.functor()) {
-            channelService.getChannelInvites(id)
-        }.fix().forEach { emit(it) }
+    override val invites = rest.stream {
+        channelService.getChannelInvites(id)
     }
 }
 
@@ -71,11 +64,9 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 
     final override val name: String = raw.name!!
 
-    final override val invites = Stream.callback {
-        rest.call(ListK.functor()) {
-            channelService.getChannelInvites(id)
-        }.map { list -> list as IGuildInvite }.forEach { emit(it) }
-    }
+    final override val invites = rest.stream {
+        channelService.getChannelInvites(id)
+    }.map { it as IGuildInvite }
 
     final override suspend fun editPermissions(
         overwrite: IPermissionOverwrite,
@@ -109,10 +100,8 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 }
 
 internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
-    override val pins = Stream.callback {
-        rest.call(ListK.functor()) {
-            channelService.getPinnedMessages(id)
-        }.fix().forEach { emit(it) }
+    override val pins = rest.stream {
+        channelService.getPinnedMessages(id)
     }
 
     override val isNSFW: Boolean = raw.nsfw!!

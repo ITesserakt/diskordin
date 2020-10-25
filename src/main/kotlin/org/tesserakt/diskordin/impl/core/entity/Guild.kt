@@ -5,7 +5,6 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.callback
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
@@ -25,6 +24,7 @@ import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.stream
 import java.awt.Color
 import java.io.File
 import java.util.*
@@ -186,28 +186,20 @@ internal class Guild(raw: GuildResponse) : IGuild {
             guildService.getVanityUrl(id)
         }
 
-    override val invites: Stream<IGuildInvite> = Stream.callback {
-        rest.call(ListK.functor()) {
-            guildService.getInvites(id)
-        }.fix().forEach(::emit)
+    override val invites: Stream<IGuildInvite> = rest.stream {
+        guildService.getInvites(id)
     }
 
-    override val emojis: Stream<ICustomEmoji> = Stream.callback {
-        rest.call(id.some(), ListK.functor()) {
-            emojiService.getGuildEmojis(id)
-        }.fix().forEach(::emit)
+    override val emojis: Stream<ICustomEmoji> = rest.stream(id.some()) {
+        emojiService.getGuildEmojis(id)
     }
 
-    override val bans = Stream.callback {
-        rest.call(ListK.functor()) {
-            guildService.getBans(id)
-        }.fix().forEach(::emit)
+    override val bans = rest.stream {
+        guildService.getBans(id)
     }
 
-    override val integrations = Stream.callback {
-        rest.call(id, ListK.functor()) {
-            guildService.getIntegrations(id)
-        }.fix().forEach(::emit)
+    override val integrations = rest.stream(id) {
+        guildService.getIntegrations(id)
     }
 
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = rest.call(Id.functor()) {

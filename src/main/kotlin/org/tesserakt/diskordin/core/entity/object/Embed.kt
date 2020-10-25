@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
-import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import java.awt.Color
 import java.time.Instant
@@ -18,7 +17,7 @@ interface IEmbed : IDiscordObject {
     val video: IVideo?
     val provider: IProvider?
     val author: IAuthor?
-    val fields: Flow<IField>
+    val fields: List<IField>
 
     interface IField : IDiscordObject {
         val name: String

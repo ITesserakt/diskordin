@@ -2,12 +2,8 @@ package org.tesserakt.diskordin.impl.core.entity
 
 
 import arrow.core.Id
-import arrow.core.ListK
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.core.extensions.listk.functor.functor
-import arrow.core.fix
-import kotlinx.coroutines.flow.flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.entity.*
@@ -17,6 +13,7 @@ import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.stream
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
 internal open class User(raw: UserResponse<IUser>) : IUser {
@@ -75,22 +72,16 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
         }.create())
     }
 
-    override val guilds = flow {
-        rest.call(ListK.functor()) {
-            userService.getCurrentUserGuilds(UserGuildsQuery().create())
-        }.fix().forEach { emit(it) }
+    override val guilds = rest.stream {
+        userService.getCurrentUserGuilds(UserGuildsQuery().create())
     }
 
-    override val privateChannels = flow {
-        rest.call(ListK.functor()) {
-            userService.getUserDMs()
-        }.fix().forEach { emit(it) }
+    override val privateChannels = rest.stream {
+        userService.getUserDMs()
     }
 
-    override val connections = flow {
-        rest.call(ListK.functor()) {
-            userService.getCurrentUserConnections()
-        }.fix().forEach { emit(it) }
+    override val connections = rest.stream {
+        userService.getCurrentUserConnections()
     }
 
     override suspend fun leaveGuild(guild: IGuild) = leaveGuild(guild.id)

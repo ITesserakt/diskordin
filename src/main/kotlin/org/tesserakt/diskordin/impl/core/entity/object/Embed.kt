@@ -1,10 +1,7 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+
 import org.tesserakt.diskordin.core.data.json.response.*
-
-
 import org.tesserakt.diskordin.core.entity.`object`.IEmbed
 import org.tesserakt.diskordin.core.entity.`object`.IImage
 import org.tesserakt.diskordin.core.entity.`object`.IVideo
@@ -75,7 +72,7 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         }
     }
 
-    override val fields: Flow<IEmbed.IField> = (raw.fields ?: emptyArray()).map { it.unwrap() }.asFlow()
+    override val fields: List<IEmbed.IField> = (raw.fields ?: emptyArray()).map { it.unwrap() }
 
     class Field(raw: FieldResponse) : IEmbed.IField {
         override val name: String = raw.name
