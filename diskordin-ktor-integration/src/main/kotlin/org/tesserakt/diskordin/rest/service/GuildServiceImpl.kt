@@ -36,7 +36,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
         ktor.get("$discordApiUrl/api/v6/guilds/$id/invites")
 
     override suspend fun getGuildChannels(id: Snowflake): ListK<ChannelResponse<IGuildChannel>> =
-        ktor.get("$discordApiUrl/api/v6/guilds/{id}/channels")
+        ktor.get("$discordApiUrl/api/v6/guilds/$id/channels")
 
     override suspend fun createGuildChannel(
         id: Snowflake,
@@ -186,4 +186,20 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
         ktor.patch("$discordApiUrl/api/v6/guilds/$id/embed") {
             body = request
         }
+
+    override suspend fun getGuildWidgetSettings(id: Snowflake): Id<GuildWidgetSettingsResponse> =
+        ktor.get("$discordApiUrl/api/v6/$id/widget")
+
+    override suspend fun modifyGuildWidget(
+        id: Snowflake,
+        request: GuildWidgetEditRequest
+    ): Id<GuildWidgetSettingsResponse> = ktor.patch("$discordApiUrl/api/v6/guilds/$id/widget") {
+        body = request
+    }
+
+    override suspend fun getGuildWidget(id: Snowflake): Id<GuildWidgetResponse> =
+        ktor.get("$discordApiUrl/api/v6/guilds/$id/widget.json")
+
+    override suspend fun getVanityUrl(id: Snowflake): Id<InviteResponse<IGuildInvite>> =
+        ktor.get("$discordApiUrl/api/v6/guilds/$id/vanity-url")
 }

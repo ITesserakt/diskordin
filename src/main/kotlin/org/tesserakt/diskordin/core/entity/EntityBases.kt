@@ -52,6 +52,10 @@ interface IEditable<E : IEntity, B : BuilderBase<*>> : IEntity {
     suspend fun edit(builder: B.() -> Unit): E
 }
 
+interface IPreviewed<E : IEntity> : IDiscordObject {
+    suspend fun extend(): E
+}
+
 interface StaticMention<out P : IMentioned, in S : StaticMention<P, S>> {
     val mention: Regex
 }

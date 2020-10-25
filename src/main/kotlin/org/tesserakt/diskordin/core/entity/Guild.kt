@@ -158,6 +158,8 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     suspend fun addIntegration(id: Snowflake, type: String)
     fun getEveryoneRole(): IdentifiedF<ForId, IRole>
     fun <C : IGuildChannel> getChannel(id: Snowflake): C
+    suspend fun getWidget(): IGuildWidget
+    suspend fun getVanityUrl(): IGuildInvite?
 
     val invites: Stream<IGuildInvite>
     val emojis: Stream<ICustomEmoji>

@@ -20,7 +20,7 @@ class GuildPreview(raw: GuildPreviewResponse) : IGuildPreview {
     override val approximatePresenceCount: Int = raw.approximatePresenceCount
     override val description: String? = raw.description
 
-    override suspend fun extendToGuild(): IGuild = client.getGuild(id)
+    override suspend fun extend(): IGuild = client.getGuild(id)
 
     override fun toString(): String {
         return "GuildPreview(icon=$icon, splash=$splash, discoverySplash=$discoverySplash, emojis=$emojis, features=$features, approximateMemberCount=$approximateMemberCount, approximatePresenceCount=$approximatePresenceCount, description=$description, id=$id, name='$name')"

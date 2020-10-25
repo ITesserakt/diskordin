@@ -176,6 +176,16 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     override fun <C : IGuildChannel> getChannel(id: Snowflake): C = cache[id] as C
 
+    override suspend fun getWidget(): IGuildWidget = rest.call {
+        guildService.getGuildWidget(id)
+    }
+
+    override suspend fun getVanityUrl(): IGuildInvite? =
+        if (IGuild.Feature.VANITY_URL !in features) null
+        else rest.call {
+            guildService.getVanityUrl(id)
+        }
+
     override val invites: Stream<IGuildInvite> = Stream.callback {
         rest.call(ListK.functor()) {
             guildService.getInvites(id)

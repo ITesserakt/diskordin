@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.core.entity
 
-interface IGuildPreview : IEntity, INamed {
+interface IGuildPreview : IEntity, INamed, IPreviewed<IGuild> {
     val icon: String?
     val splash: String?
     val discoverySplash: String?
@@ -9,6 +9,4 @@ interface IGuildPreview : IEntity, INamed {
     val approximateMemberCount: Int
     val approximatePresenceCount: Int
     val description: String?
-
-    suspend fun extendToGuild(): IGuild
 }

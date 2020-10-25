@@ -1,8 +1,6 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
-import arrow.core.ForId
 import org.tesserakt.diskordin.core.data.Identified
-import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.json.response.InviteResponse
 import org.tesserakt.diskordin.core.entity.IChannel
 import org.tesserakt.diskordin.core.entity.IDiscordObject
@@ -10,12 +8,18 @@ import org.tesserakt.diskordin.core.entity.IGuildObject
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.`object`.GuildInvite
 import org.tesserakt.diskordin.impl.core.entity.`object`.Invite
+import java.time.Instant
 
 interface IInvite : IDiscordObject {
     val code: String
     val url get() = "https://discord.gg/$code"
-    val inviter: Identified<IUser>
-    val channel: IdentifiedF<ForId, IChannel>
+    val inviter: Identified<IUser>?
+    val channel: Identified<IChannel>?
+    val uses: Int?
+    val maxUses: Int?
+    val maxAge: Int?
+    val temporary: Boolean?
+    val createdAt: Instant?
 
     companion object {
         @Suppress("UNCHECKED_CAST")

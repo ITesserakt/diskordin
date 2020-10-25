@@ -99,6 +99,10 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
 
     override fun <C : IGuildChannel> getChannel(id: Snowflake) = delegate.getChannel<C>(id)
 
+    override suspend fun getWidget(): IGuildWidget = delegate.getWidget()
+
+    override suspend fun getVanityUrl(): IGuildInvite? = delegate.getVanityUrl()
+
     override val invites: Stream<IGuildInvite> by lazy { delegate.invites }
     override val emojis: Stream<ICustomEmoji> by lazy { delegate.emojis }
     override val bans: Stream<IBan> by lazy { delegate.bans }

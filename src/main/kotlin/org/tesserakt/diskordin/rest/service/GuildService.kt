@@ -210,4 +210,19 @@ interface GuildService {
         @Path("id") id: Snowflake,
         @Body request: GuildEmbedEditRequest
     ): Id<GuildEmbedResponse>
+
+    @GET("/api/v6/guilds/{id}/widget")
+    suspend fun getGuildWidgetSettings(@Path("id") id: Snowflake): Id<GuildWidgetSettingsResponse>
+
+    @PATCH("/api/v6/guilds/{id}/widget")
+    suspend fun modifyGuildWidget(
+        @Path("id") id: Snowflake,
+        @Body request: GuildWidgetEditRequest
+    ): Id<GuildWidgetSettingsResponse>
+
+    @GET("/api/v6/guilds/{id}/widget.json")
+    suspend fun getGuildWidget(@Path("id") id: Snowflake): Id<GuildWidgetResponse>
+
+    @GET("/api/v6/guilds/{id}/vanity-url")
+    suspend fun getVanityUrl(@Path("id") id: Snowflake): Id<InviteResponse<IGuildInvite>>
 }
