@@ -13,7 +13,6 @@ import com.tinder.scarlet.LifecycleState
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
-import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
@@ -126,17 +125,12 @@ class Gateway(
             }
         }
 
-        private val scarlet = { start: String, compression: String, lifecycle: Lifecycle, httpClient: OkHttpClient ->
-            setupScarlet(gatewayUrl(start, compression), lifecycle, httpClient)
+        private val scarlet = { start: String, compression: String, lifecycle: Lifecycle ->
+            setupScarlet(gatewayUrl(start, compression), lifecycle)
         }
 
         private val connection = { context: BootstrapContext.Gateway.Connection, lifecycle: Lifecycle ->
-            scarlet(
-                context.url,
-                context.compression,
-                lifecycle,
-                context.httpClient.memoize().extract()
-            ).create<GatewayConnection>()
+            scarlet(context.url, context.compression, lifecycle).create<GatewayConnection>()
         }
 
         private val connections = { context: BootstrapContext.Gateway.Connection ->

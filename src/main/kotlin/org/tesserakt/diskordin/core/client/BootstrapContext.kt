@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.core.client
 
 import arrow.core.Eval
-import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
@@ -23,7 +22,6 @@ data class BootstrapContext(
         val connectionContext: Connection
     ) {
         data class Connection(
-            val httpClient: Eval<OkHttpClient>,
             val url: String,
             val compression: String,
             val shardSettings: ShardSettings

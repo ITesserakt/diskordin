@@ -1,13 +1,11 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Either
 import arrow.core.ListK
-import arrow.core.computations.either
-import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.list.foldable.find
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.core.left
+import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
 import arrow.fx.coroutines.ForkConnected
 import arrow.fx.coroutines.Promise
@@ -38,13 +36,11 @@ internal class DiscordClient private constructor(
     companion object {
         internal val client = ConcurrentVar.unsafeEmpty<DiscordClient>()
 
-        suspend operator fun invoke(context: BootstrapContext) = either<DomainError, IDiscordClient> {
-            val selfId = !context.gatewayContext.connectionContext.shardSettings.token.verify(Either.monadError())
+        internal suspend operator fun invoke(selfId: Snowflake, context: BootstrapContext) =
             if (client.isEmpty()) {
                 client.put(DiscordClient(selfId, context))
-                client.read()
-            } else AlreadyStarted.left().bind()
-        }
+                client.read().right()
+            } else AlreadyStarted.left()
     }
 
     override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()

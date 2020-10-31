@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.invoke
@@ -20,7 +19,8 @@ import org.tesserakt.diskordin.core.entity.client
 class GuildWidget(raw: GuildWidgetResponse) : IGuildWidget {
     override val instantInviteUrl: IInvite = IInvite.typed(
         InviteResponse(
-            raw.instantInvite.toHttpUrl().pathSegments[1] // /invite/{code}
+            raw.instantInvite.split('/')
+                .let { if (it.last().isEmpty()) it.dropLast(1).last() else it.last() } // discord.com/invites/{code}/
         )
     )
     override val id: Snowflake = raw.id

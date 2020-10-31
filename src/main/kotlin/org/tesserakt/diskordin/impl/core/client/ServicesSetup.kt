@@ -5,12 +5,10 @@ import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.retry.ExponentialWithJitterBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.okhttp.OkHttpWebSocket
-import mu.KotlinLogging
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import okhttp3.logging.HttpLoggingInterceptor
 import org.tesserakt.diskordin.util.StreamAdapter
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -19,17 +17,11 @@ internal fun defaultHttpClient() = OkHttpClient().newBuilder()
     .retryOnConnectionFailure(true)
     .connectTimeout(20, TimeUnit.SECONDS)
     .writeTimeout(20, TimeUnit.SECONDS)
-    .readTimeout(20, TimeUnit.SECONDS)
-    .addInterceptor(
-        HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
-            private val logger = KotlinLogging.logger("[HTTP client]")
-            override fun log(message: String) = logger.trace(message)
-        }).setLevel(HttpLoggingInterceptor.Level.BASIC)
-    ).build()
+    .readTimeout(20, TimeUnit.SECONDS).build()
 
-internal fun setupScarlet(path: String, lifecycle: Lifecycle, httpClient: OkHttpClient): Scarlet {
+internal fun setupScarlet(path: String, lifecycle: Lifecycle): Scarlet {
     val protocol = OkHttpWebSocket(
-        httpClient,
+        defaultHttpClient(),
         OkHttpWebSocket.SimpleRequestFactory(
             { Request.Builder().url(path).build() },
             { ShutdownReason.GRACEFUL }

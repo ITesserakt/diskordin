@@ -43,7 +43,6 @@ dependencies {
     implementation(arrow("fx-coroutines"))
 
     implementation("com.google.code.gson:gson:2.8.6")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.4.0")
     implementation("com.tinder.scarlet:scarlet:$scarlet_version")
     implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version")
 

@@ -13,20 +13,21 @@ import io.kotest.matchers.string.shouldMatch
 import org.tesserakt.diskordin.commands.feature.HiddenFeature
 import org.tesserakt.diskordin.commands.integration.commands
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
+import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.rest.withoutRest
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
+@DiscordClientBuilderScope.InternalTestAPI
 @ExperimentalTime
-@DiscordClientBuilder.InternalTestAPI
 class CommandRegistryTest : FunSpec() {
     init {
         defaultTestConfig = TestCaseConfig(timeout = 1.seconds, threads = 1)
 
         test("Empty registry should not contain any commands") {
-            val client = DiscordClientBuilder {
+            val client = DiscordClientBuilder.withoutRest {
                 +disableTokenVerification()
-            }.withoutRest().getOrHandle { error(it) }
+            }.getOrHandle { error(it) }
 
             val emptyRegistry = client.commands.registry.extract()
 
