@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ForId
 import arrow.core.Id
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.some
@@ -33,7 +34,7 @@ internal class CustomEmoji constructor(
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
     override suspend fun edit(builder: EmojiEditBuilder.() -> Unit) = rest.call(guild.id.some(), Id.functor()) {
-        emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder))
+        emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder)).just()
     }.extract()
 
     override val guild = guildId.identify<IGuild> {

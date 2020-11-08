@@ -1,9 +1,11 @@
 package org.tesserakt.diskordin.core.client
 
-import com.tinder.scarlet.Lifecycle
+import org.tesserakt.diskordin.gateway.GatewayConnection
 
-interface GatewayLifecycleManager : Lifecycle {
-    fun start()
-    fun stop()
-    fun restart()
+interface GatewayLifecycleManager {
+    suspend fun start()
+    suspend fun restart()
+    suspend fun stop(code: Short, message: String)
+
+    val connection: GatewayConnection
 }

@@ -27,12 +27,15 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     implementation(project(":"))
-    implementation(project(":diskordin-ktor-integration"))
+    implementation(project(":diskordin-retrofit-integration"))
+    //implementation(project(":diskordin-ktor-integration"))
 
-    implementation(ktor("client-okhttp"))
+    implementation(ktor("client-cio"))
     implementation(ktor("client-logging"))
 
     implementation(arrow("core"))
+    implementation(arrow("mtl"))
+    implementation(arrow("fx"))
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
     implementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")

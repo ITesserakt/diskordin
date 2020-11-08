@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.Id
 import arrow.core.ListK
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -18,19 +17,19 @@ import org.tesserakt.diskordin.rest.integration.reasonHeader
 import org.tesserakt.diskordin.util.toJson
 
 class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL: String) : ChannelService {
-    override suspend fun getChannel(id: Snowflake): Id<ChannelResponse<IChannel>> =
+    override suspend fun getChannel(id: Snowflake): ChannelResponse<IChannel> =
         ktor.get("$discordApiURL/api/v6/channels/$id")
 
     override suspend fun editChannel(
         id: Snowflake,
         request: ChannelEditRequest,
         reason: String?
-    ): Id<ChannelResponse<IChannel>> = ktor.patch("$discordApiURL/api/v6/channels/$id") {
+    ): ChannelResponse<IChannel> = ktor.patch("$discordApiURL/api/v6/channels/$id") {
         body = request
         reasonHeader(reason)
     }
 
-    override suspend fun deleteChannel(id: Snowflake, reason: String?): Id<ChannelResponse<IChannel>> =
+    override suspend fun deleteChannel(id: Snowflake, reason: String?): ChannelResponse<IChannel> =
         ktor.delete("$discordApiURL/api/v6/channels/$id") {
             reasonHeader(reason)
         }
@@ -42,22 +41,22 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
             parameters(query)
         }
 
-    override suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): Id<MessageResponse> =
+    override suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): MessageResponse =
         ktor.get("$discordApiURL/api/v6/channels/$channelId/messages/$messageId")
 
-    override suspend fun createMessage(id: Snowflake, request: MessageCreateRequest): Id<MessageResponse> =
+    override suspend fun createMessage(id: Snowflake, request: MessageCreateRequest): MessageResponse =
         ktor.submitFormWithBinaryData("$discordApiURL/api/v6/channels/$id/messages", formData {
             append("payload_json", request.toJson())
         }) { method = HttpMethod.Post }
 
-    override suspend fun crosspostMessage(channelId: Snowflake, messageId: Snowflake): Id<MessageResponse> =
+    override suspend fun crosspostMessage(channelId: Snowflake, messageId: Snowflake): MessageResponse =
         ktor.post("$discordApiURL/api/v6/channels/$channelId/messages/$messageId/crosspost")
 
     override suspend fun editMessage(
         channelId: Snowflake,
         messageId: Snowflake,
         request: MessageEditRequest
-    ): Id<MessageResponse> = ktor.patch("$discordApiURL/api/v6/channels/$channelId/messages/$messageId") {
+    ): MessageResponse = ktor.patch("$discordApiURL/api/v6/channels/$channelId/messages/$messageId") {
         body = request
     }
 
@@ -71,7 +70,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
             body = request
         }
 
-    override suspend fun followNewsChannel(id: Snowflake, request: FollowRequest): Id<FollowedChannelResponse> =
+    override suspend fun followNewsChannel(id: Snowflake, request: FollowRequest): FollowedChannelResponse =
         ktor.post("$discordApiURL/api/v6/channels/$id/followers") {
             body = request
         }
@@ -122,7 +121,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
         id: Snowflake,
         request: InviteCreateRequest,
         reason: String?
-    ): Id<InviteResponse<IInvite>> = ktor.post("$discordApiURL/api/v6/channels/{id}/invites") {
+    ): InviteResponse<IInvite> = ktor.post("$discordApiURL/api/v6/channels/{id}/invites") {
         body = request
         reasonHeader(reason)
     }

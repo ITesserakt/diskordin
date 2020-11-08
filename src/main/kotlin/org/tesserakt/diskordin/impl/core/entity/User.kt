@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.impl.core.entity
 
 
 import arrow.core.Id
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -42,7 +43,7 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
     final override val id: Snowflake = raw.id
 
     override suspend fun asMember(guildId: Snowflake): IMember = rest.call(guildId, Id.functor()) {
-        guildService.getMember(guildId, id)
+        guildService.getMember(guildId, id).just()
     }.extract()
 
     override fun toString(): String {
@@ -90,9 +91,9 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
         userService.leaveGuild(guildId)
     }
 
-    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf = rest.call(Id.functor()) {
+    override suspend fun edit(builder: UserEditBuilder.() -> Unit): ISelf = rest.call {
         userService.editCurrentUser(builder.build(::UserEditBuilder))
-    }.extract()
+    }
 
     override fun toString(): String {
         return StringBuilder("Self(")

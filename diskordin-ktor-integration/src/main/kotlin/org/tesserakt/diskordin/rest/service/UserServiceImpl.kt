@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.Id
 import arrow.core.ListK
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -20,11 +19,11 @@ import org.tesserakt.diskordin.core.entity.query.Query
 import org.tesserakt.diskordin.rest.integration.parameters
 
 class UserServiceImpl(private val ktor: HttpClient, private val discordApiUrl: String) : UserService {
-    override suspend fun getCurrentUser(): Id<UserResponse<ISelf>> = ktor.get("$discordApiUrl/api/v6/users/@me")
+    override suspend fun getCurrentUser(): UserResponse<ISelf> = ktor.get("$discordApiUrl/api/v6/users/@me")
 
-    override suspend fun getUser(id: Snowflake): Id<UserResponse<IUser>> = ktor.get("$discordApiUrl/api/v6/users/$id")
+    override suspend fun getUser(id: Snowflake): UserResponse<IUser> = ktor.get("$discordApiUrl/api/v6/users/$id")
 
-    override suspend fun editCurrentUser(request: UserEditRequest): Id<UserResponse<ISelf>> =
+    override suspend fun editCurrentUser(request: UserEditRequest): UserResponse<ISelf> =
         ktor.patch("$discordApiUrl/api/v6/users/@me") {
             body = request
         }
@@ -39,12 +38,12 @@ class UserServiceImpl(private val ktor: HttpClient, private val discordApiUrl: S
     override suspend fun getUserDMs(): ListK<ChannelResponse<IPrivateChannel>> =
         ktor.get("$discordApiUrl/api/v6/users/@me/channels")
 
-    override suspend fun joinToDM(request: DMCreateRequest): Id<ChannelResponse<IPrivateChannel>> =
+    override suspend fun joinToDM(request: DMCreateRequest): ChannelResponse<IPrivateChannel> =
         ktor.post("$discordApiUrl/api/v6/users/@me/channels") {
             body = request
         }
 
-    override suspend fun joinToGroupDM(request: GroupDMCreateRequest): Id<ChannelResponse<IGroupPrivateChannel>> =
+    override suspend fun joinToGroupDM(request: GroupDMCreateRequest): ChannelResponse<IGroupPrivateChannel> =
         ktor.post("$discordApiUrl/api/v6/users/@me/channels") {
             body = request
         }

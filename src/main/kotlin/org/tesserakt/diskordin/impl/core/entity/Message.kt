@@ -1,10 +1,7 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ForId
-import arrow.core.Id
 import arrow.core.ListK
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.fx.ForIO
@@ -76,9 +73,9 @@ internal class Message(raw: MessageResponse) : IMessage {
 
     override val id: Snowflake = raw.id
 
-    override suspend fun edit(builder: MessageEditBuilder.() -> Unit) = rest.call(Id.functor()) {
+    override suspend fun edit(builder: MessageEditBuilder.() -> Unit) = rest.call {
         channelService.editMessage(channel.id, id, builder.build(::MessageEditBuilder))
-    }.extract()
+    }
 
     override suspend fun pin() = rest.effect {
         channelService.pinMessage(channel.id, id)

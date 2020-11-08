@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.gateway
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.fx.IO
@@ -7,20 +8,16 @@ import arrow.fx.coroutines.ForkConnected
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.extensions.io.environment.environment
 import arrow.syntax.function.partially1
-import com.tinder.scarlet.websocket.WebSocketEvent
-import com.tinder.scarlet.ws.Receive
-import com.tinder.scarlet.ws.Send
 import mu.KotlinLogging
+import org.tesserakt.diskordin.gateway.json.Message
 import org.tesserakt.diskordin.gateway.json.Opcode
+import org.tesserakt.diskordin.gateway.json.WebSocketEvent
 import org.tesserakt.diskordin.gateway.json.commands.*
 import org.tesserakt.diskordin.gateway.json.wrapWith
 import org.tesserakt.diskordin.util.toJson
 
 interface GatewayConnection {
-    @Send
-    fun send(data: String): Boolean
-
-    @Receive
+    fun send(data: Message)
     fun receive(): Stream<WebSocketEvent>
 }
 
@@ -43,7 +40,7 @@ suspend fun GatewayConnection.sendPayload(
     val json = payload.toJson()
 
     ForkConnected(IO.environment().dispatchers().io()) {
-        val isSent = connection.send(json)
+        val isSent = Either.catch { connection.send(Message.Text(json)) }.isRight()
         if (isSent) logger.debug("---> SENT ${payload.opcode()}").right()
         else IllegalStateException("Payload was not send").left()
     }

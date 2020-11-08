@@ -7,8 +7,8 @@ import arrow.core.fix
 import arrow.core.left
 import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
-import arrow.fx.coroutines.ForkConnected
 import arrow.fx.coroutines.Promise
+import arrow.fx.coroutines.parTraverse
 import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -29,6 +29,7 @@ import org.tesserakt.diskordin.util.DomainError
 
 internal class DiscordClient private constructor(
     selfId: Snowflake,
+    private val gateway: Gateway,
     internal val context: BootstrapContext
 ) : IDiscordClient {
     object AlreadyStarted : DomainError()
@@ -36,9 +37,9 @@ internal class DiscordClient private constructor(
     companion object {
         internal val client = ConcurrentVar.unsafeEmpty<DiscordClient>()
 
-        internal suspend operator fun invoke(selfId: Snowflake, context: BootstrapContext) =
+        internal suspend operator fun invoke(selfId: Snowflake, gateway: Gateway, context: BootstrapContext) =
             if (client.isEmpty()) {
-                client.put(DiscordClient(selfId, context))
+                client.put(DiscordClient(selfId, gateway, context))
                 client.read().right()
             } else AlreadyStarted.left()
     }
@@ -47,7 +48,6 @@ internal class DiscordClient private constructor(
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
     override val rest: RestClient get() = context.restClient
 
-    private val gateway: Promise<Gateway> = Promise.unsafe()
     private val logoutToken = Promise.unsafe<Unit>()
 
     override val self: IdentifiedIO<ISelf> = selfId.identify<ISelf> {
@@ -59,15 +59,12 @@ internal class DiscordClient private constructor(
 
     @ExperimentalCoroutinesApi
     override suspend fun login() {
-        gateway.complete(Gateway.create(context.gatewayContext))
-        ForkConnected {
-            gateway.get().run().drain()
-        }
+        gateway.run().parTraverse { it.drain() }
     }
 
     @ExperimentalCoroutinesApi
     override suspend fun logout() {
-        gateway.tryGet()?.close()
+        gateway.close()
         DiscordClient.client.tryTake()
         logoutToken.complete(Unit)
     }

@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.*
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
@@ -88,7 +89,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
     override fun getRole(id: Snowflake) = roles.find { it.id == id }.toOption()
 
     override suspend fun getEmoji(emojiId: Snowflake) = rest.call(id.some(), Id.functor()) {
-        emojiService.getGuildEmoji(id, emojiId)
+        emojiService.getGuildEmoji(id, emojiId).just()
     }.extract()
 
     override suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji =
@@ -97,12 +98,12 @@ internal class Guild(raw: GuildResponse) : IGuild {
                 this.name = name
                 this.image = image
                 this.roles = roles
-            }.create())
+            }.create()).just()
         }.extract()
 
     override suspend fun editOwnNickname(newNickname: String): String? = rest.callRaw {
         guildService.editCurrentNickname(id, NicknameEditBuilder(newNickname).create())
-    }.extract()
+    }
 
     override suspend fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): ITextChannel =
         addChannelJ(TextChannelCreateBuilder(name), builder)
@@ -126,7 +127,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     override suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit) =
         rest.call(id, Id.functor()) {
-            guildService.newMember(id, userId, MemberAddBuilder(accessToken).apply(builder).create())
+            guildService.newMember(id, userId, MemberAddBuilder(accessToken).apply(builder).create()).just()
         }.extract()
 
     override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
@@ -138,7 +139,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
     override suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit) =
         rest.call(id, Id.functor()) {
             val inst = builder.instance { RoleCreateBuilder(name, color) }
-            guildService.createRole(id, inst.create(), inst.reason)
+            guildService.createRole(id, inst.create(), inst.reason).just()
         }.extract()
 
     override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole> =
@@ -166,7 +167,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     override suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int = rest.callRaw {
         guildService.getPruneCount(id, builder.query(::PruneQuery))
-    }.extract()
+    }
 
     override suspend fun addIntegration(id: Snowflake, type: String): Unit = rest.effect {
         guildService.createIntegration(id, IntegrationCreateBuilder(id, type).create())
@@ -202,9 +203,9 @@ internal class Guild(raw: GuildResponse) : IGuild {
         guildService.getIntegrations(id)
     }
 
-    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = rest.call(Id.functor()) {
+    override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = rest.call {
         guildService.editGuild(id, builder.build(::GuildEditBuilder))
-    }.extract()
+    }
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash

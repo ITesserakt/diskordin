@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.rest
 
 import arrow.Kind
-import arrow.core.Id
 import arrow.core.Option
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
@@ -42,8 +41,8 @@ abstract class RestClient(
     ) = callRaw(f).map { it.unwrap(ctx) }
 
     suspend fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> call(
-        f: suspend RestClient.() -> Id<R>
-    ) = callRaw(f).extract().unwrap(UnwrapContext.EmptyContext)
+        f: suspend RestClient.() -> R
+    ) = callRaw(f).unwrap(UnwrapContext.EmptyContext)
 
     suspend fun effect(
         f: suspend RestClient.() -> Unit

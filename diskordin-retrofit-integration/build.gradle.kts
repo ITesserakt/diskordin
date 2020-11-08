@@ -2,7 +2,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 val kotestVersion: String = project(":").properties["kotest_version"].cast()
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
-val retrofitVersion: String = project(":").properties["retrofit_version"].cast()
+val retrofitVersion: String by extra
+val scarletVersion: String by extra
 val jvmVersion = System.getenv("jvm") ?: "1.8"
 
 plugins {
@@ -31,10 +32,14 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
     implementation("com.squareup.okhttp3:logging-interceptor:4.4.0")
+
+    implementation("com.tinder.scarlet:scarlet:$scarletVersion")
+    implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarletVersion")
 }
 
 tasks.compileKotlin {
     kotlinOptions.jvmTarget = jvmVersion
+    kotlinOptions.freeCompilerArgs = listOf("-Xinline-classes")
 }
 
 tasks.compileTestKotlin {

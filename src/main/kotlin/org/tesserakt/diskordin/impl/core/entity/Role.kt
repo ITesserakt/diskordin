@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.impl.core.entity
 
 
 import arrow.core.Id
+import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import org.tesserakt.diskordin.core.data.Permission
@@ -26,7 +27,7 @@ internal class Role constructor(
 ) : IRole {
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {
         val inst = builder.instance(::RoleEditBuilder)
-        guildService.editRole(guild.id, id, inst.create(), inst.reason)
+        guildService.editRole(guild.id, id, inst.create(), inst.reason).just()
     }.extract()
 
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())

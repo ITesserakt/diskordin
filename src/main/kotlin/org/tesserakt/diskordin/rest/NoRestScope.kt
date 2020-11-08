@@ -1,11 +1,14 @@
 package org.tesserakt.diskordin.rest
 
 import arrow.fx.coroutines.Schedule
+import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.gateway.Gateway
+import org.tesserakt.diskordin.impl.core.client.BackendProvider
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.rest.service.*
 
-class NoopRestClient : DiscordClientBuilderScope() {
+class NoRestScope : DiscordClientBuilderScope() {
     override val restClient: RestClient = object : RestClient(Schedule.never<Any?>()) {
         override val RestClient.channelService: ChannelService get() = throw NotImplementedError()
         override val RestClient.emojiService: EmojiService get() = throw NotImplementedError()
@@ -18,9 +21,19 @@ class NoopRestClient : DiscordClientBuilderScope() {
         override val RestClient.templateService: TemplateService get() = throw NotImplementedError()
     }
 
-    override fun DiscordClientBuilder.finalize(): DiscordClientBuilderScope = this@NoopRestClient
+    override val gatewayFactory: Gateway.Factory = object : Gateway.Factory() {
+        override fun BootstrapContext.Gateway.createGateway(): Gateway = Gateway(this, emptyList())
+    }
+
+    override fun create(): DiscordClientSettings = DiscordClientSettings(
+        token ?: error(DiscordClientBuilder.NoTokenProvided),
+        cache,
+        gatewaySettings,
+        restSchedule,
+        restClient,
+        gatewayFactory
+    )
 }
 
 @DiscordClientBuilderScope.InternalTestAPI
-suspend fun DiscordClientBuilder.withoutRest(block: DiscordClientBuilderScope.() -> Unit) =
-    invoke(::NoopRestClient, block)
+val WithoutRest = BackendProvider(::NoRestScope)

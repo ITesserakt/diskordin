@@ -6,7 +6,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
-import org.tesserakt.diskordin.gateway.GatewayConnection
 import java.time.Instant
 import kotlin.math.abs
 
@@ -15,7 +14,6 @@ import kotlin.math.abs
 data class Shard(
     val token: String,
     val shardData: Data,
-    internal val connection: GatewayConnection,
     internal val lifecycle: GatewayLifecycleManager
 ) {
     data class Data(val index: Int, val total: Int)

@@ -1,9 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.Id
 import arrow.core.NonEmptyList
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -18,7 +15,6 @@ import org.tesserakt.diskordin.core.entity.builder.PermissionEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
-import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.stream
 import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
@@ -32,7 +28,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     final override val mention: String = "<#${id.asString()}>"
 
-    final override suspend fun delete(reason: String?) = rest.call(Id.functor()) {
+    final override suspend fun delete(reason: String?) = rest.call {
         channelService.deleteChannel(id, reason)
     }.let { }
 
@@ -111,10 +107,10 @@ internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(ra
     @ExperimentalUnsignedTypes
     override val rateLimit: UShort = raw.rate_limit_per_user!!.toUShort()
 
-    override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) = rest.call(Id.functor()) {
+    override suspend fun edit(builder: TextChannelEditBuilder.() -> Unit) = rest.call {
         val inst = builder.instance(::TextChannelEditBuilder)
         channelService.editChannel(id, inst.create(), inst.reason)
-    }.extract() as ITextChannel
+    } as ITextChannel
 
     @ExperimentalUnsignedTypes
     override fun toString(): String {
@@ -133,10 +129,10 @@ internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(
 
     override val userLimit: Int = raw.user_limit!!
 
-    override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) = rest.call(Id.functor()) {
+    override suspend fun edit(builder: VoiceChannelEditBuilder.() -> Unit) = rest.call {
         val inst = builder.instance(::VoiceChannelEditBuilder)
         channelService.editChannel(id, inst.create(), inst.reason)
-    }.extract() as IVoiceChannel
+    } as IVoiceChannel
 
     override fun toString(): String {
         return StringBuilder("VoiceChannel(")

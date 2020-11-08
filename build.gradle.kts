@@ -1,6 +1,6 @@
 @file:Suppress("PropertyName")
 
-val kotlin_version: String = "1.4.10"
+val kotlin_version: String by extra
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -16,7 +16,7 @@ fun arrow(module: String, version: String = arrow_version): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.10"
+    id("org.jetbrains.kotlin.jvm") version "1.4.20-RC"
     id("com.jfrog.bintray") version "1.8.4"
     `maven-publish`
 }
@@ -35,16 +35,12 @@ dependencies {
     implementation(kotlin("stdlib", kotlin_version))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
 
-    implementation(arrow("core"))
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
-    implementation(arrow("integrations-retrofit-adapter"))
     implementation(arrow("ui"))
     implementation(arrow("fx-coroutines"))
 
     implementation("com.google.code.gson:gson:2.8.6")
-    implementation("com.tinder.scarlet:scarlet:$scarlet_version")
-    implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarlet_version")
 
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
 
@@ -70,5 +66,5 @@ tasks.compileTestKotlin {
 }
 
 tasks.wrapper {
-    gradleVersion = "6.0.1"
+    gradleVersion = "6.7"
 }

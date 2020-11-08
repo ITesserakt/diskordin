@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0")
 
     implementation(ktor("client-core"))
     implementation(ktor("client-okhttp"))

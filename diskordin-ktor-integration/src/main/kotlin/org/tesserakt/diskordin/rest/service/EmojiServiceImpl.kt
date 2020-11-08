@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.Id
 import arrow.core.ListK
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -14,10 +13,10 @@ class EmojiServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
     override suspend fun getGuildEmojis(id: Snowflake): ListK<EmojiResponse<ICustomEmoji>> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/emojis")
 
-    override suspend fun getGuildEmoji(guildId: Snowflake, emojiId: Snowflake): Id<EmojiResponse<ICustomEmoji>> =
+    override suspend fun getGuildEmoji(guildId: Snowflake, emojiId: Snowflake): EmojiResponse<ICustomEmoji> =
         ktor.get("$discordApiUrl/api/v6/guilds/$guildId/emojis/$emojiId")
 
-    override suspend fun createGuildEmoji(id: Snowflake, request: EmojiCreateRequest): Id<EmojiResponse<ICustomEmoji>> =
+    override suspend fun createGuildEmoji(id: Snowflake, request: EmojiCreateRequest): EmojiResponse<ICustomEmoji> =
         ktor.post("$discordApiUrl/api/v6/guilds/$id/emojis/") {
             body = request
         }
@@ -26,7 +25,7 @@ class EmojiServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
         guildId: Snowflake,
         emojiId: Snowflake,
         request: EmojiEditRequest
-    ): Id<EmojiResponse<ICustomEmoji>> = ktor.patch("$discordApiUrl/api/v6/guilds/$guildId/emojis/$emojiId") {
+    ): EmojiResponse<ICustomEmoji> = ktor.patch("$discordApiUrl/api/v6/guilds/$guildId/emojis/$emojiId") {
         body = request
     }
 

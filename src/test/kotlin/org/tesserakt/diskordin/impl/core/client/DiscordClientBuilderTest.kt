@@ -3,14 +3,14 @@ package org.tesserakt.diskordin.impl.core.client
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
-import org.tesserakt.diskordin.rest.withoutRest
+import org.tesserakt.diskordin.rest.WithoutRest
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
 @DiscordClientBuilderScope.InternalTestAPI
 class DiscordClientBuilderTest : StringSpec() {
     private suspend fun DiscordClientBuilder.test(f: DiscordClientBuilderScope.() -> Unit = {}) =
-        withoutRest {
+        this[WithoutRest] {
             f()
             +disableTokenVerification()
         }

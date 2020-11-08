@@ -119,4 +119,4 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
 @ExperimentalCoroutinesApi
 @Suppress("NOTHING_TO_INLINE")
 internal suspend inline fun EventInterceptor.Context.sendPayload(data: GatewayCommand) =
-    shard.connection.sendPayload(data, shard.sequence.value, shard.shardData.index)
+    shard.lifecycle.connection.sendPayload(data, shard.sequence.value, shard.shardData.index)

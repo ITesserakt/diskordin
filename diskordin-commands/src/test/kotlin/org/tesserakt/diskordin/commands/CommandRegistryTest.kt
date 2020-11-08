@@ -14,7 +14,7 @@ import org.tesserakt.diskordin.commands.feature.HiddenFeature
 import org.tesserakt.diskordin.commands.integration.commands
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
-import org.tesserakt.diskordin.rest.withoutRest
+import org.tesserakt.diskordin.rest.WithoutRest
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -25,7 +25,7 @@ class CommandRegistryTest : FunSpec() {
         defaultTestConfig = TestCaseConfig(timeout = 1.seconds, threads = 1)
 
         test("Empty registry should not contain any commands") {
-            val client = DiscordClientBuilder.withoutRest {
+            val client = DiscordClientBuilder[WithoutRest] {
                 +disableTokenVerification()
             }.getOrHandle { error(it) }
 

@@ -12,6 +12,7 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.entity.`object`.IGatewayStats
+import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
 import org.tesserakt.diskordin.impl.util.typeclass.integral
@@ -19,6 +20,10 @@ import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.or
+
+inline class BackendProvider<B : DiscordClientBuilderScope>(private val provider: () -> B) {
+    suspend operator fun invoke(block: B.() -> Unit) = DiscordClientBuilder.invoke(provider, block)
+}
 
 object DiscordClientBuilder {
     object NoTokenProvided : DomainError()
@@ -28,7 +33,7 @@ object DiscordClientBuilder {
         instance: () -> S,
         block: S.() -> Unit
     ): Either<DomainError, IDiscordClient> = either {
-        val builder = instance().apply(block).run { this@DiscordClientBuilder.finalize() }
+        val builder = block.build(instance)
         val (token, selfId) = Either.fromNullable(System.getenv("DISKORDIN_TOKEN") ?: builder.token)
             .mapLeft { NoTokenProvided }.mproduct { it.verify(Either.monadError()) }()
 
@@ -40,12 +45,16 @@ object DiscordClientBuilder {
         val connectionContext = formConnectionSettings(builder, shardContext)
         val gatewayContext = formGatewaySettings(builder, connectionContext)
         val globalContext = formBootstrapContext(builder, builder.restClient, gatewayContext)
+        val gateway = builder.gatewayFactory.run { gatewayContext.createGateway() }
 
-        DiscordClient(selfId, globalContext)()
+        DiscordClient(selfId, gateway, globalContext)()
     }
 
+    @JvmStatic
+    operator fun <B : DiscordClientBuilderScope> get(provider: BackendProvider<B>) = provider
+
     private fun formBootstrapContext(
-        builder: DiscordClientBuilderScope,
+        builder: DiscordClientBuilderScope.DiscordClientSettings,
         rest: RestClient,
         gatewayContext: BootstrapContext.Gateway
     ): BootstrapContext {
@@ -67,7 +76,7 @@ object DiscordClientBuilder {
     }
 
     private fun formGatewaySettings(
-        builder: DiscordClientBuilderScope,
+        builder: DiscordClientBuilderScope.DiscordClientSettings,
         connectionContext: BootstrapContext.Gateway.Connection
     ): BootstrapContext.Gateway = BootstrapContext.Gateway(
         builder.gatewaySettings.coroutineContext,
@@ -76,7 +85,7 @@ object DiscordClientBuilder {
     )
 
     private fun formConnectionSettings(
-        builder: DiscordClientBuilderScope,
+        builder: DiscordClientBuilderScope.DiscordClientSettings,
         shardSettings: BootstrapContext.Gateway.Connection.ShardSettings
     ): BootstrapContext.Gateway.Connection = BootstrapContext.Gateway.Connection(
         "wss://gateway.discord.gg",
@@ -86,7 +95,7 @@ object DiscordClientBuilder {
 
     private fun formShardSettings(
         token: String,
-        builder: DiscordClientBuilderScope,
+        builder: DiscordClientBuilderScope.DiscordClientSettings,
         gatewayInfo: Eval<IGatewayStats>
     ): BootstrapContext.Gateway.Connection.ShardSettings = BootstrapContext.Gateway.Connection.ShardSettings(
         token,
