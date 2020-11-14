@@ -33,7 +33,7 @@ abstract class RestClient(
     @Suppress("UNCHECKED_CAST")
     suspend fun <R> callRaw(
         f: suspend RestClient.() -> R
-    ): R = retry(schedule as Schedule<R, *>) { this.f() }
+    ): R = retry(schedule as Schedule<Throwable, R>) { this.f() }
 
     suspend fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
         ctx: C,
