@@ -6,7 +6,6 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.runBlocking
-import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 
 class KtorWebSocketLifecycleManager(
     private val client: HttpClient,

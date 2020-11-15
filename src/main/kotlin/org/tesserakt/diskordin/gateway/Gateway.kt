@@ -10,7 +10,6 @@ import arrow.fx.coroutines.stream.Stream
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor

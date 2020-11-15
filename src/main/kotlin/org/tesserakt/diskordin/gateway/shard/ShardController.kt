@@ -5,7 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
+import org.tesserakt.diskordin.gateway.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload

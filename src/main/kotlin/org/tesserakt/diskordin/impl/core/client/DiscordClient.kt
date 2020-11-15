@@ -13,7 +13,6 @@ import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.client.WebSocketStateHolder
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
@@ -44,7 +43,6 @@ internal class DiscordClient private constructor(
             } else AlreadyStarted.left()
     }
 
-    override val webSocketStateHolder: WebSocketStateHolder = WebSocketStateHolderImpl()
     override val token: String = context.gatewayContext.connectionContext.shardSettings.token
     override val rest: RestClient get() = context.restClient
 

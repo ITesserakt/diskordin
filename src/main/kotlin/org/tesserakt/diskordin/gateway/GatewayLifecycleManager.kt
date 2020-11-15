@@ -1,6 +1,4 @@
-package org.tesserakt.diskordin.core.client
-
-import org.tesserakt.diskordin.gateway.GatewayConnection
+package org.tesserakt.diskordin.gateway
 
 interface GatewayLifecycleManager {
     suspend fun start()

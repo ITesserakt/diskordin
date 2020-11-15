@@ -4,7 +4,6 @@ import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.LifecycleState
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
-import org.tesserakt.diskordin.core.client.GatewayLifecycleManager
 
 class ScarletGatewayLifecycleManager(
     private val registry: LifecycleRegistry,
