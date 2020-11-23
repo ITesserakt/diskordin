@@ -26,7 +26,9 @@ class CommandRegistryTest : FunSpec() {
         test("Empty registry should not contain any commands") {
             val client = DiscordClientBuilder[WithoutRest] {
                 +disableTokenVerification()
-                +commandFramework()
+                +commandFramework {
+                    +specifySearch { blacklistPackages("org.tesserakt.diskordin") }
+                }
             }.getOrHandle { error(it) }
 
             val commands = client.context[Commands]

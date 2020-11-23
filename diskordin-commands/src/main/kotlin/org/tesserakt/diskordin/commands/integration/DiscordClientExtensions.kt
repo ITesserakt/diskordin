@@ -5,7 +5,6 @@ package org.tesserakt.diskordin.commands.integration
 import arrow.core.Eval
 import arrow.core.getOrHandle
 import arrow.fx.IO
-import io.github.classgraph.ClassGraph
 import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.CommandRegistry
 import org.tesserakt.diskordin.commands.compiler.CommandModuleCompiler
@@ -46,14 +45,9 @@ inline fun DiscordClientBuilderScope.commandFramework(
 suspend operator fun Pair<CommandFramework, DiscordClientBuilderScope>.unaryPlus() {
     loggerPrivate = first.logger
 
-    val graph = ClassGraph()
-        .enableAnnotationInfo()
-        .enableMethodInfo()
-        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
-
     val compiler = CommandModuleCompiler(defaultExtension + first.extraExtensions)
     val realLogger = KotlinLogging.logger("[Discord client]")
-    val loader = CommandModuleLoader(compiler, graph, workersCount)
+    val loader = CommandModuleLoader(compiler, first.graph, workersCount)
 
     val registry: Eval<CommandRegistry> = Eval.always {
         val summary = IO { loader.load() }.unsafeRunSync()

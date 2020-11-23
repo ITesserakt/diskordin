@@ -38,4 +38,8 @@ data class FunctionParameters(
             else -> raiseError(DuplicatedParameters(commandName, parameters).nel())
         }
     }
+
+    override fun toString(): String {
+        return "FunctionParameters(commandName='$commandName', function=$function, moduleType=$moduleType, parameters=$parameters)"
+    }
 }
