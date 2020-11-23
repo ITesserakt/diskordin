@@ -7,6 +7,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.integration.ScarletFactory
 import org.tesserakt.diskordin.rest.RestClient
@@ -15,11 +16,17 @@ import org.tesserakt.diskordin.rest.integration.RetrofitService
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+inline class HttpClient(private val inner: Eval<OkHttpClient>) : BootstrapContext.ExtensionContext {
+    companion object : BootstrapContext.PersistentExtension<HttpClient>
+
+    operator fun invoke() = inner.extract()
+}
+
 @Suppress("NOTHING_TO_INLINE", "unused")
 class RetrofitScope : DiscordClientBuilderScope() {
     override lateinit var restClient: RestClient private set
     private var okHttpClient: Eval<OkHttpClient> = overrideHttpClient { defaultHttpClient(logger) }
-    private var logger: (String) -> Unit = { }
+    private var logger: (String) -> Unit = ::println
     private var webSocketDebug: Boolean = false
     private var backoffStrategy: BackoffStrategy = ExponentialBackoffStrategy(1000, 10000)
     override lateinit var gatewayFactory: Gateway.Factory
@@ -27,11 +34,20 @@ class RetrofitScope : DiscordClientBuilderScope() {
     override fun create(): DiscordClientSettings {
         val token = token ?: error(DiscordClientBuilder.NoTokenProvided)
         +refineHttpClient { addInterceptor(AuthorityInterceptor(token)) }
+        +install(HttpClient) { HttpClient(okHttpClient) }
         val retrofit by RetrofitService(okHttpClient, discordApiUrl)
         restClient = RetrofitRestClient(retrofit::extract, restSchedule)
         gatewayFactory = ScarletFactory(okHttpClient, backoffStrategy, webSocketDebug)
 
-        return DiscordClientSettings(token, cache, gatewaySettings, restSchedule, restClient, gatewayFactory)
+        return DiscordClientSettings(
+            token,
+            cache,
+            gatewaySettings,
+            restSchedule,
+            restClient,
+            gatewayFactory,
+            extensions
+        )
     }
 
     operator fun Eval<OkHttpClient>.unaryPlus() {

@@ -7,12 +7,21 @@ import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
+import io.ktor.util.*
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.integration.WebSocketFactory
 import org.tesserakt.diskordin.rest.KtorRestClient
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.gsonBuilder
 import java.util.*
+import io.ktor.client.HttpClient as KHttpClient
+
+inline class HttpClient(private val inner: Eval<KHttpClient>) : BootstrapContext.ExtensionContext {
+    companion object : BootstrapContext.PersistentExtension<HttpClient>
+
+    operator fun invoke() = inner.extract()
+}
 
 @Suppress("unused")
 class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClientEngineFactory<T>) :
@@ -28,7 +37,9 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
 
     override lateinit var gatewayFactory: Gateway.Factory private set
     override lateinit var restClient: RestClient private set
-    private lateinit var httpClient: Eval<HttpClient>
+    private lateinit var httpClient: Eval<KHttpClient>
+
+    @OptIn(KtorExperimentalAPI::class)
     private val config: HttpClientConfig<T> = HttpClientConfig<T>().apply {
         install(JsonFeature) { serializer = GsonSerializer(gsonBuilder) }
         install(UserAgent) { agent = "Discord bot (Diskordin ${diskordinVersion})" }
@@ -39,12 +50,21 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
         +httpClientConfig {
             defaultRequest { header("Authorization", "Bot $token") }
         }
-        httpClient = Eval.later { HttpClient(engineFactory.create(), config) }
+        httpClient = Eval.later { KHttpClient(engineFactory.create(), config) }
+        +install(HttpClient) { HttpClient(httpClient) }
         restClient = KtorRestClient(httpClient, discordApiUrl, restSchedule)
         gatewayFactory = WebSocketFactory(httpClient)
         val token = token ?: error(DiscordClientBuilder.NoTokenProvided)
 
-        return DiscordClientSettings(token, cache, gatewaySettings, restSchedule, restClient, gatewayFactory)
+        return DiscordClientSettings(
+            token,
+            cache,
+            gatewaySettings,
+            restSchedule,
+            restClient,
+            gatewayFactory,
+            extensions
+        )
     }
 
     operator fun HttpClientConfig<T>.unaryPlus() {

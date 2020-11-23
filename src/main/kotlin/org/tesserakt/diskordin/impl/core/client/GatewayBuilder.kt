@@ -28,9 +28,11 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         val shardCount: Int,
         val threshold: ShardThreshold,
         val initialPresence: UserStatusUpdateRequest?,
-        val intents: IntentsStrategy
+        val intents: IntentsStrategy,
+        val url: String
     ) : JsonRequest()
 
+    private var gatewayUrl = "wss://gateway.discord.gg"
     private var compression = ""
     private var gatewayContext: CoroutineContext = IO.environment().dispatchers().io()
     private val interceptors: MutableList<Interceptor<out Interceptor.Context>> = mutableListOf(
@@ -100,6 +102,10 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         gatewayContext = this
     }
 
+    operator fun String.unaryPlus() {
+        gatewayUrl = this
+    }
+
     inline fun GatewayBuilder.gatewayInterceptor(value: Interceptor<out Interceptor.Context>) = value
     inline fun <reified C : Interceptor.Context> GatewayBuilder.gatewayInterceptor(crossinline block: suspend (C) -> Unit) =
         object : Interceptor<C> {
@@ -125,6 +131,9 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
 
     inline fun GatewayBuilder.coroutineContext(context: CoroutineContext) = context
 
+    @DiscordClientBuilderScope.InternalTestAPI
+    inline fun GatewayBuilder.websocketAddress(value: String) = value
+
     @Suppress("UNCHECKED_CAST")
     override fun create(): GatewaySettings = GatewaySettings(
         gatewayContext,
@@ -135,6 +144,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         shardCount,
         threshold,
         request,
-        intents
+        intents,
+        gatewayUrl
     )
 }

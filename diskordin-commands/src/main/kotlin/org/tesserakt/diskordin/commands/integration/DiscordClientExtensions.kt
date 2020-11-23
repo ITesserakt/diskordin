@@ -13,9 +13,7 @@ import org.tesserakt.diskordin.commands.compiler.CommandModuleLoader
 import org.tesserakt.diskordin.commands.compiler.CompilerExtension
 import org.tesserakt.diskordin.commands.compiler.extension.*
 import org.tesserakt.diskordin.commands.feature.Feature
-import org.tesserakt.diskordin.commands.resolver.ResolversProvider
-import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
+import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import kotlin.math.ceil
 
 private val defaultExtension = setOf(
@@ -37,44 +35,45 @@ private val workersCount = 2.coerceAtLeast(
 )
 
 private var loggerPrivate: Logger = QuietLogger
-private var commandsContextPrivate = Commands(ResolversProvider(emptyMap()), Eval.now(CommandRegistry.EMPTY))
 
-inline fun DiscordClientBuilder.commandFramework(
-    builder: CommandFrameworkBuilder.() -> Unit = {
-        +resolvers()
-    }
-) = CommandFrameworkBuilder().apply(builder).create()
+inline fun DiscordClientBuilderScope.commandFramework(
+    builder: CommandFrameworkBuilder.() -> Unit = { }
+) = CommandFrameworkBuilder().apply {
+    +resolvers()
+    builder()
+}.create() to this
 
-suspend operator fun CommandFramework.unaryPlus() {
-    loggerPrivate = logger
+suspend operator fun Pair<CommandFramework, DiscordClientBuilderScope>.unaryPlus() {
+    loggerPrivate = first.logger
 
-    val registry = Eval.later {
-        val graph = ClassGraph()
-            .enableAnnotationInfo()
-            .enableMethodInfo()
-            .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
+    val graph = ClassGraph()
+        .enableAnnotationInfo()
+        .enableMethodInfo()
+        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
 
-        val compiler = CommandModuleCompiler(defaultExtension + extraExtensions)
+    val compiler = CommandModuleCompiler(defaultExtension + first.extraExtensions)
+    val realLogger = KotlinLogging.logger("[Discord client]")
+    val loader = CommandModuleLoader(compiler, graph, workersCount)
 
-        val loader = CommandModuleLoader(compiler, graph, workersCount)
-
+    val registry: Eval<CommandRegistry> = Eval.always {
         val summary = IO { loader.load() }.unsafeRunSync()
-        val realLogger = KotlinLogging.logger("[Discord client]")
 
-        summary.also { logger.logSummary(it) }
-        logger.logs.forEach(realLogger::info)
+        summary.also { first.logger.logSummary(it) }
+        first.logger.logs.forEach(realLogger::info)
 
-        summary.result.mapLeft { IllegalStateException(summary.errorsToString(it)) }
-            .getOrHandle { throw it }
-    }.memoize()
+        summary.result.mapLeft { IllegalStateException(summary.errorsToString(it)) }.getOrHandle { throw it }
+    }
 
-    commandsContextPrivate = Commands(
-        resolversProvider,
-        if (eager) Eval.now(registry.extract())
-        else registry.memoize()
-    )
+    second.run {
+        +install(Commands) {
+            Commands(
+                first.resolversProvider,
+                if (first.eager) Eval.now(registry.value())
+                else registry
+            )
+        }
+    }
 }
 
-val IDiscordClient.commands get() = commandsContextPrivate
 val CompilerExtension<*>.logger get() = loggerPrivate
 val Feature<*>.logger get() = loggerPrivate

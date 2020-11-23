@@ -7,7 +7,6 @@ import arrow.core.extensions.nonemptylist.semigroup.semigroup
 import arrow.core.extensions.validated.applicative.applicative
 import arrow.core.extensions.validated.traverse.traverse
 import arrow.core.fix
-import arrow.fx.coroutines.ForkConnected
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
 import io.github.classgraph.ClassGraph
@@ -25,23 +24,20 @@ class CommandModuleLoader(
     private val parallelism: Int = 1
 ) {
     private val logger = KotlinLogging.logger { }
+    private val scan = resource {
+        logger.debug("Inspecting packages for command modules")
+        graph.scan(parallelism)
+    } release ScanResult::close
 
-    suspend fun load() = resource {
-        ForkConnected {
-            logger.debug("Inspecting packages for command modules")
-            graph.scan(parallelism)
-        }
-    } release {
-        it.join().close()
-    } use {
-        loadToRegistry(it.join())
+    suspend fun load() = scan use {
+        loadToRegistry(it)
     }
 
     private fun ScanResult.commandModules() =
         allClasses.filter { it.extendsSuperclass("org.tesserakt.diskordin.commands.CommandModule") }
             .filter { it.commands().isNotEmpty() }
 
-    private fun ClassInfo.allowedMethods() = this.methodInfo
+    private fun ClassInfo.allowedMethods() = methodInfo
         .filter { !it.isSynthetic && !it.isConstructor && !it.isBridge }
 
     private fun ClassInfo.commands() =

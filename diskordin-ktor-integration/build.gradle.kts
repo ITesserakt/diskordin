@@ -38,6 +38,7 @@ dependencies {
 
 tasks.compileKotlin {
     kotlinOptions.jvmTarget = jvmVersion
+    kotlinOptions.freeCompilerArgs = listOf("-Xinline-classes")
 }
 
 tasks.compileTestKotlin {

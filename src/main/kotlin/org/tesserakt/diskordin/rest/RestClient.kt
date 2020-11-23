@@ -7,6 +7,7 @@ import arrow.fx.coroutines.retry
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.callback
 import arrow.typeclasses.Functor
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -17,8 +18,8 @@ import org.tesserakt.diskordin.rest.service.*
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 abstract class RestClient(
     private val schedule: Schedule<*, *>
-) {
-    companion object;
+) : BootstrapContext.ExtensionContext {
+    companion object : BootstrapContext.PersistentExtension<RestClient>;
 
     abstract val RestClient.channelService: ChannelService
     abstract val RestClient.emojiService: EmojiService

@@ -11,6 +11,7 @@ import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.rest.RestClient
 
 interface IDiscordClient : IDiscordObject {
+    val context: BootstrapContext
     val token: String
     val self: IdentifiedF<ForIO, ISelf>
     val rest: RestClient

@@ -30,7 +30,7 @@ val IDiscordObject.rest: RestClient
     inline get() = client.rest
 
 internal val IDiscordObject.cache: EntityCache
-    get() = (client as DiscordClient).context.cache
+    get() = client.context[EntityCache]
 
 interface IGuildObject : IDiscordObject {
     val guild: IdentifiedIO<IGuild>

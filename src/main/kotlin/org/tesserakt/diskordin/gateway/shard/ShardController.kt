@@ -4,7 +4,7 @@ import arrow.fx.coroutines.ForkConnected
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import mu.KotlinLogging
-import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.GatewayLifecycleManager
 import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
@@ -14,7 +14,7 @@ import org.tesserakt.diskordin.impl.gateway.interceptor.ConnectionObserver
 private const val INDEX_OUT_OF_SHARD_COUNT = "Given index of shard more than shard count"
 
 class ShardController internal constructor(
-    private val context: BootstrapContext.Gateway.Connection.ShardSettings,
+    private val context: ShardContext,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
     private val logger = KotlinLogging.logger { }

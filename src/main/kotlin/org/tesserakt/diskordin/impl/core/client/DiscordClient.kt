@@ -13,6 +13,7 @@ import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
+import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
@@ -29,7 +30,7 @@ import org.tesserakt.diskordin.util.DomainError
 internal class DiscordClient private constructor(
     selfId: Snowflake,
     private val gateway: Gateway,
-    internal val context: BootstrapContext
+    override val context: BootstrapContext
 ) : IDiscordClient {
     object AlreadyStarted : DomainError()
 
@@ -43,8 +44,8 @@ internal class DiscordClient private constructor(
             } else AlreadyStarted.left()
     }
 
-    override val token: String = context.gatewayContext.connectionContext.shardSettings.token
-    override val rest: RestClient get() = context.restClient
+    override val token: String = context[ShardContext].token
+    override val rest: RestClient get() = context[RestClient]
 
     private val logoutToken = Promise.unsafe<Unit>()
 

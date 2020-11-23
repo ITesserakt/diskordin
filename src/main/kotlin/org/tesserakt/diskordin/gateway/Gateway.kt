@@ -10,6 +10,8 @@ import arrow.fx.coroutines.stream.Stream
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.GatewayContext
+import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
@@ -24,18 +26,18 @@ import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
 
 @Suppress("UNCHECKED_CAST")
 class Gateway(
-    private val context: BootstrapContext.Gateway,
+    private val context: BootstrapContext,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
-    private val tokenInterceptors = context.interceptors
+    private val tokenInterceptors = context[GatewayContext].interceptors
         .filter { it.selfContext == TokenInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
 
     @ExperimentalCoroutinesApi
-    private val eventInterceptors = context.interceptors
+    private val eventInterceptors = context[GatewayContext].interceptors
         .filter { it.selfContext == EventInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
 
     private val controller = ShardController(
-        context.connectionContext.shardSettings,
+        context[ShardContext],
         lifecycles
     )
 
@@ -44,8 +46,8 @@ class Gateway(
         lifecycles.map { it.start(); it }.fproduct { it.connection.receive() }.withIndex().map { (index, it) ->
             val (lifecycle, events) = it
             val shard = Shard(
-                context.connectionContext.shardSettings.token,
-                Shard.Data(index, context.connectionContext.shardSettings.shardCount.extract()),
+                context[ShardContext].token,
+                Shard.Data(index, context[ShardContext].shardCount.extract()),
                 lifecycle
             )
 
@@ -96,6 +98,6 @@ class Gateway(
             "$start/?v=$gatewayVersion&encoding=$encoding&compression=$compression"
         }
 
-        abstract fun BootstrapContext.Gateway.createGateway(): Gateway
+        abstract fun BootstrapContext.createGateway(): Gateway
     }
 }

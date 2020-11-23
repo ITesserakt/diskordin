@@ -5,37 +5,34 @@ import arrow.core.extensions.validated.foldable.firstOption
 import arrow.core.extensions.validated.traverse.traverse
 import arrow.core.getOrHandle
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.core.test.TestCaseConfig
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldMatch
 import org.tesserakt.diskordin.commands.feature.HiddenFeature
-import org.tesserakt.diskordin.commands.integration.commands
+import org.tesserakt.diskordin.commands.integration.Commands
+import org.tesserakt.diskordin.commands.integration.commandFramework
+import org.tesserakt.diskordin.commands.integration.unaryPlus
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.rest.WithoutRest
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @DiscordClientBuilderScope.InternalTestAPI
 @ExperimentalTime
 class CommandRegistryTest : FunSpec() {
     init {
-        defaultTestConfig = TestCaseConfig(timeout = 1.seconds, threads = 1)
-
         test("Empty registry should not contain any commands") {
             val client = DiscordClientBuilder[WithoutRest] {
                 +disableTokenVerification()
+                +commandFramework()
             }.getOrHandle { error(it) }
 
-            val emptyRegistry = client.commands.registry.extract()
+            val commands = client.context[Commands]
+            commands.shouldNotBeNull()
 
-            emptyRegistry.shouldBeEmpty()
-
-            afterTest {
-                client.logout()
-            }
+            commands.registry.extract().shouldBeEmpty()
         }
 
         context("Non-empty registry") {

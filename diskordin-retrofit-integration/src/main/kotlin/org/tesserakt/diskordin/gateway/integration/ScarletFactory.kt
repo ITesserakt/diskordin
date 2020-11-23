@@ -7,6 +7,8 @@ import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.retry.BackoffStrategy
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.ConnectionContext
+import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.ScarletGatewayLifecycleManager
 
@@ -17,7 +19,7 @@ class ScarletFactory(
 ) : Gateway.Factory() {
     private val scarlets = mutableMapOf<Int, Eval<Scarlet>>()
 
-    override fun BootstrapContext.Gateway.createGateway(): Gateway {
+    override fun BootstrapContext.createGateway(): Gateway {
         val createLifecycle = { registry: LifecycleRegistry, id: Int ->
             ScarletGatewayLifecycleManager(registry) { scarlets[id]?.extract() ?: error("IMPOSSIBLE") }
         }
@@ -28,9 +30,16 @@ class ScarletFactory(
                 scarlets[id] = scarlet
             }
 
-        val lifecycles = (0 until connectionContext.shardSettings.shardCount.extract()).map {
+        val lifecycles = (0 until this[ShardContext].shardCount.extract()).map {
             val lifecycle = createLifecycle(LifecycleRegistry(), it)
-            createScarlet(connectionContext.url, connectionContext.compression, lifecycle, strategy, isDebug, it)
+            createScarlet(
+                this[ConnectionContext].url,
+                this[ConnectionContext].compression,
+                lifecycle,
+                strategy,
+                isDebug,
+                it
+            )
 
             lifecycle
         }

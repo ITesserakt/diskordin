@@ -27,8 +27,8 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     implementation(project(":"))
-    implementation(project(":diskordin-retrofit-integration"))
-    //implementation(project(":diskordin-ktor-integration"))
+    implementation(project(":diskordin-commands"))
+    implementation(project(":diskordin-ktor-integration"))
 
     implementation(ktor("client-cio"))
     implementation(ktor("client-logging"))

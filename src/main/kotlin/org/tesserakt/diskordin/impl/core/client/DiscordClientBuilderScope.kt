@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.impl.core.client
 
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.seconds
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.entity.IEntity
@@ -23,7 +24,8 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
         val gatewaySettings: GatewayBuilder.GatewaySettings,
         val restSchedule: Schedule<*, *>,
         val restClient: RestClient,
-        val gatewayFactory: Gateway.Factory
+        val gatewayFactory: Gateway.Factory,
+        val extensions: Map<BootstrapContext.Extension<*>, BootstrapContext.ExtensionContext>
     ) : JsonRequest()
 
     protected val discordApiUrl = "https://discord.com"
@@ -38,6 +40,7 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
         private set
     protected abstract val restClient: RestClient
     protected abstract val gatewayFactory: Gateway.Factory
+    protected val extensions = mutableMapOf<BootstrapContext.Extension<*>, BootstrapContext.ExtensionContext>()
 
     operator fun String.unaryPlus() {
         token = this
@@ -63,6 +66,12 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
         cache = NoopMap()
     }
 
+    operator fun <E, C> Pair<E, C>.unaryPlus()
+            where E : BootstrapContext.Extension<C>,
+                  C : BootstrapContext.ExtensionContext {
+        extensions += this
+    }
+
     inline fun DiscordClientBuilderScope.token(value: String) = value
     inline fun DiscordClientBuilderScope.withCache(value: MutableMap<Snowflake, IEntity>) = value
     inline fun DiscordClientBuilderScope.disableCaching() = Unit
@@ -73,6 +82,10 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
         GatewayBuilder().apply(f)
 
     inline fun DiscordClientBuilderScope.restRetrySchedule(value: Schedule<*, *>) = value
+    inline fun <C : BootstrapContext.ExtensionContext, E : BootstrapContext.Extension<C>> DiscordClientBuilderScope.install(
+        type: E,
+        value: () -> C
+    ) = type to value()
 
     @RequiresOptIn("This statement should be used only in tests")
     annotation class InternalTestAPI

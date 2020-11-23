@@ -9,7 +9,7 @@ import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.rest.service.*
 
 class NoRestScope : DiscordClientBuilderScope() {
-    override val restClient: RestClient = object : RestClient(Schedule.never<Any?>()) {
+    override val restClient: RestClient = object : RestClient(Schedule.once<Any?>()) {
         override val RestClient.channelService: ChannelService get() = throw NotImplementedError()
         override val RestClient.emojiService: EmojiService get() = throw NotImplementedError()
         override val RestClient.gatewayService: GatewayService get() = throw NotImplementedError()
@@ -22,7 +22,7 @@ class NoRestScope : DiscordClientBuilderScope() {
     }
 
     override val gatewayFactory: Gateway.Factory = object : Gateway.Factory() {
-        override fun BootstrapContext.Gateway.createGateway(): Gateway = Gateway(this, emptyList())
+        override fun BootstrapContext.createGateway(): Gateway = Gateway(this, emptyList())
     }
 
     override fun create(): DiscordClientSettings = DiscordClientSettings(
@@ -31,7 +31,8 @@ class NoRestScope : DiscordClientBuilderScope() {
         gatewaySettings,
         restSchedule,
         restClient,
-        gatewayFactory
+        gatewayFactory,
+        extensions
     )
 }
 

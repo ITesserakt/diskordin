@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.core.data
 
+import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.Intents.*
@@ -10,8 +11,8 @@ import kotlin.reflect.KClass
 class EntityCache internal constructor(
     cacheSifter: EntitySifter,
     private val initial: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
-) :
-    MutableMap<Snowflake, IEntity> by initial {
+) : MutableMap<Snowflake, IEntity> by initial, BootstrapContext.ExtensionContext {
+    companion object : BootstrapContext.PersistentExtension<EntityCache>
 
     private val deniedEntities = cacheSifter.sift()
 
