@@ -32,7 +32,7 @@ dependencies {
     implementation(arrow("ui"))
     implementation(arrow("syntax"))
 
-    implementation("io.github.classgraph:classgraph:4.8.65")
+    implementation("io.github.classgraph:classgraph:4.8.90")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 
     testImplementation(arrow("fx-rx2"))

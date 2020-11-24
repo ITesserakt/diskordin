@@ -27,7 +27,7 @@ class CommandRegistryTest : FunSpec() {
             val client = DiscordClientBuilder[WithoutRest] {
                 +disableTokenVerification()
                 +commandFramework {
-                    +specifySearch { blacklistPackages("org.tesserakt.diskordin") }
+                    +specifySearch { rejectPackages("org.tesserakt.diskordin") }
                 }
             }.getOrHandle { error(it) }
 
