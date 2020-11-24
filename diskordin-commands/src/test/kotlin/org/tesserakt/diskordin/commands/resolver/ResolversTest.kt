@@ -1,20 +1,25 @@
 package org.tesserakt.diskordin.commands.resolver
 
-import arrow.core.*
+import arrow.core.Either
+import arrow.core.Tuple2
 import arrow.core.extensions.either.applicative.applicative
 import arrow.core.extensions.either.applicative.map
 import arrow.core.extensions.list.traverse.sequence
+import arrow.core.extensions.listk.foldable.toList
+import arrow.core.toT
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.property.Arb
+import io.kotest.property.Gen
 import io.kotest.property.PropertyTesting
-import io.kotest.property.arbitrary.arb
+import io.kotest.property.RandomSource
 import io.kotest.property.arbitrary.string
 import io.kotest.property.arbitrary.stringPattern
-import io.kotest.property.arbitrary.take
+import io.kotest.property.exhaustive.exhaustive
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.IdentifiedIO
@@ -29,17 +34,17 @@ class ResolversTest : FunSpec() {
 
     private suspend fun <T : Any, C : CommandContext> test(
         resolver: TypeResolver<T, C>,
-        badInput: Arb<String>,
-        goodInput: Arb<String>,
+        badInput: Gen<String>,
+        goodInput: Gen<String>,
         ctx: C
-    ): Tuple2<Either<ParseError, ListK<T>>, Either<ParseError, ListK<T>>> {
-        val badResult = badInput
-            .take(testCount).toList().map { resolver.parse(ctx, it) }
-            .sequence(Either.applicative()).map { it.fix() }
+    ): Tuple2<Either<ParseError, List<T>>, Either<ParseError, List<T>>> {
+        val badResult = badInput.generate(RandomSource.Default)
+            .take(testCount).toList().map { resolver.parse(ctx, it.value) }
+            .sequence(Either.applicative()).map { it.toList() }
 
-        val goodResult = goodInput
-            .take(testCount).toList().map { resolver.parse(ctx, it) }
-            .sequence(Either.applicative()).map { it.fix() }
+        val goodResult = goodInput.generate(RandomSource.Default)
+            .take(testCount).toList().map { resolver.parse(ctx, it.value) }
+            .sequence(Either.applicative()).map { it.toList() }
 
         return badResult toT goodResult
     }
@@ -58,11 +63,11 @@ class ResolversTest : FunSpec() {
 
         test("Boolean resolver") {
             val bad = Arb.string(0, 100)
-            val good = arb { listOf("true", "TRuE", "FalSe", "false").asSequence() }
+            val good = listOf("true", "TRuE", "FalSe", "false").exhaustive()
             val (fail, success) = test(BooleanResolver(), bad, good, fakeContext)
 
             fail shouldBeLeft { it shouldBe beOfType<BooleanResolver.BooleanConversionError>() }
-            success shouldBeRight { it.toList() shouldBe listOf(true, true, false, false) }
+            success shouldBeRight { it shouldContainInOrder listOf(true, true, false, false) }
         }
 
         test("String resolver") {
