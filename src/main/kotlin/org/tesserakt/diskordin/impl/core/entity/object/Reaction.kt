@@ -14,11 +14,6 @@ internal class Reaction(raw: ReactionResponse) : IReaction {
     override val emoji: IEmoji = raw.emoji.unwrap()
 
     override fun toString(): String {
-        return StringBuilder("Reaction(")
-            .appendLine("count=$count, ")
-            .appendLine("selfReacted=$selfReacted, ")
-            .appendLine("emoji=$emoji")
-            .appendLine(")")
-            .toString()
+        return "Reaction(count=$count, selfReacted=$selfReacted, emoji=$emoji)"
     }
 }

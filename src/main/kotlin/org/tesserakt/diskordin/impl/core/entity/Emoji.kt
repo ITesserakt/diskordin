@@ -22,10 +22,7 @@ internal open class Emoji(raw: EmojiResponse<IEmoji>) : IEmoji {
     final override val name: String = raw.name
 
     override fun toString(): String {
-        return StringBuilder("Emoji(")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Emoji(name='$name')"
     }
 }
 
@@ -62,16 +59,7 @@ internal class CustomEmoji constructor(
     }
 
     override fun toString(): String {
-        return StringBuilder("CustomEmoji(")
-            .appendLine("guild=$guild, ")
-            .appendLine("roles=$roles, ")
-            .appendLine("creator=$creator, ")
-            .appendLine("requireColons=$requireColons, ")
-            .appendLine("isManaged=$isManaged, ")
-            .appendLine("isAnimated=$isAnimated, ")
-            .appendLine("id=$id, ")
-            .appendLine("mention='$mention'")
-            .appendLine(") ${super.toString()}")
-            .toString()
+        return "CustomEmoji(guild=$guild, roles=$roles, creator=$creator, requireColons=$requireColons, isManaged=$isManaged, isAnimated=$isAnimated, id=$id, mention='$mention') " +
+                "\n   ${super.toString()}"
     }
 }

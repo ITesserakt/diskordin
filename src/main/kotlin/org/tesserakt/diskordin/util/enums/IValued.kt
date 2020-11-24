@@ -24,5 +24,5 @@ operator fun <E, N : Any> E.not()
         where E : Enum<E>, E : IValued<E, N> = ValuedEnum<E, N>(
     this@not.declaringClass.enumConstants
         .map(IValued<E, N>::code)
-        .reduce { acc, i -> acc + i } - code, this
+        .fold(0.fromInt()) { acc, i -> acc + i } - code, this
 )

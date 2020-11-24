@@ -8,12 +8,8 @@ internal class Video(raw: VideoResponse) : IVideo {
     override val url: String? = raw.url
     override val height: Int? = raw.height
     override val width: Int? = raw.width
+
     override fun toString(): String {
-        return StringBuilder("Video(")
-            .appendLine("url=$url, ")
-            .appendLine("height=$height, ")
-            .appendLine("width=$width")
-            .appendLine(")")
-            .toString()
+        return "Video(url=$url, height=$height, width=$width)"
     }
 }

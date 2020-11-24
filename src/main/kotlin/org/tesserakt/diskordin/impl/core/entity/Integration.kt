@@ -31,21 +31,7 @@ internal class Integration(
     }.let { guild().integrations.toList().first { it.id == id } }
 
     override fun toString(): String {
-        return StringBuilder("Integration(")
-            .appendLine("guild=$guild, ")
-            .appendLine("type='$type', ")
-            .appendLine("enabled=$enabled, ")
-            .appendLine("syncing=$syncing, ")
-            .appendLine("role=$role, ")
-            .appendLine("expireBehavior=$expireBehavior, ")
-            .appendLine("expireGracePeriod=$expireGracePeriod, ")
-            .appendLine("user=$user, ")
-            .appendLine("account=$account, ")
-            .appendLine("syncedAt=$syncedAt, ")
-            .appendLine("id=$id, ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"
     }
 
     override val type: String = raw.type

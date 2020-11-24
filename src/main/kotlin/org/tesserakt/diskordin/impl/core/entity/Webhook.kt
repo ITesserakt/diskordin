@@ -16,15 +16,7 @@ internal class Webhook(raw: WebhookResponse) : IWebhook {
     }
 
     override fun toString(): String {
-        return StringBuilder("Webhook(")
-            .appendLine("name=$name, ")
-            .appendLine("avatar=$avatar, ")
-            .appendLine("token='$token', ")
-            .appendLine("guild=$guild, ")
-            .appendLine("channel=$channel, ")
-            .appendLine("user=$user, ")
-            .appendLine("id=$id")
-            .appendLine(")").toString()
+        return "Webhook(name=$name, avatar=$avatar, token='$token', guild=$guild, channel=$channel, user=$user, id=$id)"
     }
 
     override val name: String? = raw.name

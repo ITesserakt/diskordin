@@ -41,14 +41,8 @@ internal class Member constructor(
     }.let { client.getMember(id, guild.id) }
 
     override fun toString(): String {
-        return StringBuilder("Member(")
-            .appendLine("guild=$guild, ")
-            .appendLine("nickname=$nickname, ")
-            .appendLine("roles=$roles, ")
-            .appendLine("joinTime=$joinTime, ")
-            .appendLine("mention='$mention'")
-            .appendLine(") ${super.toString()}")
-            .toString()
+        return "Member(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime, mention='$mention') " +
+                "   ${super.toString()}"
     }
 
     override val nickname: String? = raw.nick

@@ -32,10 +32,10 @@ data class Snowflake private constructor(internal val id: ULong) : Comparable<Sn
         get() = Instant.ofEpochMilli(((id shr 22) + DISCORD_EPOCH).toLong())
 
     companion object {
-        fun of(id: String): Snowflake {
-            require(id.all { it.isDigit() || it == '-' } && id.toLongOrNull() != null) { "$id cannot be represented as Snowflake" }
-            return of(id.toLong())
-        }
+        fun of(id: String): Snowflake = of(
+            requireNotNull(id.toLongOrNull()) {
+                "$id cannot be represented as Snowflake"
+            })
 
         fun of(id: Long): Snowflake {
             require(id >= 0) { "id must be greater than 0" }

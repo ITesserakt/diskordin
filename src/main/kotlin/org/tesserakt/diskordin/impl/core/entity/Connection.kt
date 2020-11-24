@@ -27,17 +27,6 @@ internal class Connection(raw: ConnectionResponse) : IConnection {
     override val name: String = raw.name
 
     override fun toString(): String {
-        return StringBuilder("Connection(")
-            .appendLine("type='$type', ")
-            .appendLine("isRevoked=$isRevoked, ")
-            .appendLine("integrations=${integrations.contentToString()}, ")
-            .appendLine("isVerified=$isVerified, ")
-            .appendLine("isFriendSyncing=$isFriendSyncing, ")
-            .appendLine("isShowingActivity=$isShowingActivity, ")
-            .appendLine("visibility=$visibility, ")
-            .appendLine("id=$id, ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Connection(type='$type', isRevoked=$isRevoked, integrations=${integrations.contentToString()}, isVerified=$isVerified, isFriendSyncing=$isFriendSyncing, isShowingActivity=$isShowingActivity, visibility=$visibility, id=$id, name='$name')"
     }
 }

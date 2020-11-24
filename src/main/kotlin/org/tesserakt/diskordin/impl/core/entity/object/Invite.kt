@@ -35,9 +35,7 @@ internal class GuildInvite(raw: InviteResponse<IGuildInvite>) : Invite(raw), IGu
     }
 
     override fun toString(): String {
-        return StringBuilder("GuildInvite(")
-            .appendLine("guild=$guild")
-            .appendLine(") ${super.toString()}")
-            .toString()
+        return "GuildInvite(guild=$guild) " +
+                "\n   ${super.toString()}"
     }
 }

@@ -28,7 +28,6 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val splashHash: String?
     val owner: IdentifiedF<ForIO, IMember>
     val afkChannel: IdentifiedIO<IVoiceChannel>?
-
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel

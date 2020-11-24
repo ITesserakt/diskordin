@@ -86,15 +86,6 @@ internal class Message(raw: MessageResponse) : IMessage {
     }
 
     override fun toString(): String {
-        return StringBuilder("Message(")
-            .appendLine("channel=$channel, ")
-            .appendLine("author=$author, ")
-            .appendLine("content='$content', ")
-            .appendLine("isTTS=$isTTS, ")
-            .appendLine("attachments=$attachments, ")
-            .appendLine("isPinned=$isPinned, ")
-            .appendLine("id=$id")
-            .appendLine(")")
-            .toString()
+        return "Message(channel=$channel, author=$author, content='$content', isTTS=$isTTS, attachments=$attachments, isPinned=$isPinned, id=$id)"
     }
 }

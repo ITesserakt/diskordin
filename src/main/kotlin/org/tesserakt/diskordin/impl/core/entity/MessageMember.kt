@@ -59,12 +59,6 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override suspend fun edit(builder: MemberEditBuilder.() -> Unit): IMember = delegate.edit(builder)
 
     override fun toString(): String {
-        return StringBuilder("MessageMember(")
-            .appendLine("guild=$guild, ")
-            .appendLine("nickname=$nickname, ")
-            .appendLine("roles=$roles, ")
-            .appendLine("joinTime=$joinTime")
-            .appendLine(")")
-            .toString()
+        return "MessageMember(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime)"
     }
 }

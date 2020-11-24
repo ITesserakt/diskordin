@@ -18,14 +18,6 @@ internal class Region(raw: VoiceRegionResponse) : IRegion {
     override val name: String = raw.name
 
     override fun toString(): String {
-        return StringBuilder("Region(")
-            .appendLine("id='$id', ")
-            .appendLine("isOptimal=$isOptimal, ")
-            .appendLine("isVIP=$isVIP, ")
-            .appendLine("isDeprecated=$isDeprecated, ")
-            .appendLine("isCustom=$isCustom, ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Region(id='$id', isOptimal=$isOptimal, isVIP=$isVIP, isDeprecated=$isDeprecated, isCustom=$isCustom, name='$name')"
     }
 }

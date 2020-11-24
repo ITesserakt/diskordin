@@ -20,21 +20,11 @@ internal class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
 
         @ExperimentalTime
         override fun toString(): String {
-            return StringBuilder("Session(")
-                .appendLine("total=$total, ")
-                .appendLine("remaining=$remaining, ")
-                .appendLine("resetAfter=$resetAfter")
-                .appendLine(")")
-                .toString()
+            return "Session(total=$total, remaining=$remaining, resetAfter=$resetAfter)"
         }
     }
 
     override fun toString(): String {
-        return StringBuilder("GatewayStats(")
-            .appendLine("url='$url', ")
-            .appendLine("shards=$shards, ")
-            .appendLine("session=$session")
-            .appendLine(")")
-            .toString()
+        return "GatewayStats(url='$url', shards=$shards, session=$session)"
     }
 }

@@ -10,7 +10,6 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
-import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.IRole
 import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
@@ -56,17 +55,6 @@ internal class Role constructor(
 
     @ExperimentalUnsignedTypes
     override fun toString(): String {
-        return StringBuilder("Role(")
-            .appendLine("permissions=$permissions, ")
-            .appendLine("color=$color, ")
-            .appendLine("isHoisted=$isHoisted, ")
-            .appendLine("isMentionable=$isMentionable, ")
-            .appendLine("id=$id, ")
-            .appendLine("isEveryone=$isEveryone, ")
-            .appendLine("guild=$guild, ")
-            .appendLine("mention='$mention', ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
     }
 }

@@ -61,13 +61,9 @@ internal class Activity(raw: ActivityResponse) : IActivity {
         override val id: String? = raw.id
         override val currentSize: Int? = raw.size.getOrNull(0)
         override val maxSize: Int? = raw.size.getOrNull(1)
+
         override fun toString(): String {
-            return StringBuilder("Party(")
-                .appendLine("id=$id, ")
-                .appendLine("currentSize=$currentSize, ")
-                .appendLine("maxSize=$maxSize")
-                .appendLine(")")
-                .toString()
+            return "Party(id=$id, currentSize=$currentSize, maxSize=$maxSize)"
         }
     }
 
@@ -76,14 +72,9 @@ internal class Activity(raw: ActivityResponse) : IActivity {
         override val largeText: String? = raw.largeText
         override val smallImageHash: String? = raw.smallImage
         override val smallText: String? = raw.smallText
+
         override fun toString(): String {
-            return StringBuilder("Assets(")
-                .appendLine("largeImageHash=$largeImageHash, ")
-                .appendLine("largeText=$largeText, ")
-                .appendLine("smallImageHash=$smallImageHash, ")
-                .appendLine("smallText=$smallText")
-                .appendLine(")")
-                .toString()
+            return "Assets(largeImageHash=$largeImageHash, largeText=$largeText, smallImageHash=$smallImageHash, smallText=$smallText)"
         }
     }
 
@@ -91,34 +82,13 @@ internal class Activity(raw: ActivityResponse) : IActivity {
         override val join: String? = raw.join
         override val spectate: String? = raw.spectate
         override val match: String? = raw.match
+
         override fun toString(): String {
-            return StringBuilder("Secrets(")
-                .appendLine("join=$join, ")
-                .appendLine("spectate=$spectate, ")
-                .appendLine("match=$match")
-                .appendLine(")")
-                .toString()
+            return "Secrets(join=$join, spectate=$spectate, match=$match)"
         }
     }
 
     override fun toString(): String {
-        return StringBuilder("Activity(")
-            .appendLine("startPlaying=$startPlaying, ")
-            .appendLine("duration=$duration, ")
-            .appendLine("endPlaying=$endPlaying, ")
-            .appendLine("name='$name', ")
-            .appendLine("type=$type, ")
-            .appendLine("streamUrl=$streamUrl, ")
-            .appendLine("applicationId=$applicationId, ")
-            .appendLine("details=$details, ")
-            .appendLine("state=$state, ")
-            .appendLine("emoji=$emoji")
-            .appendLine("party=$party, ")
-            .appendLine("assets=$assets, ")
-            .appendLine("secrets=$secrets, ")
-            .appendLine("instanceOfGame=$instanceOfGame, ")
-            .appendLine("flags=$flags")
-            .appendLine(")")
-            .toString()
+        return "Activity(startPlaying=$startPlaying, duration=$duration, endPlaying=$endPlaying, name='$name', type=$type, streamUrl=$streamUrl, applicationId=$applicationId, details=$details, state=$state, party=$party, assets=$assets, secrets=$secrets, instanceOfGame=$instanceOfGame, flags=$flags)"
     }
 }

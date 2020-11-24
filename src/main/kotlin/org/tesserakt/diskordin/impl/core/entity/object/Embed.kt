@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
-
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.`object`.IEmbed
 import org.tesserakt.diskordin.core.entity.`object`.IImage
@@ -27,12 +26,9 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
     class Footer(raw: FooterResponse) : IEmbed.IFooter {
         override val text: String = raw.text
         override val iconUrl: String? = raw.icon_url
+
         override fun toString(): String {
-            return StringBuilder("Footer(")
-                .appendLine("text='$text', ")
-                .appendLine("iconUrl=$iconUrl")
-                .appendLine(")")
-                .toString()
+            return "Footer(text='$text', iconUrl=$iconUrl)"
         }
     }
 
@@ -47,12 +43,9 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
     class Provider(raw: ProviderResponse) : IEmbed.IProvider {
         override val name: String? = raw.name
         override val url: String? = raw.url
+
         override fun toString(): String {
-            return StringBuilder("Provider(")
-                .appendLine("name=$name, ")
-                .appendLine("url=$url")
-                .appendLine(")")
-                .toString()
+            return "Provider(name=$name, url=$url)"
         }
     }
 
@@ -62,13 +55,9 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val name: String? = raw.name
         override val url: String? = raw.url
         override val iconUrl: String? = raw.icon_url
+
         override fun toString(): String {
-            return StringBuilder("Author(")
-                .appendLine("name=$name, ")
-                .appendLine("url=$url, ")
-                .appendLine("iconUrl=$iconUrl")
-                .appendLine(")")
-                .toString()
+            return "Author(name=$name, url=$url, iconUrl=$iconUrl)"
         }
     }
 
@@ -78,32 +67,13 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
         override val name: String = raw.name
         override val value: String = raw.value
         override val inline: Boolean? = raw.inline
+
         override fun toString(): String {
-            return StringBuilder("Field(")
-                .appendLine("name='$name', ")
-                .appendLine("value='$value', ")
-                .appendLine("inline=$inline")
-                .appendLine(")")
-                .toString()
+            return "Field(name='$name', value='$value', inline=$inline)"
         }
     }
 
     override fun toString(): String {
-        return StringBuilder("Embed(")
-            .appendLine("title=$title, ")
-            .appendLine("type=$type, ")
-            .appendLine("description=$description, ")
-            .appendLine("url=$url, ")
-            .appendLine("timestamp=$timestamp, ")
-            .appendLine("color=$color, ")
-            .appendLine("footer=$footer, ")
-            .appendLine("image=$image, ")
-            .appendLine("thumbnail=$thumbnail, ")
-            .appendLine("video=$video, ")
-            .appendLine("provider=$provider, ")
-            .appendLine("author=$author, ")
-            .appendLine("fields=$fields")
-            .appendLine(")")
-            .toString()
+        return "Embed(title=$title, type=$type, description=$description, url=$url, timestamp=$timestamp, color=$color, footer=$footer, image=$image, thumbnail=$thumbnail, video=$video, provider=$provider, author=$author, fields=$fields)"
     }
 }

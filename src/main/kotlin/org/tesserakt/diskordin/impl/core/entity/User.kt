@@ -28,9 +28,7 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val email: String? = raw.email
 
-    final override val flags: ValuedEnum<IUser.Flags, Int> = if (raw.flags == null || raw.flags == 0)
-        ValuedEnum.none(Int.integral())
-    else ValuedEnum(raw.flags, Int.integral())
+    final override val flags: ValuedEnum<IUser.Flags, Short> = ValuedEnum(raw.flags ?: 0, Short.integral())
 
     final override val premiumType: IUser.Type? = IUser.Type.values().find { it.ordinal == raw.premium_type }
 
@@ -47,20 +45,7 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
     }.extract()
 
     override fun toString(): String {
-        return "User(" +
-                "avatar=$avatar, " +
-                "mfaEnabled=$mfaEnabled, " +
-                "locale=$locale, " +
-                "verified=$verified, " +
-                "email=$email, " +
-                "flags=$flags, " +
-                "premiumType=$premiumType, " +
-                "username='$username', " +
-                "discriminator=$discriminator, " +
-                "isBot=$isBot, " +
-                "id=$id, " +
-                "mention='$mention'" +
-                ")"
+        return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
     }
 
     override val mention: String = "<@${id.asString()}>"
@@ -96,11 +81,7 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
     }
 
     override fun toString(): String {
-        return StringBuilder("Self(")
-            .appendLine("guilds=$guilds, ")
-            .appendLine("privateChannels=$privateChannels, ")
-            .appendLine("connections=$connections")
-            .appendLine(") ${super.toString()}")
-            .toString()
+        return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) " +
+                "\n   ${super.toString()}"
     }
 }

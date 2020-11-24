@@ -8,12 +8,8 @@ internal class Thumbnail(raw: ThumbnailResponse) : IImage {
     override val url: String? = raw.url
     override val height: Int? = raw.height
     override val width: Int? = raw.width
+
     override fun toString(): String {
-        return StringBuilder("Thumbnail(")
-            .appendLine("url=$url, ")
-            .appendLine("height=$height, ")
-            .appendLine("width=$width")
-            .appendLine(")")
-            .toString()
+        return "Thumbnail(url=$url, height=$height, width=$width)"
     }
 }

@@ -124,11 +124,6 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override suspend fun moveChannels(vararg builder: Pair<Snowflake, Int>): Unit = delegate.moveChannels(*builder)
 
     override fun toString(): String {
-        return StringBuilder("PartialGuild(")
-            .appendLine("iconHash=$iconHash, ")
-            .appendLine("id=$id, ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "PartialGuild(iconHash=$iconHash, id=$id, name='$name')"
     }
 }

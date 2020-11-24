@@ -27,15 +27,7 @@ internal class MessageUser(private val raw: MessageUserResponse) : IUser {
         raw.member?.unwrap(guildId) ?: client.getMember(id, guildId)
 
     override fun toString(): String {
-        return StringBuilder("MessageUser(")
-            .appendLine("avatar=$avatar, ")
-            .appendLine("username='$username', ")
-            .appendLine("discriminator=$discriminator, ")
-            .appendLine("isBot=$isBot, ")
-            .appendLine("id=$id, ")
-            .appendLine("mention='$mention'")
-            .appendLine(")")
-            .toString()
+        return "MessageUser(avatar=$avatar, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
     }
 
     override val id: Snowflake = raw.id

@@ -19,19 +19,8 @@ internal class VoiceState(raw: VoiceStateResponse) : IVoiceState {
     override val isSelfMuted: Boolean = raw.selfMute
     override val isStreaming: Boolean = raw.selfStream ?: false
     override val isSuppressed: Boolean = raw.suppress
+
     override fun toString(): String {
-        return StringBuilder("VoiceState(")
-            .appendLine("channel=$channel, ")
-            .appendLine("user=$user, ")
-            .appendLine("guild=$guild, ")
-            .appendLine("sessionId='$sessionId', ")
-            .appendLine("isDeafen=$isDeafen, ")
-            .appendLine("isMuted=$isMuted, ")
-            .appendLine("isSelfDeafen=$isSelfDeafen, ")
-            .appendLine("isSelfMuted=$isSelfMuted, ")
-            .appendLine("isStreaming=$isStreaming, ")
-            .appendLine("isSuppressed=$isSuppressed")
-            .appendLine(")")
-            .toString()
+        return "VoiceState(channel=$channel, user=$user, guild=$guild, sessionId='$sessionId', isDeafen=$isDeafen, isMuted=$isMuted, isSelfDeafen=$isSelfDeafen, isSelfMuted=$isSelfMuted, isStreaming=$isStreaming, isSuppressed=$isSuppressed)"
     }
 }

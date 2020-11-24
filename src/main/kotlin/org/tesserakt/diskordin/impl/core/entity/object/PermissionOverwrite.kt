@@ -23,15 +23,9 @@ internal class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrit
     override val allowed = ValuedEnum<Permission, Long>(raw.allow, Long.integral())
     override val denied = ValuedEnum<Permission, Long>(raw.deny, Long.integral())
 
-    override fun toString(): String {
-        return StringBuilder("PermissionOverwrite(")
-            .appendLine("type=$type, ")
-            .appendLine("targetId=$targetId, ")
-            .appendLine("allowed=$allowed, ")
-            .appendLine("denied=$denied")
-            .appendLine(")")
-            .toString()
-    }
-
     override fun computeCode(): Long = (allowed and !denied).code
+
+    override fun toString(): String {
+        return "PermissionOverwrite(type=$type, targetId=$targetId, allowed=$allowed, denied=$denied)"
+    }
 }

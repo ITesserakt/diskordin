@@ -246,38 +246,7 @@ internal class Guild(raw: GuildResponse) : IGuild {
 
     @ExperimentalTime
     override fun toString(): String {
-        return StringBuilder("Guild(")
-            .appendLine("region=$region, ")
-            .appendLine("isEmbedEnabled=$isEmbedEnabled, ")
-            .appendLine("defaultMessageNotificationLevel=$defaultMessageNotificationLevel, ")
-            .appendLine("explicitContentFilter=$explicitContentFilter, ")
-            .appendLine("mfaLevel=$mfaLevel, ")
-            .appendLine("isWidgetEnabled=$isWidgetEnabled, ")
-            .appendLine("widgetChannel=$widgetChannel, ")
-            .appendLine("systemChannel=$systemChannel, ")
-            .appendLine("maxMembers=$maxMembers, ")
-            .appendLine("maxPresences=$maxPresences, ")
-            .appendLine("description=$description, ")
-            .appendLine("bannerHash=$bannerHash, ")
-            .appendLine("premiumTier=$premiumTier, ")
-            .appendLine("premiumSubscriptions=$premiumSubscriptions, ")
-            .appendLine("features=$features, ")
-            .appendLine("id=$id, ")
-            .appendLine("invites=$invites, ")
-            .appendLine("emojis=$emojis, ")
-            .appendLine("bans=$bans, ")
-            .appendLine("integrations=$integrations, ")
-            .appendLine("iconHash=$iconHash, ")
-            .appendLine("splashHash=$splashHash, ")
-            .appendLine("owner=$owner, ")
-            .appendLine("afkChannel=$afkChannel, ")
-            .appendLine("afkChannelTimeout=$afkChannelTimeout, ")
-            .appendLine("verificationLevel=$verificationLevel, ")
-            .appendLine("roles=$roles, ")
-            .appendLine("channels=$channels, ")
-            .appendLine("name='$name'")
-            .appendLine(")")
-            .toString()
+        return "Guild(region=$region, isEmbedEnabled=$isEmbedEnabled, defaultMessageNotificationLevel=$defaultMessageNotificationLevel, explicitContentFilter=$explicitContentFilter, mfaLevel=$mfaLevel, isWidgetEnabled=$isWidgetEnabled, widgetChannel=$widgetChannel, systemChannel=$systemChannel, maxMembers=$maxMembers, maxPresences=$maxPresences, description=$description, bannerHash=$bannerHash, premiumTier=$premiumTier, premiumSubscriptions=$premiumSubscriptions, features=$features, id=$id, invites=$invites, emojis=$emojis, bans=$bans, integrations=$integrations, iconHash=$iconHash, splashHash=$splashHash, owner=$owner, afkChannel=$afkChannel, afkChannelTimeout=$afkChannelTimeout, verificationLevel=$verificationLevel, name='$name')"
     }
 
     init {

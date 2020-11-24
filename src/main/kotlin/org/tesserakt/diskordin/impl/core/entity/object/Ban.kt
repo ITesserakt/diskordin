@@ -16,10 +16,6 @@ internal class Ban(raw: BanResponse) : IBan {
         raw.user.id identifyId { raw.user.unwrap() }
 
     override fun toString(): String {
-        return StringBuilder("Ban(")
-            .appendLine("reason=$reason, ")
-            .appendLine("user=$user")
-            .appendLine(")")
-            .toString()
+        return "Ban(reason=$reason, user=$user)"
     }
 }
