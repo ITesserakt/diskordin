@@ -58,7 +58,7 @@ tasks.test {
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses")
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
     }
 }
 tasks.compileTestKotlin {
