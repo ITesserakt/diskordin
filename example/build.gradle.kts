@@ -36,6 +36,7 @@ dependencies {
     implementation(arrow("core"))
     implementation(arrow("mtl"))
     implementation(arrow("fx"))
+    implementation(arrow("ui"))
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
     implementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")

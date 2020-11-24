@@ -10,6 +10,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
+import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.IRole
 import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance

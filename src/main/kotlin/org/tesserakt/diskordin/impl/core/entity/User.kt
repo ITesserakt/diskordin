@@ -28,7 +28,7 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val email: String? = raw.email
 
-    final override val flags: ValuedEnum<IUser.Flags, Short> = ValuedEnum(raw.flags ?: 0, Short.integral())
+    final override val flags: ValuedEnum<IUser.Flags, Int> = ValuedEnum(raw.flags ?: 0, Int.integral())
 
     final override val premiumType: IUser.Type? = IUser.Type.values().find { it.ordinal == raw.premium_type }
 
