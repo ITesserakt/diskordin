@@ -16,7 +16,7 @@ fun arrow(module: String, version: String = arrow_version): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.20-RC"
+    id("org.jetbrains.kotlin.jvm") version "1.4.20"
     id("com.jfrog.bintray") version "1.8.4"
     `maven-publish`
 }
