@@ -10,6 +10,8 @@ import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.response.GuildResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
@@ -23,11 +25,13 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
+interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder>,
+    ICacheable<IGuild, UnwrapContext.EmptyContext, GuildResponse> {
     val iconHash: String?
     val splashHash: String?
     val owner: IdentifiedF<ForIO, IMember>
     val afkChannel: IdentifiedIO<IVoiceChannel>?
+
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel

@@ -8,6 +8,8 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.impl.core.client.DiscordClient
 import org.tesserakt.diskordin.rest.RestClient
@@ -54,6 +56,11 @@ interface IEditable<E : IEntity, B : BuilderBase<*>> : IEntity {
 
 interface IPreviewed<E : IEntity> : IDiscordObject {
     suspend fun extend(): E
+}
+
+interface ICacheable<O : IDiscordObject, C : UnwrapContext, R : DiscordResponse<O, C>> {
+    fun fromCache(): O
+    fun copy(changes: (R) -> R): O
 }
 
 interface StaticMention<out P : IMentioned, in S : StaticMention<P, S>> {

@@ -141,7 +141,7 @@ internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) :
 internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
-    override val owner = raw.owner_id?.identify<IUser> {
+    override val owner = raw.owner_id!!.identify<IUser> {
         client.getUser(it)
     }
 
