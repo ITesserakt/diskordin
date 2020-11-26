@@ -7,7 +7,9 @@ import arrow.fx.coroutines.stream.Stream
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -22,7 +24,8 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-internal class PartialGuild(raw: UserGuildResponse) : IGuild {
+internal class PartialGuild(private val raw: UserGuildResponse) : IGuild,
+    ICacheable<IGuild, UnwrapContext.EmptyContext, UserGuildResponse> {
     override val region: IRegion by lazy { delegate.region }
     override val isEmbedEnabled: Boolean by lazy { delegate.isEmbedEnabled }
     override val defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel
@@ -115,6 +118,10 @@ internal class PartialGuild(raw: UserGuildResponse) : IGuild {
     override suspend fun delete(reason: String?) = delegate.delete(reason)
 
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)
+
+    override fun fromCache(): IGuild = cache[id] as IGuild
+
+    override fun copy(changes: (UserGuildResponse) -> UserGuildResponse): IGuild = raw.let(changes).unwrap()
 
     override suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember> = delegate.getMembers(query)
 

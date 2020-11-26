@@ -10,21 +10,20 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
-import org.tesserakt.diskordin.core.entity.IGuild
-import org.tesserakt.diskordin.core.entity.IRole
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
+import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
-import org.tesserakt.diskordin.core.entity.client
-import org.tesserakt.diskordin.core.entity.rest
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
 internal class Role constructor(
-    raw: RoleResponse,
+    private val raw: RoleResponse,
     guildId: Snowflake
-) : IRole {
+) : IRole, ICacheable<IRole, UnwrapContext.GuildContext, RoleResponse> {
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {
         val inst = builder.instance(::RoleEditBuilder)
         guildService.editRole(guild.id, id, inst.create(), inst.reason).just()
@@ -58,4 +57,8 @@ internal class Role constructor(
     override fun toString(): String {
         return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
     }
+
+    override fun fromCache(): IRole = cache[id] as IRole
+
+    override fun copy(changes: (RoleResponse) -> RoleResponse): IRole = raw.let(changes).unwrap(guild.id)
 }

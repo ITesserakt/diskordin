@@ -12,6 +12,7 @@ import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.identifyId
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
@@ -34,7 +35,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
 @Suppress("UNCHECKED_CAST", "CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-internal class Guild(raw: GuildResponse) : IGuild {
+internal class Guild(private val raw: GuildResponse) : IGuild,
+    ICacheable<IGuild, UnwrapContext.EmptyContext, GuildResponse> {
     override val region: IRegion = Region(
         VoiceRegionResponse(
             raw.region,
@@ -206,6 +208,11 @@ internal class Guild(raw: GuildResponse) : IGuild {
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = rest.call {
         guildService.editGuild(id, builder.build(::GuildEditBuilder))
     }
+
+    override fun fromCache(): IGuild = cache[id] as IGuild
+
+    override fun copy(changes: (GuildResponse) -> GuildResponse): IGuild =
+        raw.let(changes).unwrap()
 
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
