@@ -25,7 +25,6 @@ interface CacheSnapshot {
     val lastTypes: SnowflakeMap<SnowflakeMap<Instant>>
     val users: SnowflakeMap<IUser>
     val bans: SnowflakeMap<SnowflakeMap<IBan>>
-    val currentUser: IUser
 
     fun getPrivateChannel(id: Snowflake): IPrivateChannel? = privateChannels[id]
     fun getUserPrivateChannel(userId: Snowflake): IPrivateChannel? =

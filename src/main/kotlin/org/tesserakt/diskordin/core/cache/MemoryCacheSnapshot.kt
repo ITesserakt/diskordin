@@ -13,6 +13,18 @@ data class MemoryCacheSnapshot(
     override val messages: SnowflakeMap<IMessage>,
     override val lastTypes: SnowflakeMap<SnowflakeMap<Instant>>,
     override val users: SnowflakeMap<IUser>,
-    override val bans: SnowflakeMap<SnowflakeMap<IBan>>,
-    override val currentUser: IUser
-) : CacheSnapshot
+    override val bans: SnowflakeMap<SnowflakeMap<IBan>>
+) : CacheSnapshot {
+    companion object {
+        fun empty() = MemoryCacheSnapshot(
+            emptyMap(),
+            emptyMap(),
+            emptyMap(),
+            emptyMap(),
+            emptyMap(),
+            emptyMap(),
+            emptyMap(),
+            emptyMap()
+        )
+    }
+}

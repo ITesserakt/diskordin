@@ -6,7 +6,6 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.fx.coroutines.stream.Stream
-import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
@@ -35,7 +34,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
 @Suppress("UNCHECKED_CAST", "CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-internal class Guild(private val raw: GuildResponse) : IGuild,
+internal class Guild(override val raw: GuildResponse) : IGuild,
     ICacheable<IGuild, UnwrapContext.EmptyContext, GuildResponse> {
     override val region: IRegion = Region(
         VoiceRegionResponse(
@@ -229,10 +228,7 @@ internal class Guild(private val raw: GuildResponse) : IGuild,
     override val verificationLevel =
         IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }
 
-    override val roles
-        get() = cache
-            .values.filterIsInstance<IRole>()
-            .filter { it.guild.id == id }
+    override val roles = raw.roles.map { it.unwrap(id) }
 
     override suspend fun getMembers(query: MemberQuery.() -> Unit) = rest.call(id, ListK.functor()) {
         guildService.getMembers(id, query.query(::MemberQuery))
@@ -257,8 +253,8 @@ internal class Guild(private val raw: GuildResponse) : IGuild,
     }
 
     init {
-        cache += runBlocking { rest.call(ListK.functor()) { guildService.getGuildChannels(id) } }
-            .fix().associateBy { it.id }
+//        cache += runBlocking { rest.call(ListK.functor()) { guildService.getGuildChannels(id) } }
+//            .fix().associateBy { it.id }
 
         cache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
     }

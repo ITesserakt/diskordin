@@ -24,7 +24,7 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-internal class PartialGuild(private val raw: UserGuildResponse) : IGuild,
+internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     ICacheable<IGuild, UnwrapContext.EmptyContext, UserGuildResponse> {
     override val region: IRegion by lazy { delegate.region }
     override val isEmbedEnabled: Boolean by lazy { delegate.isEmbedEnabled }
@@ -43,9 +43,15 @@ internal class PartialGuild(private val raw: UserGuildResponse) : IGuild,
     override val premiumSubscriptions: Int? by lazy { delegate.premiumSubscriptions }
     override val features: EnumSet<IGuild.Feature> by lazy { delegate.features }
 
-    private val delegate by lazy { runBlocking { client.getGuild(id) } }
+    private val delegate by lazy {
+        runBlocking {
+            client.rest.call {
+                guildService.getGuild(id)
+            }
+        }
+    }
 
-    override val iconHash: String? = raw.icon
+    override val iconHash: String = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }
     override val owner: IdentifiedF<ForIO, IMember> by lazy { delegate.owner }
     override val afkChannel by lazy { delegate.afkChannel }
@@ -110,7 +116,7 @@ internal class PartialGuild(private val raw: UserGuildResponse) : IGuild,
     override val emojis: Stream<ICustomEmoji> by lazy { delegate.emojis }
     override val bans: Stream<IBan> by lazy { delegate.bans }
     override val integrations: Stream<IIntegration> by lazy { delegate.integrations }
-    override val roles by lazy { delegate.roles }
+    override val roles by lazy { raw.roles.map { it.unwrap(id) }.takeIf { it.isNotEmpty() } ?: delegate.roles }
     override val channels by lazy { delegate.channels }
     override val id: Snowflake = raw.id
     override val name: String = raw.name

@@ -61,6 +61,8 @@ interface IPreviewed<E : IEntity> : IDiscordObject {
 interface ICacheable<O : IDiscordObject, C : UnwrapContext, R : DiscordResponse<O, C>> {
     fun fromCache(): O
     fun copy(changes: (R) -> R): O
+
+    val raw: R
 }
 
 interface StaticMention<out P : IMentioned, in S : StaticMention<P, S>> {

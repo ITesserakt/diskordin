@@ -21,7 +21,7 @@ import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
 internal class Role constructor(
-    private val raw: RoleResponse,
+    override val raw: RoleResponse,
     guildId: Snowflake
 ) : IRole, ICacheable<IRole, UnwrapContext.GuildContext, RoleResponse> {
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {

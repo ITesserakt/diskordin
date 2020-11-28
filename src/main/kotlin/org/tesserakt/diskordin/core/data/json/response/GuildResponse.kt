@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.data.json.response
 
-import arrow.optics.Lens
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.ICustomEmoji
 import org.tesserakt.diskordin.core.entity.IGuild
@@ -22,7 +21,7 @@ data class GuildResponse(
     val verification_level: Int,
     val default_message_notifications: Int,
     val explicit_content_filter: Int,
-    val roles: List<RoleResponse>,
+    val roles: Set<RoleResponse>,
     val emojis: List<EmojiResponse<ICustomEmoji>>,
     val features: List<String>,
     val mfa_level: Int,
@@ -40,10 +39,4 @@ data class GuildResponse(
     val premiumSubscribersCount: Int?
 ) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = Guild(this)
-
-    companion object {
-        val roles: Lens<GuildResponse, List<RoleResponse>> = Lens(
-            { it.roles }, { it, new -> it.copy(roles = new) }
-        )
-    }
 }

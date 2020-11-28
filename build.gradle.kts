@@ -49,6 +49,9 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
     testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
     testImplementation("io.kotest:kotest-property:$kotest_version")
+    testImplementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
+    testImplementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
+    testImplementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
 }
 
 tasks.test {

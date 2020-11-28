@@ -17,8 +17,7 @@ class CacheSnapshotBuilder(
     override val messages: SnowflakeMutableMap<IMessage>,
     override val lastTypes: SnowflakeMutableMap<SnowflakeMutableMap<Instant>>,
     override val users: SnowflakeMutableMap<IUser>,
-    override val bans: SnowflakeMutableMap<SnowflakeMutableMap<IBan>>,
-    override val currentUser: IUser
+    override val bans: SnowflakeMutableMap<SnowflakeMutableMap<IBan>>
 ) : CacheSnapshot {
     fun toImmutable() = MemoryCacheSnapshot(
         privateChannels,
@@ -28,8 +27,7 @@ class CacheSnapshotBuilder(
         messages,
         lastTypes,
         users,
-        bans,
-        currentUser
+        bans
     )
 
     fun copy() = CacheSnapshotBuilder(toImmutable())
@@ -43,8 +41,7 @@ class CacheSnapshotBuilder(
             inner.messages.toMutableMap(),
             inner.lastTypes.map { it.toMutableMap() }.toMutableMap(),
             inner.users.toMutableMap(),
-            inner.bans.map { it.toMutableMap() }.toMutableMap(),
-            inner.currentUser
+            inner.bans.map { it.toMutableMap() }.toMutableMap()
         )
     }
 }
