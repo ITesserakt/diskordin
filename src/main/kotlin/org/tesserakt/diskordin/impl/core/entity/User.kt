@@ -6,7 +6,9 @@ import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.DMCreateBuilder
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
@@ -17,7 +19,7 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.stream
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-internal open class User(raw: UserResponse<IUser>) : IUser {
+internal abstract class User(raw: UserResponse<IUser>) : IUser {
     final override val avatar: String? = raw.avatar
 
     final override val mfaEnabled: Boolean = raw.mfa_enabled ?: false
@@ -30,7 +32,11 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
 
     final override val flags: ValuedEnum<IUser.Flags, Int> = ValuedEnum(raw.flags ?: 0, Int.integral())
 
-    final override val premiumType: IUser.Type? = IUser.Type.values().find { it.ordinal == raw.premium_type }
+    final override val premiumType: IUser.Type = when (raw.premium_type) {
+        0 -> IUser.Type.NitroClassic
+        1 -> IUser.Type.Nitro
+        else -> IUser.Type.None
+    }
 
     final override val username: String = raw.username
 
@@ -51,7 +57,8 @@ internal open class User(raw: UserResponse<IUser>) : IUser {
     override val mention: String = "<@${id.asString()}>"
 }
 
-internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
+internal class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
+    ICacheable<IUser, UnwrapContext.EmptyContext, UserResponse<IUser>> {
     override suspend fun joinIntoDM(to: Snowflake): IPrivateChannel = rest.call {
         userService.joinToDM(DMCreateBuilder().apply {
             recipientId = to
@@ -84,4 +91,8 @@ internal class Self(raw: UserResponse<ISelf>) : User(raw), ISelf {
         return "Self(guilds=$guilds, privateChannels=$privateChannels, connections=$connections) " +
                 "\n   ${super.toString()}"
     }
+
+    override fun fromCache(): IUser = cache[id] as IUser
+
+    override fun copy(changes: (UserResponse<IUser>) -> UserResponse<IUser>): IUser = raw.run(changes).unwrap()
 }

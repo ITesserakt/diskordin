@@ -22,7 +22,7 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override val verified: Boolean by lazy { delegate.verified }
     override val email: String? by lazy { delegate.email }
     override val flags: ValuedEnum<IUser.Flags, Int> by lazy { delegate.flags }
-    override val premiumType: IUser.Type? by lazy { delegate.premiumType }
+    override val premiumType: IUser.Type by lazy { delegate.premiumType }
     private val delegate by lazy { runBlocking { client.getMember(id, guildId) } }
     override val guild: IdentifiedF<ForIO, IGuild> = guildId.identify<IGuild> { client.getGuild(it) }
     override val nickname: String? = raw.nick

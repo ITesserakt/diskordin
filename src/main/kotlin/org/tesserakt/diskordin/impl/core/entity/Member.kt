@@ -5,16 +5,16 @@ import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.filterOption
 import org.tesserakt.diskordin.core.data.*
-import org.tesserakt.diskordin.core.data.json.response.MemberResponse
+import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
 import java.time.Instant
 
-internal class Member constructor(
-    raw: MemberResponse<*>,
+internal class Member<C : UnwrapContext> constructor(
+    override val raw: MemberResponse<C>,
     guildId: Snowflake
-) : User(raw.user), IMember {
+) : User(raw.user), IMember, ICacheable<IMember, C, MemberResponse<C>> {
     override val guild: IdentifiedF<ForIO, IGuild> = guildId.identify<IGuild> { client.getGuild(it) }
 
     override suspend fun asMember(guildId: Snowflake): IMember = this
@@ -53,4 +53,11 @@ internal class Member constructor(
 
     override val joinTime: Instant = raw.joinedAt
     override val mention: String = "<@!$id>"
+
+    override fun copy(changes: (MemberResponse<C>) -> MemberResponse<C>): IMember = when (val copy = raw.run(changes)) {
+        is JoinMemberResponse -> copy.unwrap()
+        is GuildMemberResponse -> copy.unwrap(guild.id)
+    }
+
+    override fun fromCache(): IMember = cache[id] as IMember
 }

@@ -4,7 +4,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.IdUser
 
-class IDUserResponse(
+data class IDUserResponse(
     val id: Snowflake,
     val username: String? = null,
     val discriminator: String? = null,

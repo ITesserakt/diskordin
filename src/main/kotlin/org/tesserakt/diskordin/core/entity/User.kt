@@ -20,14 +20,14 @@ interface IUser : IMentioned, INamed {
     val verified: Boolean
     val email: String?
     val flags: ValuedEnum<Flags, Int>
-    val premiumType: Type?
+    val premiumType: Type
 
     companion object : StaticMention<IUser, Companion> {
         override val mention: Regex = Regex(""""<@(\d{18,})>"""")
     }
 
     enum class Type {
-        NitroClassic, Nitro
+        NitroClassic, Nitro, None
     }
 
     enum class Flags(override val code: Int) : IValued<Flags, Int>, Integral<Int> by Int.integral() {
