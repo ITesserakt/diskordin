@@ -72,8 +72,7 @@ class RoleHandlerTest : FunSpec({
         val handler = RoleUpdater()
 
         test("Cache should be mutated after add") {
-            val cache = CacheSnapshotBuilder(MemoryCacheSnapshot.empty())
-            cache.guilds += guild.id to guild
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
             handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id) as? Guild
 
@@ -83,10 +82,9 @@ class RoleHandlerTest : FunSpec({
         }
 
         test("Cache should be mutated after modify") {
-            val cache = CacheSnapshotBuilder(MemoryCacheSnapshot.empty())
             val newGuild = guild.copy { it.copy(roles = setOf(fakeRole.raw)) }
             val newRole = fakeRole.copy { it.copy(color = 2) } as Role
-            cache.guilds += newGuild.id to newGuild
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(newGuild.id to newGuild))
             val cachedGuild = cache.getGuild(newGuild.id)
 
             fakeRole.raw shouldNotBeSameInstanceAs newRole.raw
@@ -100,7 +98,7 @@ class RoleHandlerTest : FunSpec({
         }
 
         test("Nothing should be changed if there is no guild in cache") {
-            val cache = CacheSnapshotBuilder(MemoryCacheSnapshot.empty())
+            val cache = MemoryCacheSnapshot.empty()
             handler.handle(cache, fakeRole)
 
             cache.guilds.shouldBeEmpty()
@@ -111,7 +109,7 @@ class RoleHandlerTest : FunSpec({
         val handler = RoleDeleter()
 
         test("Nothing should happened with empty cache") {
-            val cache = CacheSnapshotBuilder(MemoryCacheSnapshot.empty())
+            val cache = MemoryCacheSnapshot.empty()
 
             cache.guilds.shouldBeEmpty()
             handler.handle(cache, fakeRole)
@@ -119,8 +117,7 @@ class RoleHandlerTest : FunSpec({
         }
 
         test("Item should be deleted from cache") {
-            val cache = CacheSnapshotBuilder(MemoryCacheSnapshot.empty())
-            cache.guilds += guild.id to guild
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
             RoleUpdater().handle(cache, fakeRole)
             handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id)
