@@ -1,12 +1,16 @@
 package org.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.Nel
 import arrow.core.NonEmptyList
+import arrow.fx.ForIO
 import mu.KotlinLogging
+import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import org.tesserakt.diskordin.core.data.json.response.ImageResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -138,7 +142,8 @@ internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) :
     }
 }
 
-internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel {
+internal class PrivateChannel(override val raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel,
+    ICacheable<IPrivateChannel, UnwrapContext.EmptyContext, ChannelResponse<IPrivateChannel>> {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override val owner = raw.owner_id!!.identify<IUser> {
@@ -148,13 +153,27 @@ internal open class PrivateChannel(raw: ChannelResponse<IPrivateChannel>) : Chan
     override fun toString(): String {
         return "PrivateChannel(recipient=$recipient, owner=$owner)\n    ${super.toString()}"
     }
+
+    override fun fromCache(): IPrivateChannel = cache[id] as IPrivateChannel
+
+    override fun copy(changes: (ChannelResponse<IPrivateChannel>) -> ChannelResponse<IPrivateChannel>) =
+        raw.run(changes).unwrap()
 }
 
-internal class GroupPrivateChannel(raw: ChannelResponse<IGroupPrivateChannel>) : PrivateChannel(raw),
-    IGroupPrivateChannel {
+internal class GroupPrivateChannel(override val raw: ChannelResponse<IGroupPrivateChannel>) : Channel(raw),
+    IGroupPrivateChannel,
+    ICacheable<IGroupPrivateChannel, UnwrapContext.EmptyContext, ChannelResponse<IGroupPrivateChannel>> {
     override val icon = raw.icon?.let { ImageResponse(it, null) }?.unwrap()
 
     override fun toString(): String {
         return "GroupPrivateChannel(icon=$icon)\n   ${super.toString()}"
     }
+
+    override val owner: IdentifiedF<ForIO, IUser> = raw.owner_id!!.identify<IUser> { client.getUser(it) }
+    override val recipient: NonEmptyList<IUser> = Nel.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
+
+    override fun fromCache(): IGroupPrivateChannel = cache[id] as IGroupPrivateChannel
+
+    override fun copy(changes: (ChannelResponse<IGroupPrivateChannel>) -> ChannelResponse<IGroupPrivateChannel>) =
+        raw.run(changes).unwrap()
 }

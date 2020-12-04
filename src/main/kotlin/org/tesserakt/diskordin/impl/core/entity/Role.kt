@@ -20,7 +20,7 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
-internal class Role constructor(
+class Role constructor(
     override val raw: RoleResponse,
     guildId: Snowflake
 ) : IRole, ICacheable<IRole, UnwrapContext.GuildContext, RoleResponse> {

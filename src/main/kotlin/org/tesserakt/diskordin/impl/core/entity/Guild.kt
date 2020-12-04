@@ -255,7 +255,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     init {
 //        cache += runBlocking { rest.call(ListK.functor()) { guildService.getGuildChannels(id) } }
 //            .fix().associateBy { it.id }
-
-        cache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
+//
+//        cache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
     }
 }

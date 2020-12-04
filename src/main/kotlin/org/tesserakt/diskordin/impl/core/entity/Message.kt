@@ -7,6 +7,7 @@ import arrow.core.fix
 import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
@@ -15,7 +16,8 @@ import org.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.rest.call
 
-internal class Message(raw: MessageResponse) : IMessage {
+internal class Message(override val raw: MessageResponse) : IMessage,
+    ICacheable<IMessage, UnwrapContext.EmptyContext, MessageResponse> {
     override suspend fun addReaction(emoji: IEmoji) = rest.effect {
         channelService.addReaction(channel.id, id, emoji.name)
     }
@@ -88,4 +90,9 @@ internal class Message(raw: MessageResponse) : IMessage {
     override fun toString(): String {
         return "Message(channel=$channel, author=$author, content='$content', isTTS=$isTTS, attachments=$attachments, isPinned=$isPinned, id=$id)"
     }
+
+    override fun fromCache(): IMessage = cache[id] as IMessage
+
+    override fun copy(changes: (MessageResponse) -> MessageResponse): IMessage =
+        raw.run(changes).unwrap()
 }
