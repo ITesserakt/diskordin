@@ -68,7 +68,7 @@ class UserHandlerTest : FunSpec({
     ).unwrap()
 
     context("updater") {
-        val handler = UserUpdater()
+        val handler = UserUpdater
 
         test("Item should appear after adding") {
             val cache = handler.handle(MemoryCacheSnapshot.empty(), fakeUser)
@@ -168,7 +168,7 @@ class UserHandlerTest : FunSpec({
     }
 
     context("deleter") {
-        val handler = UserDeleter()
+        val handler = UserDeleter
 
         test("Item should be deleted from cache") {
             var cache = MemoryCacheSnapshot.empty().copy(users = mapOf(id to fakeIdUser))

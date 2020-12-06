@@ -1,10 +1,13 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.*
+import arrow.core.Id
+import arrow.core.ListK
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
+import arrow.core.fix
+import arrow.core.some
 import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
@@ -91,7 +94,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override val id: Snowflake = raw.id
 
-    override fun getRole(id: Snowflake) = roles.find { it.id == id }.toOption()
+    override fun getRole(id: Snowflake) = roles.find { it.id == id }
 
     override suspend fun getEmoji(emojiId: Snowflake) = rest.call(id.some(), Id.functor()) {
         emojiService.getGuildEmoji(id, emojiId).just()
@@ -178,7 +181,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
         guildService.createIntegration(id, IntegrationCreateBuilder(id, type).create())
     }
 
-    override fun getEveryoneRole() = id identifyId { getRole(it).orNull()!! } //everyone role id == guild id
+    override fun getEveryoneRole() = id identifyId { getRole(it)!! } //everyone role id == guild id
 
     override fun <C : IGuildChannel> getChannel(id: Snowflake): C = cache[id] as C
 

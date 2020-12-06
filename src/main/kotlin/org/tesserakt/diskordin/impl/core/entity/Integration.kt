@@ -41,7 +41,7 @@ internal class Integration(
     override val syncing: Boolean = raw.syncing
 
     override val role = raw.role_id.identify<IRole> { id ->
-        guild().getRole(id).orNull()!!
+        guild().getRole(id)!!
     }
 
     override val expireBehavior: Int = raw.expire_behavior

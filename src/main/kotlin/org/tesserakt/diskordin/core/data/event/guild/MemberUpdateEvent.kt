@@ -5,7 +5,7 @@ import arrow.core.extensions.id.comonad.comonad
 import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.filterOption
+import arrow.fx.coroutines.stream.filterNotNull
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.identifyId
@@ -21,7 +21,7 @@ class MemberUpdateEvent(raw: MemberUpdate) : IGuildEvent<ForIO> {
 
     val roles = Stream.chunk(Chunk.array(raw.roles))
         .effectMap { guild().getRole(it) }
-        .filterOption()
+        .filterNotNull()
 
     val user = raw.user.id identifyId { raw.user.unwrap() }
 

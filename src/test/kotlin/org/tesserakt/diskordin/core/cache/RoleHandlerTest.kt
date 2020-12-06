@@ -69,7 +69,7 @@ class RoleHandlerTest : FunSpec({
     )
 
     context("updater") {
-        val handler = RoleUpdater()
+        val handler = RoleUpdater
 
         test("Cache should be mutated after add") {
             var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
@@ -105,7 +105,7 @@ class RoleHandlerTest : FunSpec({
     }
 
     context("deleter") {
-        val handler = RoleDeleter()
+        val handler = RoleDeleter
 
         test("Nothing should happened with empty cache") {
             var cache = MemoryCacheSnapshot.empty()
@@ -117,7 +117,7 @@ class RoleHandlerTest : FunSpec({
 
         test("Item should be deleted from cache") {
             var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
-            RoleUpdater().handle(cache, fakeRole)
+            RoleUpdater.handle(cache, fakeRole)
             cache = handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id)
 

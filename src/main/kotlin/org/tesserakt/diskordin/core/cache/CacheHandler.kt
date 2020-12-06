@@ -11,4 +11,4 @@ internal fun interface CacheDeleter<in T> : CacheHandler<T>
 
 internal fun interface CacheUpdater<in T> : CacheHandler<T>
 
-internal val NoopHandler = CacheHandler<Nothing?> { it, _ -> it }
+internal val NoopHandler = CacheHandler<Any?> { it, _ -> it }

@@ -9,7 +9,7 @@ import arrow.core.extensions.id.functor.functor
 import arrow.core.some
 import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.filterOption
+import arrow.fx.coroutines.stream.filterNotNull
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -39,16 +39,15 @@ internal class CustomEmoji constructor(
     }
 
     override val roles = Stream.chunk(Chunk.iterable(raw.roles.orEmpty()))
-        .effectMap { guild().getRole(it) }
-        .filterOption()
+        .effectMap { guild().getRole(it) }.filterNotNull()
 
     override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identifyId { raw.user.unwrap() }
 
-    override val requireColons: Boolean = raw.require_colons ?: false
+    override val requireColons: Boolean = raw.require_colons
 
-    override val isManaged: Boolean = raw.managed ?: false
+    override val isManaged: Boolean = raw.managed
 
-    override val isAnimated: Boolean = raw.animated ?: false
+    override val isAnimated: Boolean = raw.animated
 
     override val id: Snowflake = raw.id!!
 

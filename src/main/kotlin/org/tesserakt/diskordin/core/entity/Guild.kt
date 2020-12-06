@@ -53,7 +53,7 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val channels: List<IGuildChannel>
     val members: List<IMember>
 
-    fun getRole(id: Snowflake): Option<IRole>
+    fun getRole(id: Snowflake): IRole?
     suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
     suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji
     suspend fun editOwnNickname(newNickname: String): String?

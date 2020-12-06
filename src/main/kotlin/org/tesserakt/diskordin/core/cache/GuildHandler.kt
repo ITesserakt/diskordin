@@ -4,12 +4,12 @@ import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.impl.core.entity.Guild
 import org.tesserakt.diskordin.impl.core.entity.PartialGuild
 
-class GuildUpdater : CacheUpdater<IGuild> {
-    override fun handle(builder: MemoryCacheSnapshot, data: IGuild) = builder.copy(guilds =
-    builder.guilds + when (val guild = builder.getGuild(data.id)) {
-        is Guild -> when (data) {
-            is Guild -> arrayOf(data.id to data)
-            is PartialGuild -> arrayOf(data.id to guild.copy {
+internal val GuildUpdater = CacheUpdater<IGuild> { builder, data ->
+    val guild = builder.getGuild(data.id)
+    builder.copy(
+        guilds = builder.guilds + when {
+            guild is Guild && data is Guild -> arrayOf(data.id to data)
+            guild is Guild && data is PartialGuild -> arrayOf(data.id to guild.copy {
                 it.copy(
                     name = data.raw.name,
                     icon = data.raw.icon,
@@ -19,13 +19,10 @@ class GuildUpdater : CacheUpdater<IGuild> {
                     features = data.raw.features
                 )
             })
-            else -> emptyArray()
-        }
-        is PartialGuild -> when (data) {
-            is Guild -> arrayOf(data.id to data.copy {
+            guild is PartialGuild && data is Guild -> arrayOf(data.id to data.copy {
                 it.copy(roles = it.roles + guild.raw.roles)
             })
-            is PartialGuild -> arrayOf(data.id to guild.copy {
+            guild is PartialGuild && data is PartialGuild -> arrayOf(data.id to guild.copy {
                 it.copy(
                     name = data.raw.name,
                     icon = data.raw.icon,
@@ -35,14 +32,12 @@ class GuildUpdater : CacheUpdater<IGuild> {
                     roles = data.raw.roles + it.roles
                 )
             })
+            guild == null -> arrayOf(data.id to data)
             else -> emptyArray()
         }
-        null -> arrayOf(data.id to data)
-        else -> logger.warn("Unknown type of guild cached (${guild::class.simpleName}").run { emptyArray() }
-    })
+    )
 }
 
-class GuildDeleter : CacheDeleter<IGuild> {
-    override fun handle(builder: MemoryCacheSnapshot, data: IGuild) =
-        builder.copy(guilds = builder.guilds - data.id)
+internal val GuildDeleter = CacheDeleter<IGuild> { builder, data ->
+    builder.copy(guilds = builder.guilds - data.id)
 }

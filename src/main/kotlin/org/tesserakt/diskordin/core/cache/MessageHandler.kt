@@ -2,14 +2,10 @@ package org.tesserakt.diskordin.core.cache
 
 import org.tesserakt.diskordin.core.entity.IMessage
 
-class MessageUpdater : CacheUpdater<IMessage> {
-    override fun handle(builder: MemoryCacheSnapshot, data: IMessage): MemoryCacheSnapshot = builder.copy(
-        messages = builder.messages + (data.id to data)
-    )
+internal val MessageUpdater = CacheUpdater<IMessage> { builder, data ->
+    builder.copy(messages = builder.messages + (data.id to data))
 }
 
-class MessageDeleter : CacheDeleter<IMessage> {
-    override fun handle(builder: MemoryCacheSnapshot, data: IMessage): MemoryCacheSnapshot = builder.copy(
-        messages = builder.messages - data.id
-    )
+internal val MessageDeleter = CacheDeleter<IMessage> { builder, data ->
+    builder.copy(messages = builder.messages - data.id)
 }

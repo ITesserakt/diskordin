@@ -2,6 +2,7 @@ package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Stream
+import arrow.fx.coroutines.stream.filterNotNull
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.MessageMemberResponse
@@ -27,8 +28,7 @@ internal class MessageMember(override val raw: MessageMemberResponse, guildId: S
     override val nickname: String? = raw.nick
 
     override val roles = Stream.iterable(raw.roles)
-        .effectMap { guild().getRole(it) }
-        .filterOption()
+        .effectMap { guild().getRole(it) }.filterNotNull()
 
     override val joinTime: Instant = raw.joined_at
 
