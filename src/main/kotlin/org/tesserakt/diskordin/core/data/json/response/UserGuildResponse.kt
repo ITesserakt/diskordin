@@ -11,7 +11,8 @@ data class UserGuildResponse(
     val owner: Boolean,
     val permissions: Int,
     val features: List<String>,
-    val roles: Set<RoleResponse> = emptySet()
+    val roles: Set<RoleResponse> = emptySet(),
+    val members: Set<MemberResponse<*>> = emptySet()
 ) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = PartialGuild(this)
 }

@@ -7,9 +7,7 @@ import arrow.fx.coroutines.stream.Stream
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
-import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
-import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -42,6 +40,12 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val premiumTier: IGuild.PremiumTier by lazy { delegate.premiumTier }
     override val premiumSubscriptions: Int? by lazy { delegate.premiumSubscriptions }
     override val features: EnumSet<IGuild.Feature> by lazy { delegate.features }
+    override val members: List<IMember> = raw.members.map {
+        when (it) {
+            is JoinMemberResponse -> it.unwrap()
+            is GuildMemberResponse -> it.unwrap(id)
+        }
+    }
 
     private val delegate by lazy {
         runBlocking {

@@ -10,10 +10,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.identifyId
-import org.tesserakt.diskordin.core.data.json.response.GuildResponse
-import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
-import org.tesserakt.diskordin.core.data.json.response.VoiceRegionResponse
-import org.tesserakt.diskordin.core.data.json.response.unwrap
+import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -36,6 +33,13 @@ import kotlin.time.seconds
 @Suppress("UNCHECKED_CAST", "CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
 internal class Guild(override val raw: GuildResponse) : IGuild,
     ICacheable<IGuild, UnwrapContext.EmptyContext, GuildResponse> {
+    override val members: List<IMember> = raw.members.map {
+        when (it) {
+            is GuildMemberResponse -> it.unwrap(id)
+            is JoinMemberResponse -> it.unwrap()
+        }
+    }
+
     override val region: IRegion = Region(
         VoiceRegionResponse(
             raw.region,

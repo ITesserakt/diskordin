@@ -1,21 +1,20 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.filterOption
 import kotlinx.coroutines.runBlocking
-import org.tesserakt.diskordin.core.data.IdentifiedF
-import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.data.invoke
+import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.MessageMemberResponse
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.time.Instant
 
-internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : IMember {
+@Deprecated("Dead code", level = DeprecationLevel.ERROR)
+internal class MessageMember(override val raw: MessageMemberResponse, guildId: Snowflake) : IMember,
+    ICacheable<IMember, UnwrapContext.GuildContext, MessageMemberResponse> {
     override val avatar: String? by lazy { delegate.avatar }
     override val mfaEnabled: Boolean by lazy { delegate.mfaEnabled }
     override val locale: String? by lazy { delegate.locale }
@@ -27,7 +26,7 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override val guild: IdentifiedF<ForIO, IGuild> = guildId.identify<IGuild> { client.getGuild(it) }
     override val nickname: String? = raw.nick
 
-    override val roles = Stream.chunk(Chunk.array(raw.roles))
+    override val roles = Stream.iterable(raw.roles)
         .effectMap { guild().getRole(it) }
         .filterOption()
 
@@ -61,4 +60,9 @@ internal class MessageMember(raw: MessageMemberResponse, guildId: Snowflake) : I
     override fun toString(): String {
         return "MessageMember(guild=$guild, nickname=$nickname, roles=$roles, joinTime=$joinTime)"
     }
+
+    override fun fromCache(): IMember = cache[id] as IMember
+
+    override fun copy(changes: (MessageMemberResponse) -> MessageMemberResponse): IMember =
+        raw.run(changes).unwrap(guild.id)
 }

@@ -13,7 +13,16 @@ sealed class MemberResponse<C : UnwrapContext>(
     val joinedAt: Instant,
     val deaf: Boolean,
     val mute: Boolean
-) : DiscordResponse<IMember, C>()
+) : DiscordResponse<IMember, C>() {
+    abstract fun copy(
+        user: UserResponse<IUser> = this.user,
+        nick: String? = this.nick,
+        roles: Array<Snowflake> = this.roles,
+        joinedAt: Instant = this.joinedAt,
+        deaf: Boolean = this.deaf,
+        mute: Boolean = this.mute
+    ): MemberResponse<C>
+}
 
 class JoinMemberResponse(
     user: UserResponse<IUser>,
@@ -25,6 +34,14 @@ class JoinMemberResponse(
     val guildId: Snowflake
 ) : MemberResponse<UnwrapContext.EmptyContext>(user, nick, roles, joinedAt, deaf, mute) {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IMember = Member(this, guildId)
+    override fun copy(
+        user: UserResponse<IUser>,
+        nick: String?,
+        roles: Array<Snowflake>,
+        joinedAt: Instant,
+        deaf: Boolean,
+        mute: Boolean
+    ) = JoinMemberResponse(user, nick, roles, joinedAt, deaf, mute, guildId)
 }
 
 class GuildMemberResponse(
@@ -36,4 +53,12 @@ class GuildMemberResponse(
     mute: Boolean
 ) : MemberResponse<UnwrapContext.GuildContext>(user, nick, roles, joinedAt, deaf, mute) {
     override fun unwrap(ctx: UnwrapContext.GuildContext): IMember = Member(this, ctx.guildId)
+    override fun copy(
+        user: UserResponse<IUser>,
+        nick: String?,
+        roles: Array<Snowflake>,
+        joinedAt: Instant,
+        deaf: Boolean,
+        mute: Boolean
+    ) = GuildMemberResponse(user, nick, roles, joinedAt, deaf, mute)
 }

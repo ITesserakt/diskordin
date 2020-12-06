@@ -40,6 +40,7 @@ dependencies {
     implementation(arrow("ui"))
     implementation(arrow("fx-coroutines"))
     implementation(arrow("optics"))
+    implementation(arrow("optics-mtl"))
 
     implementation("com.google.code.gson:gson:2.8.6")
 

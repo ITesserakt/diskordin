@@ -4,7 +4,6 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.ForId
 import arrow.core.ListK
-import arrow.core.Option
 import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
@@ -24,13 +23,12 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
 interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
+    @ExperimentalTime
+    val afkChannelTimeout: Duration
     val iconHash: String?
     val splashHash: String?
     val owner: IdentifiedF<ForIO, IMember>
     val afkChannel: IdentifiedIO<IVoiceChannel>?
-
-    @ExperimentalTime
-    val afkChannelTimeout: Duration
     val verificationLevel: VerificationLevel
     val region: IRegion
     val isEmbedEnabled: Boolean
@@ -47,8 +45,59 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     val premiumTier: PremiumTier
     val premiumSubscriptions: Int?
     val features: EnumSet<Feature>
+    val invites: Stream<IGuildInvite>
+    val emojis: Stream<ICustomEmoji>
+    val bans: Stream<IBan>
+    val integrations: Stream<IIntegration>
+    val roles: List<IRole>
+    val channels: List<IGuildChannel>
+    val members: List<IMember>
+
+    fun getRole(id: Snowflake): Option<IRole>
+    suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
+    suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji
+    suspend fun editOwnNickname(newNickname: String): String?
+    suspend fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
+    suspend fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
+    suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IMember
+    suspend fun kick(member: IMember, reason: String?)
+    suspend fun kick(memberId: Snowflake, reason: String?)
+    suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole>
+    suspend fun getBan(userId: Snowflake): IBan
+    suspend fun ban(member: IMember, builder: BanQuery.() -> Unit)
+    suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember>
+    suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit)
+    suspend fun pardon(userId: Snowflake, reason: String?)
+    suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
+    suspend fun addIntegration(id: Snowflake, type: String)
+    fun getEveryoneRole(): IdentifiedF<ForId, IRole>
+    fun <C : IGuildChannel> getChannel(id: Snowflake): C
+    suspend fun getWidget(): IGuildWidget
+    suspend fun getVanityUrl(): IGuildInvite?
+    suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole
+    suspend fun moveChannels(vararg builder: Pair<Snowflake, Int>)
+
+    enum class VerificationLevel {
+        None,
+        Low,
+        Medium,
+        High,
+        VeryHigh;
+    }
+
+    enum class DefaultMessageNotificationLevel {
+        AllMessages,
+        OnlyMentions;
+    }
+
+    enum class ExplicitContentFilter {
+        Disabled,
+        MembersWithoutRoles,
+        AllMembers;
+    }
 
     enum class Feature {
+
         /**
          * Guild has access to set an invite splash background
          */
@@ -132,61 +181,4 @@ interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuild
     enum class MFALevel {
         None, Elevated
     }
-
-    fun getRole(id: Snowflake): Option<IRole>
-    suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
-    suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji
-    suspend fun editOwnNickname(newNickname: String): String?
-    suspend fun addTextChannel(name: String, builder: TextChannelCreateBuilder.() -> Unit): ITextChannel
-    suspend fun addVoiceChannel(name: String, builder: VoiceChannelCreateBuilder.() -> Unit): IVoiceChannel
-    suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IMember
-    suspend fun kick(member: IMember, reason: String?)
-    suspend fun kick(memberId: Snowflake, reason: String?)
-    suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole>
-    suspend fun getBan(userId: Snowflake): IBan
-
-    @OptIn(ExperimentalTime::class)
-    suspend fun ban(member: IMember, builder: BanQuery.() -> Unit)
-
-    suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember>
-
-    @OptIn(ExperimentalTime::class)
-    suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit)
-
-    suspend fun pardon(userId: Snowflake, reason: String?)
-    suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
-    suspend fun addIntegration(id: Snowflake, type: String)
-    fun getEveryoneRole(): IdentifiedF<ForId, IRole>
-    fun <C : IGuildChannel> getChannel(id: Snowflake): C
-    suspend fun getWidget(): IGuildWidget
-    suspend fun getVanityUrl(): IGuildInvite?
-
-    val invites: Stream<IGuildInvite>
-    val emojis: Stream<ICustomEmoji>
-    val bans: Stream<IBan>
-    val integrations: Stream<IIntegration>
-    val roles: List<IRole>
-    val channels: List<IGuildChannel>
-
-    enum class VerificationLevel {
-        None,
-        Low,
-        Medium,
-        High,
-        VeryHigh;
-    }
-
-    enum class DefaultMessageNotificationLevel {
-        AllMessages,
-        OnlyMentions;
-    }
-
-    enum class ExplicitContentFilter {
-        Disabled,
-        MembersWithoutRoles,
-        AllMembers;
-    }
-
-    suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole
-    suspend fun moveChannels(vararg builder: Pair<Snowflake, Int>)
 }

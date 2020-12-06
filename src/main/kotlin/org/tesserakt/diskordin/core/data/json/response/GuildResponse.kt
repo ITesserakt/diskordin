@@ -36,7 +36,8 @@ data class GuildResponse(
     val widget_channel_id: Snowflake?,
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null,
-    val premiumSubscribersCount: Int?
+    val premiumSubscribersCount: Int?,
+    val members: Set<MemberResponse<*>> = emptySet()
 ) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = Guild(this)
 }
