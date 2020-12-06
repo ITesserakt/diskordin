@@ -22,9 +22,6 @@ interface GuildService {
         request: GuildEditRequest
     ): GuildResponse
 
-    @Deprecated("Bots can use this only 10 times")
-    suspend fun deleteGuild(id: Snowflake)
-
     suspend fun editCurrentNickname(
         id: Snowflake,
         request: NicknameEditRequest

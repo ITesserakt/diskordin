@@ -58,7 +58,7 @@ internal class Activity(raw: ActivityResponse) : IActivity {
     }
 
     class Party(raw: ActivityResponse.PartyResponse) : IActivity.IParty {
-        override val id: String? = raw.id
+        override val id: String = raw.id
         override val currentSize: Int? = raw.size.getOrNull(0)
         override val maxSize: Int? = raw.size.getOrNull(1)
 

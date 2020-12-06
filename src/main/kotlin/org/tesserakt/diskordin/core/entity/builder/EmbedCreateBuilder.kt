@@ -168,6 +168,6 @@ class EmbedCreateBuilder : BuilderBase<EmbedCreateRequest>() {
         image?.create(),
         thumbnail?.create(),
         author?.create(),
-        fields.map { it.create() }.toTypedArray()
+        fields.map { it.create() }
     )
 }

@@ -14,7 +14,7 @@ interface Numeric<F> : Order<F> {
 
     infix operator fun F.minus(b: F): F = this + -b
     fun F.abs() = when {
-        this == MIN_VALUE -> MAX_VALUE
+        this == minValue -> maxValue
         this < zero -> -this
         else -> this
     }
@@ -30,7 +30,7 @@ interface Numeric<F> : Order<F> {
     fun Float.fromFloat(): F
     fun Double.fromDouble(): F
 
-    val MAX_VALUE: F
-    val MIN_VALUE: F
+    val maxValue: F
+    val minValue: F
     val zero get() = 0.fromInt()
 }

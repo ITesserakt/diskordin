@@ -43,9 +43,9 @@ class NoopMapTest : StringSpec({
 
     "entries should always equals to emptySet" {
         val map = NoopMap<String, String>()
-        map.entries shouldBe emptySet<MutableMap.MutableEntry<String, String>>()
+        map.entries shouldBe emptySet()
         map += "hello" to "world"
-        map.entries shouldBe emptySet<MutableMap.MutableEntry<String, String>>()
+        map.entries shouldBe emptySet()
     }
 
     "put shouldn't append any value to map, and so should always returns null" {

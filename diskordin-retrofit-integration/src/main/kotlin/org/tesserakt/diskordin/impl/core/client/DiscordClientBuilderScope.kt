@@ -88,10 +88,6 @@ class RetrofitScope : DiscordClientBuilderScope() {
                 override fun log(message: String) = logger(message)
             }).setLevel(HttpLoggingInterceptor.Level.BASIC)
         ).build()
-
-    @PublishedApi
-    internal val `access$token`: String?
-        get() = token
 }
 
 class AuthorityInterceptor(private val token: String) : Interceptor {

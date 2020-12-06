@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.rest
 
 import arrow.Kind
-import arrow.core.Option
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
 import arrow.fx.coroutines.stream.Stream
@@ -14,6 +13,7 @@ import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import org.tesserakt.diskordin.rest.service.*
+import kotlin.experimental.ExperimentalTypeInference
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 abstract class RestClient(
@@ -61,11 +61,14 @@ suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildCo
     f: suspend RestClient.() -> Kind<G, R>
 ) = FN.call(UnwrapContext.GuildContext(guildId), f)
 
+@OptIn(ExperimentalTypeInference::class)
+@JvmName("callNullable")
+@OverloadResolutionByLambdaReturnType
 suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.call(
-    guildId: Option<Snowflake>,
+    guildId: Snowflake?,
     FN: Functor<G>,
     f: suspend RestClient.() -> Kind<G, R>
-) = FN.call(UnwrapContext.PartialGuildContext(guildId.orNull()), f)
+) = FN.call(UnwrapContext.PartialGuildContext(guildId), f)
 
 fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.stream(
     f: suspend RestClient.() -> Iterable<R>
@@ -82,10 +85,13 @@ fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> Res
     end()
 }
 
+@OptIn(ExperimentalTypeInference::class)
+@JvmName("streamNullable")
+@OverloadResolutionByLambdaReturnType
 fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.stream(
-    guildId: Option<Snowflake>,
+    guildId: Snowflake?,
     f: suspend RestClient.() -> Iterable<R>
 ) = Stream.callback {
-    callRaw(f).map { it.unwrap(guildId.orNull()) }.forEach(::emit)
+    callRaw(f).map { it.unwrap(guildId) }.forEach(::emit)
     end()
 }

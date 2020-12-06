@@ -1,7 +1,5 @@
 package org.tesserakt.diskordin.core.data.event.guild
 
-import arrow.core.Id
-import arrow.core.extensions.id.comonad.comonad
 import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
@@ -40,7 +38,7 @@ class MemberUpdateEvent(raw: MemberUpdate) : IGuildEvent<ForIO> {
                 )
                 cache[user.id] = Member(bean, guild.id)
             }
-            null, is IUser -> cache[user.id] = user(Id.comonad())
+            null, is IUser -> cache[user.id] = user()
         }
     }
 }

@@ -125,8 +125,6 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val id: Snowflake = raw.id
     override val name: String = raw.name
 
-    override suspend fun delete(reason: String?) = delegate.delete(reason)
-
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)
 
     override fun fromCache(): IGuild = cache[id] as IGuild

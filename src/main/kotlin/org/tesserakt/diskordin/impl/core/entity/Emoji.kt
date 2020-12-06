@@ -6,7 +6,6 @@ import arrow.core.Id
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.core.some
 import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.filterNotNull
@@ -30,9 +29,10 @@ internal class CustomEmoji constructor(
     raw: EmojiResponse<ICustomEmoji>,
     guildId: Snowflake
 ) : Emoji(raw), ICustomEmoji {
-    override suspend fun edit(builder: EmojiEditBuilder.() -> Unit) = rest.call(guild.id.some(), Id.functor()) {
-        emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder)).just()
-    }.extract()
+    override suspend fun edit(builder: EmojiEditBuilder.() -> Unit) =
+        rest.call<ForId, ICustomEmoji, EmojiResponse<ICustomEmoji>>(guild.id, Id.functor()) {
+            emojiService.editGuildEmoji(guild.id, id, builder.build(::EmojiEditBuilder)).just()
+        }.extract()
 
     override val guild = guildId.identify<IGuild> {
         client.getGuild(it)

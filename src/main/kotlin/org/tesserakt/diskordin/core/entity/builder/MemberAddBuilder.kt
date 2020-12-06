@@ -35,7 +35,7 @@ class MemberAddBuilder(private val accessToken: String) : BuilderBase<MemberAddR
     override fun create(): MemberAddRequest = MemberAddRequest(
         accessToken,
         nick,
-        initialRoles.map { it.asLong() }.toTypedArray(),
+        initialRoles.map { it.asLong() },
         isMuted,
         isDeafen
     )

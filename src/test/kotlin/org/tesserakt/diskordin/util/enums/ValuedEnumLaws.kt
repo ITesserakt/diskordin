@@ -38,7 +38,7 @@ inline fun <reified E, N : Any> Numeric<N>.testValuedEnum() where E : Enum<E>, E
     }
     "Sum of all codes should be less then MAX_VALUE" {
         EnumSet.allOf(E::class.java).map { it.code }
-            .fold(zero) { acc, i -> acc + i }.toLong() shouldBeLessThanOrEqual MAX_VALUE.toLong()
+            .fold(zero) { acc, i -> acc + i }.toLong() shouldBeLessThanOrEqual maxValue.toLong()
     }
     "All values should be unique" {
         EnumSet.allOf(E::class.java).map { it.code }.shouldNotContainDuplicates()

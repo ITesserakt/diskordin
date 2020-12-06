@@ -11,7 +11,7 @@ internal class Connection(raw: ConnectionResponse) : IConnection {
 
     override val isRevoked: Boolean = raw.revoked
 
-    override val integrations: Array<Pair<Snowflake, String>> = raw.integrations
+    override val integrations: List<Pair<Snowflake, String>> = raw.integrations
 
     override val isVerified: Boolean = raw.verified
 
@@ -27,6 +27,6 @@ internal class Connection(raw: ConnectionResponse) : IConnection {
     override val name: String = raw.name
 
     override fun toString(): String {
-        return "Connection(type='$type', isRevoked=$isRevoked, integrations=${integrations.contentToString()}, isVerified=$isVerified, isFriendSyncing=$isFriendSyncing, isShowingActivity=$isShowingActivity, visibility=$visibility, id=$id, name='$name')"
+        return "Connection(type='$type', isRevoked=$isRevoked, integrations=${integrations}, isVerified=$isVerified, isFriendSyncing=$isFriendSyncing, isShowingActivity=$isShowingActivity, visibility=$visibility, id=$id, name='$name')"
     }
 }

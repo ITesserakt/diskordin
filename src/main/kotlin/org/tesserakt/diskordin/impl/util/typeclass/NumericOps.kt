@@ -22,8 +22,8 @@ interface IntNumeric : Numeric<Int>, IntOrder {
     override fun Float.fromFloat(): Int = this.toInt()
     override fun Double.fromDouble(): Int = this.toInt()
 
-    override val MAX_VALUE get() = Int.MAX_VALUE
-    override val MIN_VALUE get() = Int.MIN_VALUE
+    override val maxValue get() = Int.MAX_VALUE
+    override val minValue get() = Int.MIN_VALUE
 }
 
 interface LongNumeric : Numeric<Long>, LongOrder {
@@ -41,8 +41,8 @@ interface LongNumeric : Numeric<Long>, LongOrder {
     override fun Float.fromFloat() = this.toLong()
     override fun Double.fromDouble() = this.toLong()
 
-    override val MAX_VALUE get() = Long.MAX_VALUE
-    override val MIN_VALUE get() = Long.MIN_VALUE
+    override val maxValue get() = Long.MAX_VALUE
+    override val minValue get() = Long.MIN_VALUE
 }
 
 interface FloatNumeric : Numeric<Float>, FloatOrder {
@@ -60,8 +60,8 @@ interface FloatNumeric : Numeric<Float>, FloatOrder {
     override fun Float.fromFloat() = toFloat()
     override fun Double.fromDouble() = toFloat()
 
-    override val MAX_VALUE get() = Float.MAX_VALUE
-    override val MIN_VALUE get() = Float.MIN_VALUE
+    override val maxValue get() = Float.MAX_VALUE
+    override val minValue get() = Float.MIN_VALUE
 }
 
 interface DoubleNumeric : Numeric<Double>, DoubleOrder {
@@ -79,8 +79,8 @@ interface DoubleNumeric : Numeric<Double>, DoubleOrder {
     override fun Float.fromFloat() = toDouble()
     override fun Double.fromDouble() = toDouble()
 
-    override val MAX_VALUE get() = Double.MAX_VALUE
-    override val MIN_VALUE get() = Double.MIN_VALUE
+    override val maxValue get() = Double.MAX_VALUE
+    override val minValue get() = Double.MIN_VALUE
 }
 
 interface ShortNumeric : Numeric<Short>, ShortOrder {
@@ -95,11 +95,11 @@ interface ShortNumeric : Numeric<Short>, ShortOrder {
 
     override fun Int.fromInt(): Short = toShort()
     override fun Long.fromLong(): Short = toShort()
-    override fun Float.fromFloat(): Short = toShort()
-    override fun Double.fromDouble(): Short = toShort()
+    override fun Float.fromFloat(): Short = toInt().toShort()
+    override fun Double.fromDouble(): Short = toInt().toShort()
 
-    override val MAX_VALUE get() = Short.MAX_VALUE
-    override val MIN_VALUE get() = Short.MIN_VALUE
+    override val maxValue get() = Short.MAX_VALUE
+    override val minValue get() = Short.MIN_VALUE
 }
 
 interface ByteNumeric : Numeric<Byte>, ByteOrder {
@@ -114,11 +114,11 @@ interface ByteNumeric : Numeric<Byte>, ByteOrder {
 
     override fun Int.fromInt(): Byte = toByte()
     override fun Long.fromLong(): Byte = toByte()
-    override fun Float.fromFloat(): Byte = toByte()
-    override fun Double.fromDouble(): Byte = toByte()
+    override fun Float.fromFloat(): Byte = toInt().toByte()
+    override fun Double.fromDouble(): Byte = toInt().toByte()
 
-    override val MAX_VALUE get() = Byte.MAX_VALUE
-    override val MIN_VALUE get() = Byte.MIN_VALUE
+    override val maxValue get() = Byte.MAX_VALUE
+    override val minValue get() = Byte.MIN_VALUE
 }
 
 interface BigDecimalNumeric : Numeric<BigDecimal> {
@@ -134,23 +134,23 @@ interface BigDecimalNumeric : Numeric<BigDecimal> {
     override fun Int.fromInt(): BigDecimal = toBigDecimal()
     override fun Long.fromLong(): BigDecimal = toBigDecimal()
     override fun Float.fromFloat(): BigDecimal = when {
-        this == Float.POSITIVE_INFINITY -> MAX_VALUE
-        this == Float.NEGATIVE_INFINITY -> MIN_VALUE
+        this == Float.POSITIVE_INFINITY -> maxValue
+        this == Float.NEGATIVE_INFINITY -> minValue
         this.isNaN() -> 0.toBigDecimal()
         else -> toBigDecimal()
     }
 
     override fun Double.fromDouble(): BigDecimal = when {
-        this == Double.POSITIVE_INFINITY -> MAX_VALUE
-        this == Double.NEGATIVE_INFINITY -> MIN_VALUE
+        this == Double.POSITIVE_INFINITY -> maxValue
+        this == Double.NEGATIVE_INFINITY -> minValue
         this.isNaN() -> 0.toBigDecimal()
         else -> toBigDecimal()
     }
 
     override fun BigDecimal.compare(b: BigDecimal): Ordering = Ordering.fromInt(this.compareTo(b))
 
-    override val MAX_VALUE: BigDecimal get() = BigDecimal(10).pow(1024) //does not maximum, but enough
-    override val MIN_VALUE get() = -MAX_VALUE
+    override val maxValue: BigDecimal get() = BigDecimal(10).pow(1024) //does not maximum, but enough
+    override val minValue get() = -maxValue
 }
 
 private val int = object : IntNumeric {}

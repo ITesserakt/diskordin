@@ -22,9 +22,6 @@ interface GuildServiceImpl : GuildService {
     @PATCH("/api/v6/guilds/{id}")
     override suspend fun editGuild(@Path("id") id: Snowflake, @Body request: GuildEditRequest): GuildResponse
 
-    @DELETE("/api/v6/guilds/{id}")
-    override suspend fun deleteGuild(@Path("id") id: Snowflake)
-
     @PATCH("/api/v6/guilds/{id}/members/@me/nick")
     override suspend fun editCurrentNickname(@Path("id") id: Snowflake, @Body request: NicknameEditRequest): String?
 

@@ -46,6 +46,7 @@ internal abstract class User(raw: UserResponse<IUser>) : IUser {
 
     final override val id: Snowflake = raw.id
 
+    @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
     override suspend fun asMember(guildId: Snowflake): IMember = rest.call(guildId, Id.functor()) {
         guildService.getMember(guildId, id).just()
     }.extract()

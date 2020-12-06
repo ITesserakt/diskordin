@@ -24,6 +24,7 @@ class Role constructor(
     override val raw: RoleResponse,
     guildId: Snowflake
 ) : IRole, ICacheable<IRole, UnwrapContext.GuildContext, RoleResponse> {
+    @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
     override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {
         val inst = builder.instance(::RoleEditBuilder)
         guildService.editRole(guild.id, id, inst.create(), inst.reason).just()

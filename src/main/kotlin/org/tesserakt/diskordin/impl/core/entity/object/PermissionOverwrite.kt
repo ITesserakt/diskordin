@@ -15,10 +15,9 @@ import org.tesserakt.diskordin.util.enums.not
 internal class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
     override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.of(raw.type)
 
-    override val targetId: Either<RoleId, MemberId> = Either.cond(type == IPermissionOverwrite.Type.Role,
+    override val targetId: Either<RoleId, MemberId> = Either.conditionally(type == IPermissionOverwrite.Type.Role,
         { raw.id },
-        { raw.id }
-    )
+        { raw.id })
 
     override val allowed = ValuedEnum<Permission, Long>(raw.allow, Long.integral())
     override val denied = ValuedEnum<Permission, Long>(raw.deny, Long.integral())

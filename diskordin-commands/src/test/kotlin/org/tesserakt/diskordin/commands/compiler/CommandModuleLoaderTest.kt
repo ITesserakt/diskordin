@@ -20,12 +20,13 @@ class Test : CommandModule<CommandContext>() {
     fun CommandContext.test() {
     }
 
+    @Suppress("RedundantSuspendModifier")
     @Command
     @Ignore
     suspend fun broken() {
     }
 
-    companion object : CommandModule.Factory {
+    companion object : Factory {
         override fun create(): CommandModule<*> = Test()
     }
 }

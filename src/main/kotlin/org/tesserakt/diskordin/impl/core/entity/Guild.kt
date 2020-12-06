@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
+import arrow.core.ForId
 import arrow.core.Id
 import arrow.core.ListK
 import arrow.core.extensions.id.applicative.just
@@ -7,7 +8,6 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
-import arrow.core.some
 import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
@@ -96,12 +96,13 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override fun getRole(id: Snowflake) = roles.find { it.id == id }
 
-    override suspend fun getEmoji(emojiId: Snowflake) = rest.call(id.some(), Id.functor()) {
-        emojiService.getGuildEmoji(id, emojiId).just()
-    }.extract()
+    override suspend fun getEmoji(emojiId: Snowflake) =
+        rest.call<ForId, ICustomEmoji, EmojiResponse<ICustomEmoji>>(id, Id.functor()) {
+            emojiService.getGuildEmoji(id, emojiId).just()
+        }.extract()
 
     override suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji =
-        rest.call(id.some(), Id.functor()) {
+        rest.call<ForId, ICustomEmoji, EmojiResponse<ICustomEmoji>>(id, Id.functor()) {
             emojiService.createGuildEmoji(id, EmojiCreateBuilder().apply {
                 this.name = name
                 this.image = image
@@ -199,7 +200,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
         guildService.getInvites(id)
     }
 
-    override val emojis: Stream<ICustomEmoji> = rest.stream(id.some()) {
+    override val emojis = rest.stream<ICustomEmoji, EmojiResponse<ICustomEmoji>>(id) {
         emojiService.getGuildEmojis(id)
     }
 
@@ -245,24 +246,8 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override val name: String = raw.name
 
-    @Suppress("DEPRECATION")
-    @Deprecated(
-        "Bots can use this only 10 times!",
-        ReplaceWith("guildService.deleteGuild(id)", "ru.tesserakt.diskordin.core.entity.guildService")
-    )
-    override suspend fun delete(reason: String?) = rest.effect {
-        guildService.deleteGuild(id)
-    }
-
     @ExperimentalTime
     override fun toString(): String {
         return "Guild(region=$region, isEmbedEnabled=$isEmbedEnabled, defaultMessageNotificationLevel=$defaultMessageNotificationLevel, explicitContentFilter=$explicitContentFilter, mfaLevel=$mfaLevel, isWidgetEnabled=$isWidgetEnabled, widgetChannel=$widgetChannel, systemChannel=$systemChannel, maxMembers=$maxMembers, maxPresences=$maxPresences, description=$description, bannerHash=$bannerHash, premiumTier=$premiumTier, premiumSubscriptions=$premiumSubscriptions, features=$features, id=$id, invites=$invites, emojis=$emojis, bans=$bans, integrations=$integrations, iconHash=$iconHash, splashHash=$splashHash, owner=$owner, afkChannel=$afkChannel, afkChannelTimeout=$afkChannelTimeout, verificationLevel=$verificationLevel, name='$name')"
-    }
-
-    init {
-//        cache += runBlocking { rest.call(ListK.functor()) { guildService.getGuildChannels(id) } }
-//            .fix().associateBy { it.id }
-//
-//        cache += raw.roles.map { it.unwrap(id) }.associateBy { it.id }
     }
 }

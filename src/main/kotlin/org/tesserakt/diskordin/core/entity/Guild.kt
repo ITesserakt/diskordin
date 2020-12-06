@@ -22,7 +22,7 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-interface IGuild : IEntity, INamed, IDeletable, IEditable<IGuild, GuildEditBuilder> {
+interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     @ExperimentalTime
     val afkChannelTimeout: Duration
     val iconHash: String?

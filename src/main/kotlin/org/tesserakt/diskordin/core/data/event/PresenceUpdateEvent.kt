@@ -4,7 +4,6 @@ package org.tesserakt.diskordin.core.data.event
 
 import arrow.core.ForId
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.filterNotNull
 import org.tesserakt.diskordin.core.data.event.guild.IGuildEvent
@@ -21,7 +20,7 @@ import kotlin.time.ExperimentalTime
 
 class PresenceUpdateEvent(raw: PresenceUpdate) : IGuildEvent<ForIO>, IUserEvent<ForId> {
     override val guild = raw.guildId.identify<IGuild> { client.getGuild(it) }
-    val roles = Stream.chunk(Chunk.array(raw.roles))
+    val roles = Stream.iterable(raw.roles)
         .effectMap { guild().getRole(it) }
         .filterNotNull()
 

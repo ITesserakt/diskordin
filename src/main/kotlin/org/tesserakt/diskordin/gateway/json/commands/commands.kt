@@ -20,32 +20,8 @@ data class RequestGuildMembers(
     val query: String = "",
     val limit: Int,
     @SerializedName("presences") val requirePresence: Boolean? = null,
-    val userIds: Array<Snowflake> = emptyArray()
-) : GatewayCommand() {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as RequestGuildMembers
-
-        if (guildId != other.guildId) return false
-        if (query != other.query) return false
-        if (limit != other.limit) return false
-        if (requirePresence != other.requirePresence) return false
-        if (!userIds.contentEquals(other.userIds)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = guildId.hashCode()
-        result = 31 * result + query.hashCode()
-        result = 31 * result + limit
-        result = 31 * result + (requirePresence?.hashCode() ?: 0)
-        result = 31 * result + userIds.contentHashCode()
-        return result
-    }
-}
+    val userIds: List<Snowflake> = emptyList()
+) : GatewayCommand()
 
 data class Resume(
     val token: String,
@@ -58,7 +34,7 @@ data class Identify(
     val properties: ConnectionProperties,
     val compress: Boolean = false,
     val largeThreshold: Int = 50,
-    val shard: Array<Int> = emptyArray(),
+    val shard: List<Int> = emptyList(),
     val presence: UserStatusUpdateRequest? = null,
     val intents: Short? = null,
     val guildSubscriptions: Boolean = true
@@ -68,30 +44,6 @@ data class Identify(
         @SerializedName("\$browser") val browser: String,
         @SerializedName("\$device") val device: String
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Identify) return false
-
-        if (token != other.token) return false
-        if (properties != other.properties) return false
-        if (compress != other.compress) return false
-        if (largeThreshold != other.largeThreshold) return false
-        if (!shard.contentEquals(other.shard)) return false
-        if (guildSubscriptions != other.guildSubscriptions) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = token.hashCode()
-        result = 31 * result + properties.hashCode()
-        result = 31 * result + compress.hashCode()
-        result = 31 * result + largeThreshold
-        result = 31 * result + shard.contentHashCode()
-        result = 31 * result + guildSubscriptions.hashCode()
-        return result
-    }
 }
 
 data class InvalidSession(

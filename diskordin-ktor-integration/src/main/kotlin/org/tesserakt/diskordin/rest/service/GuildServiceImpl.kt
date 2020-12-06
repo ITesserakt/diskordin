@@ -24,8 +24,6 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
     override suspend fun editGuild(id: Snowflake, request: GuildEditRequest): GuildResponse =
         ktor.patch("$discordApiUrl//api/v6/guilds/$id")
 
-    override suspend fun deleteGuild(id: Snowflake): Unit = ktor.delete("$discordApiUrl/api/v6/guilds/$id")
-
     override suspend fun editCurrentNickname(id: Snowflake, request: NicknameEditRequest): String? =
         ktor.patch("$discordApiUrl/api/v6/guilds/$id/members/@me/nick") {
             body = request

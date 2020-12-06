@@ -54,7 +54,7 @@ class ShardController internal constructor(
             connectionProperties,
             isShardCompressed(shardIndex),
             getShardThreshold(shardIndex),
-            arrayOf(shardIndex, context.shardCount.extract()),
+            listOf(shardIndex, context.shardCount.extract()),
             context.initialPresence,
             getShardIntents(shardIndex),
             isShardSubscribed(shardIndex)

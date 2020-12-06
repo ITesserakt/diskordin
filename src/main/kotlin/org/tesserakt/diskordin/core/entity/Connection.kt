@@ -5,7 +5,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 interface IConnection : IEntity, INamed {
     val type: String
     val isRevoked: Boolean
-    val integrations: Array<Pair<Snowflake, String>>
+    val integrations: List<Pair<Snowflake, String>>
     val isVerified: Boolean
     val isFriendSyncing: Boolean
     val isShowingActivity: Boolean
