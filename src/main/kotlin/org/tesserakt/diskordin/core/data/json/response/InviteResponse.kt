@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.core.data.json.response
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
-import java.time.Instant
-
 
 data class InviteResponse<out I : IInvite>(
     val code: String,

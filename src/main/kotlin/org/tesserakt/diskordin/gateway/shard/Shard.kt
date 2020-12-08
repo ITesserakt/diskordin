@@ -5,9 +5,10 @@ package org.tesserakt.diskordin.gateway.shard
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.gateway.GatewayLifecycleManager
-import java.time.Instant
-import kotlin.math.abs
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 @Suppress("MemberVisibilityCanBePrivate")
 @ExperimentalCoroutinesApi
@@ -31,9 +32,10 @@ data class Shard(
     internal val _sequence = MutableStateFlow<Int?>(null)
     val sequence: StateFlow<Int?> = _sequence
 
+    @ExperimentalTime
     fun ping() = if (_heartbeatACKs.value != null && _heartbeats.value != null)
-        abs(_heartbeatACKs.value!!.toEpochMilli() - _heartbeats.value!!.toEpochMilli())
-    else Long.MIN_VALUE
+        (_heartbeatACKs.value!! - _heartbeats.value!!).absoluteValue
+    else -Duration.INFINITE
 
     fun isReady() = sessionId.value != null
 }

@@ -3,7 +3,8 @@
 
 package org.tesserakt.diskordin.core.entity
 
-import kotlinx.coroutines.runBlocking
+import arrow.fx.IO
+import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.IdentifiedIO
@@ -26,13 +27,15 @@ interface IDiscordObject
  * On its start [DiscordClient.client] becomes not null
  */
 val IDiscordObject.client: IDiscordClient
-    get() = runBlocking { DiscordClient.client.read() }
+    get() = IO { DiscordClient.client.read() }.unsafeRunSync()
 
 val IDiscordObject.rest: RestClient
     inline get() = client.rest
 
 internal val IDiscordObject.cache: EntityCache
     get() = client.context[EntityCache]
+
+val IDiscordObject.cacheSnapshot get() = client.context[CacheProcessor].state.value
 
 interface IGuildObject : IDiscordObject {
     val guild: IdentifiedIO<IGuild>

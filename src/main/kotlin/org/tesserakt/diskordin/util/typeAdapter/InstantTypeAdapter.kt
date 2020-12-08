@@ -1,15 +1,13 @@
 package org.tesserakt.diskordin.util.typeAdapter
 
 import com.google.gson.*
-import org.tesserakt.diskordin.util.toJsonTree
+import kotlinx.datetime.Instant
 import java.lang.reflect.Type
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class InstantTypeAdapter : JsonDeserializer<Instant>, JsonSerializer<Instant> {
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Instant =
-        DateTimeFormatter.ISO_DATE_TIME.parse(json.asString, Instant::from)
+    override fun deserialize(p0: JsonElement, p1: Type, p2: JsonDeserializationContext): Instant =
+        Instant.parse(p0.asString)
 
-    override fun serialize(src: Instant?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement =
-        DateTimeFormatter.ISO_DATE_TIME.format(src).toJsonTree()
+    override fun serialize(p0: Instant, p1: Type, p2: JsonSerializationContext): JsonElement =
+        p2.serialize(p0.toString())
 }

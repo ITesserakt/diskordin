@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.core.data.json.response
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IIntegration
 import org.tesserakt.diskordin.core.entity.IUser
@@ -16,7 +17,7 @@ data class GuildIntegrationResponse(
     val expire_grace_period: Int,
     val user: UserResponse<IUser>,
     val account: AccountResponse,
-    val synced_at: String
+    val synced_at: Instant
 ) : DiscordResponse<IIntegration, UnwrapContext.GuildContext>() {
     override fun unwrap(ctx: UnwrapContext.GuildContext): IIntegration = Integration(this, ctx.guildId)
 }

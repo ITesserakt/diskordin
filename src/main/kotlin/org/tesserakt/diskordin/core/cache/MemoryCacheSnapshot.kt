@@ -1,9 +1,9 @@
 package org.tesserakt.diskordin.core.cache
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
-import java.time.Instant
 
 data class MemoryCacheSnapshot(
     override val privateChannels: SnowflakeMap<IPrivateChannel>,

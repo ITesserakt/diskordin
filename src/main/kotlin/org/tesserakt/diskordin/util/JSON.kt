@@ -7,10 +7,10 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.util.typeAdapter.*
-import java.time.Instant
 
 val gsonBuilder: GsonBuilder.() -> Unit = {
     setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)

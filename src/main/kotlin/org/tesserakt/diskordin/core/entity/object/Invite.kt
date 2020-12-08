@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.data.json.response.InviteResponse
 import org.tesserakt.diskordin.core.entity.IChannel
@@ -8,7 +9,6 @@ import org.tesserakt.diskordin.core.entity.IGuildObject
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.`object`.GuildInvite
 import org.tesserakt.diskordin.impl.core.entity.`object`.Invite
-import java.time.Instant
 
 interface IInvite : IDiscordObject {
     val code: String

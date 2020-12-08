@@ -2,6 +2,7 @@
 
 package org.tesserakt.diskordin.core.data.json.response
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.entity.`object`.IEmbed
 import org.tesserakt.diskordin.core.entity.`object`.IImage
 import org.tesserakt.diskordin.core.entity.`object`.IVideo
@@ -16,7 +17,7 @@ data class EmbedResponse(
     val type: String? = null,
     val description: String? = null,
     val url: String? = null,
-    val timestamp: String? = null,
+    val timestamp: Instant,
     val color: Int? = null,
     val footer: FooterResponse? = null,
     val image: ImageResponse? = null,
@@ -59,7 +60,7 @@ data class EmbedResponse(
         result = 31 * result + (type?.hashCode() ?: 0)
         result = 31 * result + (description?.hashCode() ?: 0)
         result = 31 * result + (url?.hashCode() ?: 0)
-        result = 31 * result + (timestamp?.hashCode() ?: 0)
+        result = 31 * result + timestamp.hashCode()
         result = 31 * result + (color ?: 0)
         result = 31 * result + (footer?.hashCode() ?: 0)
         result = 31 * result + (image?.hashCode() ?: 0)

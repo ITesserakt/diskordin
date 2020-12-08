@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.core.entity.builder
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 
 inline class Title(val v: String)
@@ -24,5 +25,5 @@ inline class UserLimit(val v: Int)
 inline class AfkTimeout(val v: Int)
 inline class MaxUses(val v: Int)
 inline class State(val v: String)
-inline class Start(val v: Long)
+inline class Start(val v: Instant)
 inline class Mentioned(val v: Boolean)

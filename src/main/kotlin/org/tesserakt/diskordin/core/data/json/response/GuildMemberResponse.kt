@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.core.data.json.response
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IMember
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.Member
-import java.time.Instant
 
 sealed class MemberResponse<C : UnwrapContext>(
     val user: UserResponse<IUser>,

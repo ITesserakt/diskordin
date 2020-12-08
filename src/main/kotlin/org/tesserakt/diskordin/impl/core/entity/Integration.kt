@@ -9,8 +9,6 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.IntegrationEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 internal class Integration(
     raw: GuildIntegrationResponse,
@@ -52,7 +50,7 @@ internal class Integration(
 
     override val account: IIntegration.IAccount = Account(raw.account)
 
-    override val syncedAt: Instant = DateTimeFormatter.ISO_DATE_TIME.parse(raw.synced_at, Instant::from)
+    override val syncedAt = raw.synced_at
 
     override val id: Snowflake = raw.id
 

@@ -6,7 +6,7 @@ plugins {
 
 val ktorVersion: String by extra
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
-val jvmVersion = System.getenv("jvm") ?: "1.8"
+val jvmVersion = System.getenv("jvm") ?: "14"
 
 fun ktor(module: String, version: String = ktorVersion) =
     "io.ktor:ktor-$module:$version"
@@ -32,6 +32,7 @@ dependencies {
     implementation(ktor("client-gson"))
 
     implementation(arrow("fx-coroutines"))
+    implementation(arrow("fx-coroutines-stream"))
 
     implementation(project(":"))
 }

@@ -12,7 +12,6 @@ import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.client
-import java.time.Instant
 
 internal open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val code: String = raw.code
@@ -22,7 +21,7 @@ internal open class Invite(raw: InviteResponse<IInvite>) : IInvite {
     override val maxUses: Int? = raw.maxUses
     override val maxAge: Int? = raw.maxAge
     override val temporary: Boolean? = raw.temporary
-    override val createdAt: Instant? = raw.createdAt
+    override val createdAt = raw.createdAt
 
     override fun toString(): String {
         return "Invite(code='$code', inviter=$inviter, channel=$channel, uses=$uses, maxUses=$maxUses, maxAge=$maxAge, temporary=$temporary, createdAt=$createdAt)"

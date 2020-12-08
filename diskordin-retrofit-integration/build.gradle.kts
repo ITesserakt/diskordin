@@ -4,7 +4,7 @@ val kotestVersion: String = project(":").properties["kotest_version"].cast()
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
 val retrofitVersion: String by extra
 val scarletVersion: String by extra
-val jvmVersion = System.getenv("jvm") ?: "1.8"
+val jvmVersion = System.getenv("jvm") ?: "14"
 
 plugins {
     kotlin("jvm")
@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":"))
 
     implementation(arrow("fx-coroutines"))
+    implementation(arrow("fx-coroutines-stream"))
 
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")

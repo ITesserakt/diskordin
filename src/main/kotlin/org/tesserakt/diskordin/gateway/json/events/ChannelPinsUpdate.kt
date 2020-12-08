@@ -1,8 +1,8 @@
 package org.tesserakt.diskordin.gateway.json.events
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.gateway.json.IRawEvent
-import java.time.Instant
 
 data class ChannelPinsUpdate(
     val guildId: Snowflake?,

@@ -3,8 +3,8 @@ package org.tesserakt.diskordin.impl.core.entity
 import arrow.core.ForId
 import arrow.core.ListK
 import arrow.fx.ForIO
+import arrow.fx.IO
 import arrow.fx.coroutines.stream.Stream
-import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -48,11 +48,9 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     }
 
     private val delegate by lazy {
-        runBlocking {
-            client.rest.call {
-                guildService.getGuild(id)
-            }
-        }
+        IO {
+            client.rest.call { guildService.getGuild(id) }
+        }.unsafeRunSync()
     }
 
     override val iconHash: String = raw.icon

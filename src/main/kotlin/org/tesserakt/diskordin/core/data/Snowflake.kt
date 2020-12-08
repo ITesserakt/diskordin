@@ -6,9 +6,9 @@ import arrow.core.Ordering
 import arrow.typeclasses.ApplicativeError
 import arrow.typeclasses.Order
 import arrow.typeclasses.Show
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
-import java.time.Instant
 
 private const val DISCORD_EPOCH = 1420070400000u
 
@@ -29,7 +29,7 @@ data class Snowflake private constructor(internal val id: ULong) : Comparable<Sn
     fun asLong() = id.toLong()
 
     val timestamp: Instant
-        get() = Instant.ofEpochMilli(((id shr 22) + DISCORD_EPOCH).toLong())
+        get() = Instant.fromEpochMilliseconds(((id shr 22) + DISCORD_EPOCH).toLong())
 
     companion object {
         fun of(id: String): Snowflake = of(

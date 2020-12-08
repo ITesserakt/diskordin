@@ -9,7 +9,6 @@ import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.ITemplate
 import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.rest
-import java.time.Instant
 
 class Template(raw: TemplateResponse) : ITemplate {
     init {
@@ -21,8 +20,8 @@ class Template(raw: TemplateResponse) : ITemplate {
     override val description: String? = raw.description
     override val usageCount: Int = raw.usageCount
     override val creator: Identified<IUser> = raw.creatorId identifyId { raw.creator.unwrap() }
-    override val createdAt: Instant = raw.createdAt
-    override val updatedAt: Instant = raw.updatedAt
+    override val createdAt = raw.createdAt
+    override val updatedAt = raw.updatedAt
     override val sourceGuild: Identified<IGuild> = raw.sourceGuildId identifyId { raw.serializedSourceGuild.unwrap() }
     override val isSynced: Boolean = raw.isDirty ?: true
     override val name: String = raw.name

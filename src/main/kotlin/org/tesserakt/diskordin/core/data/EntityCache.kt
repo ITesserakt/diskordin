@@ -51,4 +51,7 @@ internal class EntitySifter(intents: ValuedEnum<Intents, Short>) {
     }
 
     fun sift(): Set<KClass<out IEntity>> = denied
+
+    @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING")
+    fun <T : Any> isAllowed(item: T) = item !is IEntity || item::class !in denied
 }

@@ -7,6 +7,7 @@ import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import kotlinx.coroutines.runBlocking
+import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
@@ -72,8 +73,8 @@ class RoleHandlerTest : FunSpec({
         val handler = RoleUpdater
 
         test("Cache should be mutated after add") {
-            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
-            cache = handler.handle(cache, fakeRole)
+            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild)).mutate()
+            handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id) as? Guild
 
             cachedGuild.shouldNotBeNull()
@@ -84,21 +85,21 @@ class RoleHandlerTest : FunSpec({
         test("Cache should be mutated after modify") {
             val newGuild = guild.copy { it.copy(roles = setOf(fakeRole.raw)) }
             val newRole = fakeRole.copy { it.copy(color = 2) } as Role
-            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(newGuild.id to newGuild))
+            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(newGuild.id to newGuild)).mutate()
             val cachedGuild = cache.getGuild(newGuild.id)
 
             fakeRole.raw shouldNotBeSameInstanceAs newRole.raw
             cachedGuild.shouldNotBeNull()
             cachedGuild.roles.map { (it as Role).raw } shouldContain fakeRole.raw
 
-            cache = handler.handle(cache, newRole)
+            handler.handle(cache, newRole)
 
             cachedGuild.roles.map { (it as Role).raw } shouldNotContain newRole.raw
             cache.getGuild(newGuild.id)!!.roles.map { (it as Role).raw } shouldContain newRole.raw
         }
 
         test("Nothing should be changed if there is no guild in cache") {
-            val cache = handler.handle(MemoryCacheSnapshot.empty(), fakeRole)
+            val cache = handler.handleAndGet(MemoryCacheSnapshot.empty().mutate(), fakeRole)
 
             cache.guilds.shouldBeEmpty()
         }
@@ -108,17 +109,17 @@ class RoleHandlerTest : FunSpec({
         val handler = RoleDeleter
 
         test("Nothing should happened with empty cache") {
-            var cache = MemoryCacheSnapshot.empty()
+            val cache = MemoryCacheSnapshot.empty().mutate()
 
             cache.guilds.shouldBeEmpty()
-            cache = handler.handle(cache, fakeRole)
+            handler.handle(cache, fakeRole)
             cache.guilds.shouldBeEmpty()
         }
 
         test("Item should be deleted from cache") {
-            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild))
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild)).mutate()
             RoleUpdater.handle(cache, fakeRole)
-            cache = handler.handle(cache, fakeRole)
+            handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id)
 
             cachedGuild.shouldNotBeNull()

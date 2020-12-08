@@ -1,9 +1,10 @@
 package org.tesserakt.diskordin.core.entity.builder
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
-import java.time.Instant
 
 @Suppress("unused", "NOTHING_TO_INLINE", "MemberVisibilityCanBePrivate")
 @RequestBuilder
@@ -33,7 +34,7 @@ class PresenceBuilder : BuilderBase<UserStatusUpdateRequest>() {
     }
 
     inline fun PresenceBuilder.idleSince(value: Instant) = value
-    inline fun PresenceBuilder.idleSinceNow(): Instant = Instant.now()
+    inline fun PresenceBuilder.idleSinceNow(): Instant = Clock.System.now()
     inline fun PresenceBuilder.status(type: StatusType) = type
     inline fun PresenceBuilder.game(name: String, type: IActivity.Type, builder: ActivityBuilder.() -> Unit = {}) =
         ActivityBuilder(name, type).apply(builder)
@@ -48,7 +49,7 @@ class PresenceBuilder : BuilderBase<UserStatusUpdateRequest>() {
 
     override fun create(): UserStatusUpdateRequest =
         UserStatusUpdateRequest(
-            idleSince?.toEpochMilli(),
+            idleSince?.toEpochMilliseconds(),
             game,
             status.name.toLowerCase(),
             isAFK

@@ -1,9 +1,9 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.fx.coroutines.stream.Stream
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
-import java.time.Instant
 
 interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject {
     val nickname: String?

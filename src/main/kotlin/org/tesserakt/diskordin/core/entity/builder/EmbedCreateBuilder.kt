@@ -2,9 +2,9 @@
 
 package org.tesserakt.diskordin.core.entity.builder
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.request.EmbedCreateRequest
 import java.awt.Color
-import java.time.Instant
 
 @Suppress("NOTHING_TO_INLINE", "unused")
 @RequestBuilder

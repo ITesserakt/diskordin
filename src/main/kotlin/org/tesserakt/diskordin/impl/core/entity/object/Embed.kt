@@ -5,8 +5,6 @@ import org.tesserakt.diskordin.core.entity.`object`.IEmbed
 import org.tesserakt.diskordin.core.entity.`object`.IImage
 import org.tesserakt.diskordin.core.entity.`object`.IVideo
 import java.awt.Color
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 internal class Embed(raw: EmbedResponse) : IEmbed {
     override val title: String? = raw.title
@@ -17,7 +15,7 @@ internal class Embed(raw: EmbedResponse) : IEmbed {
 
     override val url: String? = raw.url
 
-    override val timestamp: Instant? = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(raw.timestamp, Instant::from)
+    override val timestamp = raw.timestamp
 
     override val color: Color = Color(raw.color ?: 0)
 

@@ -4,12 +4,12 @@ import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Chunk
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.filterNotNull
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
-import java.time.Instant
 
 internal class Member<C : UnwrapContext> constructor(
     override val raw: MemberResponse<C>,

@@ -5,11 +5,13 @@ import arrow.core.computations.either
 import arrow.core.extensions.either.monad.mproduct
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.eval.applicative.just
-import kotlinx.coroutines.runBlocking
+import arrow.fx.IO
+import org.tesserakt.diskordin.core.cache.*
 import org.tesserakt.diskordin.core.client.*
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IGatewayStats
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
@@ -53,16 +55,9 @@ object DiscordClientBuilder {
         val (token, selfId) = Either.fromNullable(System.getenv("DISKORDIN_TOKEN") ?: builder.token)
             .mapLeft { NoTokenProvided }.mproduct { it.verify(Either.monadError()) }()
 
-        val gatewayStats = Eval.later(builder::restClient).map {
-            runBlocking { it.call { gatewayService.getGatewayBot() } }
-        }.memoize()
-
-        val shardContext = formShardSettings(token, builder, gatewayStats)
-        val connectionContext = ConnectionContext(builder.gatewaySettings.url, builder.gatewaySettings.compression)
-        val gatewayContext = GatewayContext(
-            builder.gatewaySettings.coroutineContext,
-            builder.gatewaySettings.interceptors
-        )
+        val gatewayStats = Eval.later {
+            IO { builder.restClient.call { gatewayService.getGatewayBot() } }.unsafeRunSync()
+        }
 
         val intents: ValuedEnum<Intents, Short> = when (val strategy = builder.gatewaySettings.intents) {
             is IntentsStrategy.EnableOnly -> strategy.enabled
@@ -71,13 +66,39 @@ object DiscordClientBuilder {
             else -> ValuedEnum.all(Short.integral())
         }
 
+        val sifter = EntitySifter(intents)
+        val processor = CacheProcessor(
+            mapOf(
+                IGuild::class to GuildUpdater,
+                IRole::class to RoleUpdater,
+                IUser::class to UserUpdater,
+                IMember::class to MemberUpdater,
+                IMessage::class to MessageUpdater,
+                IPrivateChannel::class to PrivateChannelUpdater
+            ), mapOf(
+                IGuild::class to GuildDeleter,
+                IRole::class to RoleDeleter,
+                IUser::class to UserDeleter,
+                IMember::class to MemberDeleter,
+                IMessage::class to MessageDeleter,
+                IPrivateChannel::class to PrivateChannelDeleter
+            ), sifter
+        )
+        val shardContext = formShardSettings(token, builder, gatewayStats)
+        val connectionContext = ConnectionContext(builder.gatewaySettings.url, builder.gatewaySettings.compression)
+        val gatewayContext = GatewayContext(
+            builder.gatewaySettings.coroutineContext,
+            builder.gatewaySettings.interceptors + processor
+        )
+
         BootstrapContext(
             mapOf(
                 GatewayContext to gatewayContext,
                 ConnectionContext to connectionContext,
                 ShardContext to shardContext,
                 RestClient to builder.restClient,
-                EntityCache to EntityCache(EntitySifter(intents))
+                EntityCache to EntityCache(EntitySifter(intents)),
+                CacheProcessor to processor
             ) + builder.extensions
         ) toT selfId
     }

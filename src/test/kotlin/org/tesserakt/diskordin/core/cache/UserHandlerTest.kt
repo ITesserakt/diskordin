@@ -7,6 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.runBlocking
+import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.IDUserResponse
 import org.tesserakt.diskordin.core.data.json.response.MessageUserResponse
@@ -71,14 +72,14 @@ class UserHandlerTest : FunSpec({
         val handler = UserUpdater
 
         test("Item should appear after adding") {
-            val cache = handler.handle(MemoryCacheSnapshot.empty(), fakeUser)
+            val cache = handler.handleAndGet(MemoryCacheSnapshot.empty().mutate(), fakeUser)
             cache.getUser(id).shouldNotBeNull()
         }
 
         test("Fields of user should update after adding idUser") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeUser)
-            cache = handler.handle(cache, fakeIdUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeUser)
+            cache = handler.handleAndGet(cache, fakeIdUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
@@ -97,9 +98,9 @@ class UserHandlerTest : FunSpec({
         }
 
         test("Fields of user should update after adding messageUser") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeUser)
-            cache = handler.handle(cache, fakeMessageUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeUser)
+            cache = handler.handleAndGet(cache, fakeMessageUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
@@ -118,9 +119,9 @@ class UserHandlerTest : FunSpec({
         }
 
         test("Fields of idUser should update after adding user") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeIdUser)
-            cache = handler.handle(cache, fakeUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeIdUser)
+            cache = handler.handleAndGet(cache, fakeUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
@@ -128,9 +129,9 @@ class UserHandlerTest : FunSpec({
         }
 
         test("Fields of idUser should update after adding messageUser") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeIdUser)
-            cache = handler.handle(cache, fakeMessageUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeIdUser)
+            cache = handler.handleAndGet(cache, fakeMessageUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<IdUser>()
@@ -143,18 +144,18 @@ class UserHandlerTest : FunSpec({
         }
 
         test("Fields of messageUser should update after adding user") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeMessageUser)
-            cache = handler.handle(cache, fakeUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeMessageUser)
+            cache = handler.handleAndGet(cache, fakeUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
         }
 
         test("Fields of messageUser should update after adding idUser") {
-            var cache = MemoryCacheSnapshot.empty()
-            cache = handler.handle(cache, fakeMessageUser)
-            cache = handler.handle(cache, fakeIdUser)
+            var cache = MemoryCacheSnapshot.empty().mutate()
+            cache = handler.handleAndGet(cache, fakeMessageUser)
+            cache = handler.handleAndGet(cache, fakeIdUser)
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<MessageUser>()
@@ -171,8 +172,8 @@ class UserHandlerTest : FunSpec({
         val handler = UserDeleter
 
         test("Item should be deleted from cache") {
-            var cache = MemoryCacheSnapshot.empty().copy(users = mapOf(id to fakeIdUser))
-            cache = handler.handle(cache, fakeIdUser)
+            var cache = MemoryCacheSnapshot.empty().copy(users = mapOf(id to fakeIdUser)).mutate()
+            cache = handler.handleAndGet(cache, fakeIdUser)
 
             cache.getUser(id).shouldBeNull()
         }

@@ -1,17 +1,19 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.datetime.Clock
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
-import java.time.Instant
+import kotlin.time.ExperimentalTime
 
+@ExperimentalCoroutinesApi
 class HeartbeatACKInterceptor : EventInterceptor() {
-    @ExperimentalCoroutinesApi
+    @ExperimentalTime
     override suspend fun Context.heartbeatACK(event: HeartbeatACKEvent) {
         val logger = KotlinLogging.logger("[Shard #${shard.shardData.index}]")
 
-        shard._heartbeatACKs.value = Instant.now()
-        logger.debug("Received heartbeat ACK after ${shard.ping()}ms")
+        shard._heartbeatACKs.value = Clock.System.now()
+        logger.debug("Received heartbeat ACK after ${shard.ping()}")
     }
 }

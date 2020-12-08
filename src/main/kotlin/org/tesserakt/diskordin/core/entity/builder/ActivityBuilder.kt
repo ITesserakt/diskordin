@@ -1,11 +1,11 @@
 package org.tesserakt.diskordin.core.entity.builder
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import org.tesserakt.diskordin.util.enums.or
-import java.time.Instant
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
@@ -69,22 +69,22 @@ class ActivityBuilder(
 
     @RequestBuilder
     class TimestampBuilder {
-        private var start: Long? = null
-        private var end: Long? = null
+        private var start: Instant? = null
+        private var end: Instant? = null
 
         operator fun Start.unaryPlus() {
             start = this.v
         }
 
         operator fun Instant.unaryPlus() {
-            end = this.toEpochMilli()
+            end = this
         }
 
-        inline fun TimestampBuilder.start(value: Instant) = Start(value.toEpochMilli())
+        inline fun TimestampBuilder.start(value: Instant) = Start(value)
         inline fun TimestampBuilder.end(value: Instant) = value
 
         internal fun create() = ActivityResponse.TimestampsResponse(
-            start, end
+            start?.toEpochMilliseconds(), end?.toEpochMilliseconds()
         )
     }
 

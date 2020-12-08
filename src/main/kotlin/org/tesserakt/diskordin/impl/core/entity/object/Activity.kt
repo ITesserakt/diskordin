@@ -1,12 +1,12 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -25,9 +25,9 @@ internal class Activity(raw: ActivityResponse) : IActivity {
         if (raw.timestamps != null) {
             val (start, end) = raw.timestamps
             if (start != null)
-                startPlaying = Instant.ofEpochSecond(start)
+                startPlaying = Instant.fromEpochSeconds(start)
             if (end != null)
-                endPlaying = Instant.ofEpochSecond(end)
+                endPlaying = Instant.fromEpochSeconds(end)
             if (start != null && end != null)
                 duration = end.seconds - start.seconds
         }

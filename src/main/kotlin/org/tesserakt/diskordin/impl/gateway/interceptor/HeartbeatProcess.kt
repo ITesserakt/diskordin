@@ -1,20 +1,16 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
 import arrow.core.Either
-import arrow.fx.coroutines.ForkConnected
-import arrow.fx.coroutines.Schedule
-import arrow.fx.coroutines.retry
-import arrow.fx.coroutines.seconds
+import arrow.fx.coroutines.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Clock
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor.Context
 import org.tesserakt.diskordin.gateway.interceptor.sendPayload
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.shard.Shard
-import java.time.Instant
 
 class HeartbeatProcess(private val interval: Long) {
     private data class RestartException(val shardId: Int) : Throwable("Shard #$shardId is going to restart")
@@ -29,9 +25,9 @@ class HeartbeatProcess(private val interval: Long) {
                 while (true) {
                     retry(Schedule.exponential(1.seconds)) {
                         Either.catch { context.sendPayload(Heartbeat(context.shard.sequence.value)) }
-                            .map { context.shard._heartbeats.value = Instant.now() }
+                            .map { context.shard._heartbeats.value = Clock.System.now() }
                     }
-                    delay(interval)
+                    sleep(interval.milliseconds)
                 }
             }
         }.catch {

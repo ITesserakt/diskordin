@@ -3,10 +3,10 @@ package org.tesserakt.diskordin.core.cache
 import org.tesserakt.diskordin.core.entity.IPrivateChannel
 
 internal val PrivateChannelUpdater = CacheUpdater<IPrivateChannel> { builder, data ->
-    builder.copy(privateChannels = builder.privateChannels + (data.id to data))
+    builder.privateChannels[data.id] = data
 }
 
 internal val PrivateChannelDeleter = CacheDeleter<IPrivateChannel> { builder, data ->
-    builder.copy(privateChannels = builder.privateChannels - data.id)
+    builder.privateChannels -= data
 }
 

@@ -1,15 +1,15 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import java.awt.Color
-import java.time.Instant
 
 interface IEmbed : IDiscordObject {
     val title: String?
     val type: String?
     val description: String?
     val url: String?
-    val timestamp: Instant?
+    val timestamp: Instant
     val color: Color?
     val footer: IFooter?
     val image: IImage?

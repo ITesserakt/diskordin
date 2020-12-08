@@ -6,7 +6,7 @@ plugins {
 
 
 val arrowVersion: String = project(":").properties["arrow_version"].cast()
-val jvmVersion = System.getenv("jvm") ?: "1.8"
+val jvmVersion = System.getenv("jvm") ?: "14"
 
 fun ktor(module: String, version: String = "1.4.1") =
     "io.ktor:ktor-$module:$version"

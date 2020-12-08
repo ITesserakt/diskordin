@@ -1,6 +1,5 @@
 @file:Suppress("PropertyName")
 
-val kotlin_version: String by extra
 val diskordin_version: String by extra
 val coroutines_version: String by extra
 val arrow_version: String by extra
@@ -23,24 +22,26 @@ plugins {
 
 group = "org.tesserakt.diskordin"
 version = System.getProperty("diskordin.version", diskordin_version)
-val jvmVersion = System.getenv("jvm") ?: "1.8"
+val jvmVersion = System.getenv("jvm") ?: "14"
 
 repositories {
     jcenter()
-    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") }
+    mavenCentral()
+    maven("https://kotlin.bintray.com/kotlinx/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
 }
 
 dependencies {
-    implementation(kotlin("stdlib", kotlin_version))
+    implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.1.1")
 
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
     implementation(arrow("ui"))
     implementation(arrow("fx-coroutines"))
-    implementation(arrow("optics"))
-    implementation(arrow("optics-mtl"))
+    implementation(arrow("fx-coroutines-stream"))
 
     implementation("com.google.code.gson:gson:2.8.6")
 
@@ -71,5 +72,5 @@ tasks.compileTestKotlin {
 }
 
 tasks.wrapper {
-    gradleVersion = "6.7"
+    gradleVersion = "6.7.1"
 }

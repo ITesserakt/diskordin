@@ -7,12 +7,12 @@ import arrow.core.extensions.mapk.foldable.foldable
 import arrow.core.extensions.mapk.functorFilter.functorFilter
 import arrow.typeclasses.Foldable
 import arrow.typeclasses.FunctorFilter
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
-import java.time.Instant
 
 typealias SnowflakeMap<V> = Map<Snowflake, V>
 

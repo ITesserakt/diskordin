@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.core.entity.`object`
 
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Identified
 import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.INamed
 import org.tesserakt.diskordin.core.entity.IUser
-import java.time.Instant
 
 interface ITemplate : INamed {
     val code: String

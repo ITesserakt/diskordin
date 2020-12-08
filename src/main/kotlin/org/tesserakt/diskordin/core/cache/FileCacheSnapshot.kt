@@ -2,9 +2,10 @@ package org.tesserakt.diskordin.core.cache
 
 import arrow.core.extensions.map.functor.map
 import arrow.fx.coroutines.ForkConnected
+import arrow.fx.coroutines.IOPool
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
-import kotlinx.coroutines.Dispatchers
+import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
@@ -16,38 +17,37 @@ import org.tesserakt.diskordin.util.toJson
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
-import java.time.Instant
 
 private const val impossibleDelimiter = "\n~--+-=$#%~***~%#$=-+--~\n"
 
 private fun SnowflakeMap<IPrivateChannel>.privateChannelsConverter() =
-    map { listOf("PrivateChannel", (it as PrivateChannel).raw.toJson()) }
+    map { listOf("PrivateChannel", (it as PrivateChannel).raw) }
 
 private fun SnowflakeMap<IGroupPrivateChannel>.groupChannelsConverter() =
-    map { listOf("GroupChannel", (it as GroupPrivateChannel).raw.toJson()) }
+    map { listOf("GroupChannel", (it as GroupPrivateChannel).raw) }
 
 private fun SnowflakeMap<IGuild>.guildConverter() = map { guild ->
     when (guild) {
-        is Guild -> Guild::class.simpleName to guild.raw.toJson()
-        is PartialGuild -> PartialGuild::class.simpleName to guild.raw.toJson()
+        is Guild -> Guild::class.simpleName to guild.raw
+        is PartialGuild -> PartialGuild::class.simpleName to guild.raw
         else -> throw IllegalArgumentException("Given `${guild::class.simpleName}`, but no guild found for this one")
     }.let { listOf(it.first, it.second) }
 }
 
 private fun SnowflakeMap<IMessage>.messageConverter() =
-    map { arrayOf("Message", (it as Message).raw.toJson()) }
+    map { arrayOf("Message", (it as Message).raw) }
 
 private fun SnowflakeMap<IUser>.userConverter() = map { user ->
     when (user) {
-        is Self -> Self::class.simpleName to user.raw.toJson()
-        is IdUser -> IdUser::class.simpleName to user.raw.toJson()
-        is MessageUser -> MessageUser::class.simpleName to user.raw.toJson()
+        is Self -> Self::class.simpleName to user.raw
+        is IdUser -> IdUser::class.simpleName to user.raw
+        is MessageUser -> MessageUser::class.simpleName to user.raw
         else -> throw IllegalArgumentException("Given `${user::class.simpleName}`, but no user found for this one")
     }.let { listOf(it.first, it.second) }
 }
 
 private fun SnowflakeMap<SnowflakeMap<IBan>>.banConverter() =
-    map { listOf("Bans", it.map { b -> (b as Ban).raw.toJson() }.toJson()) }
+    map { listOf("Bans", it.map { b -> (b as Ban).raw }) }
 
 class FileCacheSnapshot private constructor(private val text: Sequence<String>) : CacheSnapshot {
     private enum class Patterns(val value: String) {
@@ -88,8 +88,8 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
     override val messages by getFromText(Patterns.Messages) { _, it ->
         it.fromJson<MessageResponse>().unwrap()
     }
-    override val lastTypes by getFromText(Patterns.LastTypes) { _, it ->
-        it.fromJson<SnowflakeMap<Instant>>()
+    override val lastTypes: SnowflakeMap<SnowflakeMap<Instant>> by getFromText(Patterns.LastTypes) { _, it ->
+        it.fromJson()
     }
     override val users by getFromText(Patterns.Users) { type, it ->
         when (type) {
@@ -105,7 +105,7 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
 
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun writeTo(writer: BufferedWriter) = resource { writer } release {
-        ForkConnected(Dispatchers.IO) { it.close() }.join()
+        ForkConnected(IOPool) { it.close() }.join()
     } use { writer.write(text.joinToString(impossibleDelimiter)) }
 
     fun loadToMemory() = MemoryCacheSnapshot(
@@ -116,10 +116,12 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
         suspend operator fun invoke(file: File) = FileCacheSnapshot(file.bufferedReader())
 
         suspend operator fun invoke(reader: BufferedReader) = resource { reader }.release {
-            ForkConnected(Dispatchers.IO) { reader.close() }.join()
+            ForkConnected(IOPool) { reader.close() }.join()
         }.map { it.readText().splitToSequence(impossibleDelimiter) }.map(::FileCacheSnapshot)
 
-        suspend fun fromMemorySnapshot(snapshot: MemoryCacheSnapshot): FileCacheSnapshot {
+        suspend fun fromSnapshot(snapshot: CacheSnapshot): FileCacheSnapshot {
+            if (snapshot is FileCacheSnapshot) return snapshot
+
             val text = sequence {
                 yield(Patterns.PrivateChannels.value + snapshot.privateChannels.privateChannelsConverter().toJson())
                 yield(Patterns.GroupChannels.value + snapshot.groupChannels.groupChannelsConverter().toJson())

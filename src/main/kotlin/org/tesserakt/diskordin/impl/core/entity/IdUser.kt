@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import kotlinx.coroutines.runBlocking
+import arrow.fx.IO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.IDUserResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -15,7 +15,7 @@ import org.tesserakt.diskordin.util.enums.ValuedEnum
 internal class IdUser(override val raw: IDUserResponse) : IUser,
     ICacheable<IUser, UnwrapContext.EmptyContext, IDUserResponse> {
     private val delegate by lazy {
-        runBlocking { client.rest.call { userService.getUser(id) } }
+        IO { client.rest.call { userService.getUser(id) } }.unsafeRunSync()
     }
 
     override val avatar: String? by lazy { raw.avatar ?: delegate.avatar }
