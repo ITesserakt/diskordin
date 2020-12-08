@@ -172,8 +172,8 @@ class UserHandlerTest : FunSpec({
         val handler = UserDeleter
 
         test("Item should be deleted from cache") {
-            var cache = MemoryCacheSnapshot.empty().copy(users = mapOf(id to fakeIdUser)).mutate()
-            cache = handler.handleAndGet(cache, fakeIdUser)
+            val cache = MemoryCacheSnapshot.empty().copy(users = mapOf(id to fakeIdUser)).mutate()
+            handler.handle(cache, fakeIdUser)
 
             cache.getUser(id).shouldBeNull()
         }

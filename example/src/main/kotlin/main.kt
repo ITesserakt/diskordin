@@ -1,5 +1,6 @@
 import io.ktor.client.engine.cio.*
 import io.ktor.util.*
+import kotlinx.coroutines.Dispatchers
 import org.tesserakt.diskordin.core.cache.FileCacheSnapshot
 import org.tesserakt.diskordin.core.data.event.message.MessageCreateEvent
 import org.tesserakt.diskordin.core.data.invoke
@@ -30,6 +31,7 @@ suspend fun main(args: Array<String>) {
                     }
                 }
             })
+            +coroutineContext(Dispatchers.Unconfined)
         }
     }
 
