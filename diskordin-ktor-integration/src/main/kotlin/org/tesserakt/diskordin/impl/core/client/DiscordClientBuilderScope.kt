@@ -47,6 +47,7 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
     }
 
     override fun create(): DiscordClientSettings {
+        val token = System.getenv("DISKORDIN_TOKEN") ?: token ?: error(DiscordClientBuilder.NoTokenProvided)
         +httpClientConfig {
             defaultRequest { header("Authorization", "Bot $token") }
         }
@@ -54,7 +55,6 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
         +install(HttpClient) { HttpClient(httpClient) }
         restClient = KtorRestClient(httpClient, discordApiUrl, restSchedule)
         gatewayFactory = WebSocketFactory(httpClient)
-        val token = token ?: error(DiscordClientBuilder.NoTokenProvided)
 
         return DiscordClientSettings(
             token,

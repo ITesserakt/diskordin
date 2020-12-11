@@ -7,8 +7,6 @@ import org.tesserakt.diskordin.gateway.json.IRawEvent
 
 data class PresenceUpdate(
     val user: IDUserResponse,
-    val roles: List<Snowflake>,
-    val game: ActivityResponse?,
     val guildId: Snowflake,
     val status: String,
     val activities: List<ActivityResponse>,

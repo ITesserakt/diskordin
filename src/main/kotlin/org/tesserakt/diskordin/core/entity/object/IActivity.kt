@@ -69,8 +69,7 @@ interface IActivity : IDiscordObject {
         Streaming,
         Listening,
         Watching,
-
-        @Deprecated("Don't use in presence builder", level = DeprecationLevel.WARNING)
-        Custom //FIXME;
+        Custom,
+        Competing
     }
 }

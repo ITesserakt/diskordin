@@ -28,7 +28,7 @@ interface CacheSnapshot {
 
     fun getPrivateChannel(id: Snowflake): IPrivateChannel? = privateChannels[id]
     fun getUserPrivateChannel(userId: Snowflake): IPrivateChannel? =
-        privateChannels.find { it.owner.id == userId }.orNull()
+        (privateChannels + groupChannels).find { it.owner.id == userId }.orNull()
 
     fun getGroupPrivateChannel(id: Snowflake): IGroupPrivateChannel? = groupChannels[id]
     fun getGuild(id: Snowflake): IGuild? = guilds[id]
@@ -59,6 +59,8 @@ interface CacheSnapshot {
     fun getUser(id: Snowflake): IUser? = users[id]
     fun getBans(guildId: Snowflake): SnowflakeMap<IBan> = bans[guildId].orEmpty()
     fun getBan(guildId: Snowflake, userId: Snowflake) = getBans(guildId)[userId]
+    fun getMember(id: Snowflake) = guilds.firstMap { g -> g.members.find { it.id == id } }
+    fun getMember(guildId: Snowflake, memberId: Snowflake) = guilds[guildId]?.members?.find { it.id == memberId }
 }
 
 fun <F, A, B> Kind<F, A>.firstMap(FF: FunctorFilter<F>, FL: Foldable<F>, f: (A) -> B?) = FF.run {

@@ -1,7 +1,10 @@
 package org.tesserakt.diskordin.gateway
 
 import arrow.core.Either
+import arrow.core.extensions.either.applicative.applicative
+import arrow.core.extensions.list.foldable.sequence_
 import arrow.core.extensions.list.functor.fproduct
+import arrow.core.fix
 import arrow.core.getOrHandle
 import arrow.fx.coroutines.Fiber
 import arrow.fx.coroutines.ForkConnected
@@ -36,10 +39,8 @@ class Gateway(
     private val eventInterceptors = context[GatewayContext].interceptors
         .filter { it.selfContext == EventInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
 
-    private val controller = ShardController(
-        context[ShardContext],
-        lifecycles
-    )
+    private val controller = ShardController(context[ShardContext], lifecycles)
+    private val logger = KotlinLogging.logger("[Gateway]")
 
     @ExperimentalCoroutinesApi
     internal suspend fun run(): List<Stream<Fiber<Unit>>> =
@@ -55,12 +56,17 @@ class Gateway(
                 .effectTap { shard._sequence.value = it.seq ?: shard.sequence.value }
                 .effectMap { payload ->
                     ForkConnected {
-                        if (payload.isTokenPayload)
+                        val result = if (payload.isTokenPayload)
                             processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
                                 TokenInterceptor.Context(it, controller, shard)
                             }
                         else processIncoming(payload, eventInterceptors, RawEventTransformer) {
                             EventInterceptor.Context(it, controller, shard)
+                        }
+
+                        result.getOrHandle {
+                            logger.error(it) { "Unexpected fail on interceptor while processing ${payload.name}#${payload.opcode}" }
+                            logger.debug { payload.rawData }
                         }
                     }
                 }
@@ -76,22 +82,16 @@ class Gateway(
         interceptors: List<I>,
         transformer: Transformer<Payload<P>, E>,
         interceptorContext: (response: E) -> C
-    ) {
+    ) = Either.catchAndFlatten {
         @Suppress("UNCHECKED_CAST") val incoming = transformer.transform(payload as Payload<P>)
         @Suppress("NAME_SHADOWING") val interceptorContext = interceptorContext(incoming)
 
-        interceptors.parTraverse {
-            val logger = KotlinLogging.logger("[${it.name}]")
-
-            Either.catch { it.intercept(interceptorContext) }.getOrHandle { t ->
-                logger.error(t) { "Unexpected fail on interceptor while processing ${payload.name}#${payload.opcode}" }
-                logger.debug { payload.rawData }
-            }
-        }
+        interceptors.parTraverse { Either.catch { it.intercept(interceptorContext) } }
+            .sequence_(Either.applicative()).fix()
     }
 
     abstract class Factory {
-        private val gatewayVersion = 6
+        private val gatewayVersion = 8
         private val encoding = "json"
 
         protected val gatewayUrl = { start: String, compression: String ->

@@ -19,6 +19,7 @@ val gsonBuilder: GsonBuilder.() -> Unit = {
     registerTypeAdapter(ListK::class.java, ListKTypeAdapter())
     registerTypeAdapter(Id::class.java, IdTypeAdapter())
     registerTypeAdapter(Payload::class.java, PayloadSerializer())
+    setPrettyPrinting()
     serializeNulls()
 }
 

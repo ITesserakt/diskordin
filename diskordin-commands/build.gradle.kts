@@ -1,35 +1,19 @@
-import org.jetbrains.kotlin.utils.addToStdlib.cast
+val kotestVersion: String by extra
+val arrowVersion: String by extra
+val kotlinLoggingVersion: String by extra
+val jvmVersion: String by extra
 
-val kotestVersion: String = project(":").properties["kotest_version"].cast()
-val arrowVersion: String = project(":").properties["arrow_version"].cast()
-val kotlinLoggingVersion: String = project(":").properties["kotlin_logging_version"].cast()
+plugins { kotlin("jvm") }
 
 fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
 
-plugins {
-    kotlin("jvm")
-}
-
-group = "org.tesserakt.diskordin"
-version = "0.3.0"
-
-repositories {
-    jcenter()
-    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-    maven { url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local/") }
-}
-
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation(project(":"))
 
-    implementation(arrow("core"))
     implementation(arrow("fx"))
-    implementation(arrow("fx-coroutines"))
     implementation(arrow("mtl"))
-    implementation(arrow("ui"))
     implementation(arrow("syntax"))
 
     implementation("io.github.classgraph:classgraph:4.8.90")
@@ -42,15 +26,12 @@ dependencies {
     testImplementation("io.kotest:kotest-property:$kotestVersion")
 }
 
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "14"
-        kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+tasks.compileKotlin {
+    kotlinOptions {
+        jvmTarget = jvmVersion
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
     }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "14"
-    }
-    test {
-        useJUnitPlatform()
-    }
+}
+tasks.compileTestKotlin {
+    kotlinOptions.jvmTarget = jvmVersion
 }

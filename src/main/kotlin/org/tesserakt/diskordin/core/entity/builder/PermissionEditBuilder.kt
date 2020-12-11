@@ -13,6 +13,6 @@ class PermissionEditBuilder(
     override fun create(): PermissionsEditRequest = PermissionsEditRequest(
         allowed.code,
         denied.code,
-        type.value
+        type.ordinal.toString()
     )
 }

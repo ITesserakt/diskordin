@@ -5,7 +5,8 @@ import arrow.core.computations.either
 import arrow.core.extensions.either.monad.mproduct
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.eval.applicative.just
-import arrow.fx.IO
+import arrow.core.extensions.map.foldable.foldLeft
+import arrow.fx.coroutines.Environment
 import org.tesserakt.diskordin.core.cache.*
 import org.tesserakt.diskordin.core.client.*
 import org.tesserakt.diskordin.core.data.EntityCache
@@ -19,7 +20,7 @@ import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import org.tesserakt.diskordin.util.enums.or
+import kotlin.experimental.or
 
 inline class BackendProvider<B : DiscordClientBuilderScope>(private val provider: () -> B) {
     suspend operator fun invoke(block: suspend B.() -> Unit) = DiscordClientBuilder.invoke(provider, block)
@@ -56,13 +57,11 @@ object DiscordClientBuilder {
             .mapLeft { NoTokenProvided }.mproduct { it.verify(Either.monadError()) }()
 
         val gatewayStats = Eval.later {
-            IO { builder.restClient.call { gatewayService.getGatewayBot() } }.unsafeRunSync()
+            Environment().unsafeRunSync { builder.restClient.call { gatewayService.getGatewayBot() } }
         }
 
         val intents: ValuedEnum<Intents, Short> = when (val strategy = builder.gatewaySettings.intents) {
-            is IntentsStrategy.EnableOnly -> strategy.enabled
-                .map { (_, code) -> ValuedEnum<Intents, Short>(code, Short.integral()) }
-                .fold(ValuedEnum.none(Short.integral())) { acc, i -> acc or i }
+            is IntentsStrategy.EnableOnly -> ValuedEnum(strategy.enabled.foldLeft(0, Short::or), Short.integral())
             else -> ValuedEnum.all(Short.integral())
         }
 
@@ -74,14 +73,14 @@ object DiscordClientBuilder {
                 IUser::class to UserUpdater,
                 IMember::class to MemberUpdater,
                 IMessage::class to MessageUpdater,
-                IPrivateChannel::class to PrivateChannelUpdater
+                IChannel::class to ChannelUpdater
             ), mapOf(
                 IGuild::class to GuildDeleter,
                 IRole::class to RoleDeleter,
                 IUser::class to UserDeleter,
                 IMember::class to MemberDeleter,
                 IMessage::class to MessageDeleter,
-                IPrivateChannel::class to PrivateChannelDeleter
+                IChannel::class to ChannelDeleter
             ), sifter
         )
         val shardContext = formShardSettings(token, builder, gatewayStats)

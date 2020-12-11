@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.core.ListK
-import arrow.core.extensions.list.foldable.find
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
 import arrow.core.left
@@ -16,7 +15,6 @@ import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -25,6 +23,7 @@ import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.rest.call
+import org.tesserakt.diskordin.rest.callCaching
 import org.tesserakt.diskordin.util.DomainError
 
 internal class DiscordClient private constructor(
@@ -50,11 +49,11 @@ internal class DiscordClient private constructor(
     private val logoutToken = Promise.unsafe<Unit>()
 
     override val self: IdentifiedIO<ISelf> = selfId.identify<ISelf> {
-        rest.call { userService.getCurrentUser() }
+        rest.callCaching { userService.getCurrentUser() }
     }
 
-    override val users get() = cache.values.filterIsInstance<IUser>()
-    override val guilds get() = cache.values.filterIsInstance<IGuild>()
+    override val users get() = cacheSnapshot.users.values.toList()
+    override val guilds get() = cacheSnapshot.guilds.values.toList()
 
     @ExperimentalCoroutinesApi
     override suspend fun login() {
@@ -68,7 +67,7 @@ internal class DiscordClient private constructor(
         logoutToken.complete(Unit)
     }
 
-    override suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild = rest.call {
+    override suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild = rest.callCaching {
         val inst = GuildCreateBuilder(name).apply(builder)
         guildService.createGuild(inst.create())
     }
@@ -82,33 +81,26 @@ internal class DiscordClient private constructor(
         voiceService.getVoiceRegions()
     }.fix()
 
-    override suspend fun getChannel(id: Snowflake) = cache[id] as IChannel?
-        ?: rest.call { channelService.getChannel(id) }.also { cache[id] = it }
+    override suspend fun getChannel(id: Snowflake) = cacheSnapshot.getChannel(id)
+        ?: rest.callCaching { channelService.getChannel(id) }
 
-    override suspend fun getGuild(id: Snowflake) = guilds.find { it.id == id }.orNull()
-        ?: rest.call { guildService.getGuild(id) }.also { cache[id] = it }
+    override suspend fun getGuild(id: Snowflake) = cacheSnapshot.getGuild(id)
+        ?: rest.callCaching { guildService.getGuild(id) }
 
     override suspend fun getGuildPreview(id: Snowflake): IGuildPreview = rest.call {
         guildService.getGuildPreview(id)
     }
 
     override suspend fun getUser(id: Snowflake) =
-        users.find { it.id == id }.orNull() ?: rest.call { userService.getUser(id) }.also {
-            cache[id] = it
-        }
+        cacheSnapshot.getUser(id) ?: rest.callCaching { userService.getUser(id) }
 
     override suspend fun getMember(userId: Snowflake, guildId: Snowflake) =
-        cache.values.filterIsInstance<IMember>()
-            .filter { it.guild.id == guildId }
-            .find { it.id == userId }.orNull() ?: getUser(userId).asMember(guildId).also {
-            cache[userId] = it
+        cacheSnapshot.getMember(guildId, userId) ?: rest.callCaching(guildId) {
+            guildService.getMember(guildId, userId)
         }
 
     override suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): IMessage =
-        cache.values.filterIsInstance<IMessage>()
-            .filter { it.channel.id == channelId }
-            .find { it.id == messageId }.orNull()
-            ?: rest.call {
-                channelService.getMessage(channelId, messageId)
-            }.also { cache += it.id to it; }
+        cacheSnapshot.getMessage(channelId, messageId) ?: rest.callCaching {
+            channelService.getMessage(channelId, messageId)
+        }
 }

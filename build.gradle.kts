@@ -1,17 +1,14 @@
-@file:Suppress("PropertyName")
-
-val diskordin_version: String by extra
-val coroutines_version: String by extra
-val arrow_version: String by extra
-val retrofit_version: String by extra
-val scarlet_version: String by extra
-val kotlin_logging_version: String by extra
-val slf4j_version: String by extra
-val kotest_version: String by extra
+val diskordinVersion: String by extra
+val coroutinesVersion: String by extra
+val arrowVersion: String by extra
+val kotlinLoggingVersion: String by extra
+val slf4jVersion: String by extra
+val kotestVersion: String by extra
+val jvmVersion = System.getenv("jvm") ?: "1.8"
 
 val publicationName = "diskordin"
 
-fun arrow(module: String, version: String = arrow_version): Any =
+fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 plugins {
@@ -20,37 +17,39 @@ plugins {
     `maven-publish`
 }
 
-group = "org.tesserakt.diskordin"
-version = System.getProperty("diskordin.version", diskordin_version)
-val jvmVersion = System.getenv("jvm") ?: "14"
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven("https://kotlin.bintray.com/kotlinx/")
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
+        maven("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
+    }
 
-repositories {
-    jcenter()
-    mavenCentral()
-    maven("https://kotlin.bintray.com/kotlinx/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
+    group = "org.tesserakt.diskordin"
+    version = System.getProperty("diskordin.version", diskordinVersion)
+    extra["jvmVersion"] = jvmVersion
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.1.1")
+    api(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.1.1")
 
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
-    implementation(arrow("ui"))
-    implementation(arrow("fx-coroutines"))
-    implementation(arrow("fx-coroutines-stream"))
+    api(arrow("ui"))
+    api(arrow("fx-coroutines"))
+    api(arrow("fx-coroutines-stream"))
 
     implementation("com.google.code.gson:gson:2.8.6")
 
-    implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
+    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 
-    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
-    testImplementation("io.kotest:kotest-assertions-arrow:$kotest_version")
-    testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
-    testImplementation("io.kotest:kotest-property:$kotest_version")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-arrow:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-property:$kotestVersion")
     testImplementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
     testImplementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
     testImplementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
@@ -61,6 +60,10 @@ tasks.test {
     failFast = false
 }
 
+tasks.wrapper {
+    gradleVersion = "6.7.1"
+}
+
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
@@ -69,8 +72,4 @@ tasks.compileKotlin {
 }
 tasks.compileTestKotlin {
     kotlinOptions.jvmTarget = jvmVersion
-}
-
-tasks.wrapper {
-    gradleVersion = "6.7.1"
 }

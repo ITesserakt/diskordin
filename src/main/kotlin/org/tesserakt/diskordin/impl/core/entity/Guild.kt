@@ -36,13 +36,6 @@ import kotlin.time.seconds
 @Suppress("UNCHECKED_CAST", "CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
 internal class Guild(override val raw: GuildResponse) : IGuild,
     ICacheable<IGuild, UnwrapContext.EmptyContext, GuildResponse> {
-    override val members: List<IMember> = raw.members.map {
-        when (it) {
-            is GuildMemberResponse -> it.unwrap(id)
-            is JoinMemberResponse -> it.unwrap()
-        }
-    }
-
     override val region: IRegion = Region(
         VoiceRegionResponse(
             raw.region,
@@ -245,6 +238,8 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override val channels get() = cache.values.filterIsInstance<IGuildChannel>().filter { it.guild.id == id }
 
     override val name: String = raw.name
+
+    override val members: List<IMember> = raw.members.map { it.unwrap(id) }
 
     @ExperimentalTime
     override fun toString(): String {

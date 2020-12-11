@@ -11,17 +11,16 @@ import org.tesserakt.diskordin.gateway.KtorWebSocketLifecycleManager
 
 class WebSocketFactory(private val client: Eval<HttpClient>) : Gateway.Factory() {
     override fun BootstrapContext.createGateway(): Gateway {
-        val createLifecycle = { client: HttpClient, url: String ->
-            KtorWebSocketLifecycleManager(client) { url(url) }
+        val createLifecycle = { client: Eval<HttpClient>, url: String ->
+            KtorWebSocketLifecycleManager(client.extract()) { url(url) }
         }
 
-        val lifecycles = (0 until this[ShardContext].shardCount.extract()).map {
-            createLifecycle(
-                client.extract(),
-                gatewayUrl(this[ConnectionContext].url, this[ConnectionContext].compression)
-            )
+        val lifecycles: Eval<List<KtorWebSocketLifecycleManager>> = Eval.later {
+            (0 until this[ShardContext].shardCount.extract()).map {
+                createLifecycle(client, gatewayUrl(this[ConnectionContext].url, this[ConnectionContext].compression))
+            }
         }
 
-        return Gateway(this, lifecycles)
+        return Gateway(this, lifecycles.extract())
     }
 }

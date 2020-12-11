@@ -4,10 +4,7 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.fx.ForIO
 import mu.KotlinLogging
-import org.tesserakt.diskordin.core.data.IdentifiedF
-import org.tesserakt.diskordin.core.data.Permissions
-import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import org.tesserakt.diskordin.core.data.json.response.ImageResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -86,7 +83,8 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
     }
 }
 
-internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel {
+internal class TextChannel(override val raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel,
+    ICacheable<ITextChannel, UnwrapContext.EmptyContext, ChannelResponse<ITextChannel>> {
     override val pins = rest.stream {
         channelService.getPinnedMessages(id)
     }
@@ -108,9 +106,15 @@ internal class TextChannel(raw: ChannelResponse<ITextChannel>) : GuildChannel(ra
         return "TextChannel(isNSFW=$isNSFW, topic=$topic, rateLimit=$rateLimit) " +
                 "\n   ${super.toString()}"
     }
+
+    override fun fromCache(): ITextChannel = cache[id] as ITextChannel
+
+    override fun copy(changes: (ChannelResponse<ITextChannel>) -> ChannelResponse<ITextChannel>): ITextChannel =
+        raw.run(changes).unwrap()
 }
 
-internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel {
+internal class VoiceChannel(override val raw: ChannelResponse<IVoiceChannel>) : GuildChannel(raw), IVoiceChannel,
+    ICacheable<IVoiceChannel, UnwrapContext.EmptyContext, ChannelResponse<IVoiceChannel>> {
     override val bitrate: Int = raw.bitrate!!
 
     override val userLimit: Int = raw.user_limit!!
@@ -124,14 +128,25 @@ internal class VoiceChannel(raw: ChannelResponse<IVoiceChannel>) : GuildChannel(
         return "VoiceChannel(bitrate=$bitrate, userLimit=$userLimit) " +
                 "\n   ${super.toString()}"
     }
+
+    override fun fromCache(): IVoiceChannel = cache[id] as IVoiceChannel
+
+    override fun copy(changes: (ChannelResponse<IVoiceChannel>) -> ChannelResponse<IVoiceChannel>): IVoiceChannel =
+        raw.run(changes).unwrap()
 }
 
-internal class Category(raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory {
+internal class Category(override val raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory,
+    ICacheable<IGuildCategory, UnwrapContext.EmptyContext, ChannelResponse<IGuildCategory>> {
     override val parentId: Snowflake? = raw.parent_id
+    override fun fromCache(): IGuildCategory = cache[id] as IGuildCategory
+
+    override fun copy(changes: (ChannelResponse<IGuildCategory>) -> ChannelResponse<IGuildCategory>): IGuildCategory =
+        raw.run(changes).unwrap()
 }
 
-internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw),
-    IAnnouncementChannel {
+internal class AnnouncementChannel(override val raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw),
+    IAnnouncementChannel,
+    ICacheable<IAnnouncementChannel, UnwrapContext.EmptyContext, ChannelResponse<IAnnouncementChannel>> {
     override fun toString(): String {
         return "AnnouncementChannel() " +
                 "\n   ${super.toString()}"
@@ -140,18 +155,20 @@ internal class AnnouncementChannel(raw: ChannelResponse<IAnnouncementChannel>) :
     override suspend fun crosspostToFollowers(messageId: Snowflake): IMessage = rest.call {
         channelService.crosspostMessage(id, messageId)
     }
+
+    override fun fromCache(): IAnnouncementChannel = cache[id] as IAnnouncementChannel
+
+    override fun copy(changes: (ChannelResponse<IAnnouncementChannel>) -> ChannelResponse<IAnnouncementChannel>) =
+        raw.run(changes).unwrap()
 }
 
 internal class PrivateChannel(override val raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel,
     ICacheable<IPrivateChannel, UnwrapContext.EmptyContext, ChannelResponse<IPrivateChannel>> {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
-
-    override val owner = raw.owner_id!!.identify<IUser> {
-        client.getUser(it)
-    }
+    override val owner: IdentifiedIO<IUser> = raw.owner_id?.identify<IUser> { client.getUser(it) } ?: client.self
 
     override fun toString(): String {
-        return "PrivateChannel(recipient=$recipient, owner=$owner)\n    ${super.toString()}"
+        return "PrivateChannel(recipient=$recipient)\n    ${super.toString()}"
     }
 
     override fun fromCache(): IPrivateChannel = cache[id] as IPrivateChannel
@@ -169,7 +186,7 @@ internal class GroupPrivateChannel(override val raw: ChannelResponse<IGroupPriva
         return "GroupPrivateChannel(icon=$icon)\n   ${super.toString()}"
     }
 
-    override val owner: IdentifiedF<ForIO, IUser> = raw.owner_id!!.identify<IUser> { client.getUser(it) }
+    override val owner: IdentifiedF<ForIO, IUser> = raw.owner_id?.identify<IUser> { client.getUser(it) } ?: client.self
     override val recipient: NonEmptyList<IUser> = Nel.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override fun fromCache(): IGroupPrivateChannel = cache[id] as IGroupPrivateChannel

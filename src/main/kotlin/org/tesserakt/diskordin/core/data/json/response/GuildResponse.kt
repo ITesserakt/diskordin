@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.core.data.json.response
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.ICustomEmoji
 import org.tesserakt.diskordin.core.entity.IGuild
+import org.tesserakt.diskordin.core.entity.IGuildChannel
 import org.tesserakt.diskordin.impl.core.entity.Guild
 
 data class GuildResponse(
@@ -37,7 +38,8 @@ data class GuildResponse(
     val system_channel_flags: Long? = null,
     val premium_tier: Int? = null,
     val premiumSubscribersCount: Int?,
-    val members: Set<MemberResponse<*>> = emptySet()
+    val members: Set<GuildMemberResponse> = emptySet(),
+    val channels: Set<ChannelResponse<IGuildChannel>> = emptySet()
 ) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
     override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = Guild(this)
 }

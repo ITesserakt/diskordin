@@ -5,9 +5,8 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
-import arrow.fx.ForIO
 import arrow.fx.coroutines.stream.Stream
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -100,7 +99,7 @@ interface IAnnouncementChannel : IGuildChannel, IMessageChannel {
 }
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
-    val owner: IdentifiedF<ForIO, IUser>
+    val owner: IdentifiedIO<IUser>
     val recipient: NonEmptyList<IUser>
 }
 

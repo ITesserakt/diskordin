@@ -5,6 +5,7 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.fx.IO
 import org.tesserakt.diskordin.core.cache.CacheProcessor
+import org.tesserakt.diskordin.core.cache.CacheSnapshot
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.IdentifiedIO
@@ -35,7 +36,7 @@ val IDiscordObject.rest: RestClient
 internal val IDiscordObject.cache: EntityCache
     get() = client.context[EntityCache]
 
-val IDiscordObject.cacheSnapshot get() = client.context[CacheProcessor].state.value
+val IDiscordObject.cacheSnapshot: CacheSnapshot get() = client.context[CacheProcessor].state.value
 
 interface IGuildObject : IDiscordObject {
     val guild: IdentifiedIO<IGuild>

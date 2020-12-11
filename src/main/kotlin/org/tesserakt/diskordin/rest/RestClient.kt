@@ -6,19 +6,22 @@ import arrow.fx.coroutines.retry
 import arrow.fx.coroutines.stream.Stream
 import arrow.fx.coroutines.stream.callback
 import arrow.typeclasses.Functor
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IDiscordObject
+import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.rest.service.*
 import kotlin.experimental.ExperimentalTypeInference
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 abstract class RestClient(
     private val schedule: Schedule<*, *>
-) : BootstrapContext.ExtensionContext {
+) : BootstrapContext.ExtensionContext, IDiscordObject {
     companion object : BootstrapContext.PersistentExtension<RestClient>;
 
     abstract val RestClient.channelService: ChannelService
@@ -36,18 +39,18 @@ abstract class RestClient(
         f: suspend RestClient.() -> R
     ): R = retry(schedule as Schedule<Throwable, R>) { this.f() }
 
-    suspend fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
+    suspend inline fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
         ctx: C,
-        f: suspend RestClient.() -> Kind<G, R>
-    ) = callRaw(f).map { it.unwrap(ctx) }
+        crossinline f: suspend RestClient.() -> Kind<G, R>
+    ) = callRaw { this.f() }.map { it.unwrap(ctx) }
 
-    suspend fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> call(
-        f: suspend RestClient.() -> R
-    ) = callRaw(f).unwrap(UnwrapContext.EmptyContext)
+    suspend inline fun <E : IDiscordObject, reified R : DiscordResponse<E, UnwrapContext.EmptyContext>> call(
+        crossinline f: suspend RestClient.() -> R
+    ) = callRaw { this.f() }.unwrap(UnwrapContext.EmptyContext)
 
-    suspend fun effect(
-        f: suspend RestClient.() -> Unit
-    ) = callRaw { f() }
+    suspend inline fun effect(
+        crossinline f: suspend RestClient.() -> Unit
+    ) = callRaw { this.f() }
 }
 
 suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.call(
@@ -94,4 +97,23 @@ fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContex
 ) = Stream.callback {
     callRaw(f).map { it.unwrap(guildId) }.forEach(::emit)
     end()
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.EmptyContext>, reified O : IDiscordObject> RestClient.callCaching(
+    crossinline f: suspend RestClient.() -> R
+) = callRaw { this.f() }.unwrap().also {
+    val processor = client.context[CacheProcessor]
+    if (processor.hasHandler(O::class))
+        processor.updateData(it)
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.GuildContext>, reified O : IDiscordObject> RestClient.callCaching(
+    guildId: Snowflake,
+    crossinline f: suspend RestClient.() -> R
+) = callRaw { this.f() }.unwrap(guildId).also {
+    val processor = client.context[CacheProcessor]
+    if (processor.hasHandler(O::class))
+        processor.updateData(it)
 }

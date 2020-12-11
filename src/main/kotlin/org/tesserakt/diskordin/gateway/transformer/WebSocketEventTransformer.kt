@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.gateway.transformer
 
 import org.tesserakt.diskordin.gateway.json.IPayload
+import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Payload
 import org.tesserakt.diskordin.gateway.json.WebSocketEvent
 import org.tesserakt.diskordin.gateway.json.token.ConnectionClosed
@@ -19,7 +20,7 @@ object WebSocketEventTransformer :
             "CONNECTION_OPENED",
             ConnectionOpened.toJsonTree()
         )
-        is WebSocketEvent.MessageReceived -> context.message.decompress().fromJson()
+        is WebSocketEvent.MessageReceived -> context.message.decompress().fromJson<Payload<IRawEvent>>()
         is WebSocketEvent.ConnectionClosing -> Payload<ConnectionClosing>(
             -1,
             null,

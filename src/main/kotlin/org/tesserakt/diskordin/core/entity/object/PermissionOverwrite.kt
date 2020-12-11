@@ -15,18 +15,7 @@ interface IPermissionOverwrite : IDiscordObject {
     val allowed: ValuedEnum<Permission, Long>
     val denied: ValuedEnum<Permission, Long>
 
-    enum class Type(internal val value: String) {
-        Role("role"),
-        Member("member");
-
-        companion object {
-            fun of(value: String) = when (value) {
-                "role" -> Role
-                "member" -> Member
-                else -> throw NoSuchElementException()
-            }
-        }
-    }
+    enum class Type { Role, Member }
 
     fun computeCode(): Long
 }

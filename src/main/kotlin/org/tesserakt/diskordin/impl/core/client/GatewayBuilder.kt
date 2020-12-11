@@ -114,6 +114,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
             override suspend fun intercept(context: C) = block(context)
         }
 
+    @Deprecated("Replaced with Intents", ReplaceWith("featureOverrides()"))
     inline fun GatewayBuilder.guildSubscriptions(vararg shardIndexes: Int) = shardIndexes.toList()
     inline fun GatewayBuilder.compressShards(vararg shardIndexes: Int) = shardIndexes
     inline fun GatewayBuilder.useShards(count: Int) = ShardCount(count)

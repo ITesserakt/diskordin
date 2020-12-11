@@ -1,5 +1,6 @@
 package org.tesserakt.diskordin.gateway.transformer
 
+import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
@@ -18,17 +19,16 @@ import org.tesserakt.diskordin.gateway.json.IRawEvent
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.Payload
 
-object RawEventTransformer :
-    Transformer<Payload<IRawEvent>, IEvent> {
+object RawEventTransformer : Transformer<Payload<IRawEvent>, IEvent> {
+    private val logger = KotlinLogging.logger { }
+
     override fun transform(context: Payload<IRawEvent>): IEvent = when (context.opcode()) {
         Opcode.HEARTBEAT -> HeartbeatEvent(context.unwrap())
         Opcode.RECONNECT -> ReconnectEvent()
         Opcode.INVALID_SESSION -> InvalidSessionEvent(context.unwrapAsResponse())
         Opcode.HELLO -> HelloEvent(context.unwrap())
         Opcode.HEARTBEAT_ACK -> HeartbeatACKEvent()
-        Opcode.DISPATCH -> parseDispatch(
-            context
-        )
+        Opcode.DISPATCH -> parseDispatch(context)
         else -> throw IllegalStateException("Should never raises")
     }
 
@@ -67,6 +67,9 @@ object RawEventTransformer :
         "VOICE_STATE_UPDATE" -> VoiceStateUpdateEvent(context.unwrapAsResponse())
         "VOICE_SERVER_UPDATE" -> VoiceServerUpdateEvent(context.unwrap())
         "WEBHOOKS_UPDATE" -> WebhooksUpdateEvent(context.unwrap())
-        else -> throw IllegalStateException("Should never raises")
+        else -> {
+            logger.warn("Unknown event received: ${context.name}\$${context.opcode()}")
+            error("Unknown event received: ${context.name}\$${context.opcode()}")
+        }
     }
 }

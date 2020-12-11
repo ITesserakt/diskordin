@@ -7,7 +7,7 @@ import org.tesserakt.diskordin.impl.core.entity.`object`.PermissionOverwrite
 
 data class OverwriteResponse(
     val id: Snowflake,
-    val type: String,
+    val type: Int,
     val allow: Long,
     val deny: Long
 ) : DiscordResponse<IPermissionOverwrite, UnwrapContext.EmptyContext>() {
