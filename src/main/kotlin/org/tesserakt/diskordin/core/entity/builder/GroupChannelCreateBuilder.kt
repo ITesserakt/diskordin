@@ -10,8 +10,6 @@ class GroupChannelCreateBuilder : BuilderBase<GroupDMCreateRequest>() {
 
     override fun create(): GroupDMCreateRequest = GroupDMCreateRequest(
         accessTokens,
-        users.mapKeys {
-            it.key.asLong()
-        }
+        users
     )
 }

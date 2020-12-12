@@ -27,7 +27,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
 
     final override val id: Snowflake = raw.id
 
-    final override val mention: String = "<#${id.asString()}>"
+    final override val mention: String = "<#$id>"
 
     final override suspend fun delete(reason: String?) = rest.call {
         channelService.deleteChannel(id, reason)

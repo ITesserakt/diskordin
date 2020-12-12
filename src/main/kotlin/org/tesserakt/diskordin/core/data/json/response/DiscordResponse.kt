@@ -16,7 +16,6 @@ fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.EmptyContext>.unwrap()
 fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.GuildContext>.unwrap(guildId: Snowflake) =
     unwrap(UnwrapContext.GuildContext(guildId))
 
-@JvmName("unwrapNullable")
 fun <T : IDiscordObject> DiscordResponse<T, UnwrapContext.PartialGuildContext>.unwrap(guildId: Snowflake? = null) =
     unwrap(UnwrapContext.PartialGuildContext(guildId))
 

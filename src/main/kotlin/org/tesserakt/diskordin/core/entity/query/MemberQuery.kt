@@ -20,6 +20,6 @@ class MemberQuery : IQuery {
 
     override fun create() = mapOf(
         "limit" to limit.toString(),
-        "after" to after?.asString()
+        "after" to after?.toString()
     ).filterValues { it != null } as Query
 }

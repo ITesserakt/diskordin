@@ -51,7 +51,7 @@ internal class CustomEmoji constructor(
 
     override val id: Snowflake = raw.id!!
 
-    override val mention: String = "<${if (isAnimated) "a" else ""}:$name:${id.asString()}>"
+    override val mention: String = "<${if (isAnimated) "a" else ""}:$name:${id}>"
 
     override suspend fun delete(reason: String?) = rest.effect {
         emojiService.deleteGuildEmoji(guild.id, id)

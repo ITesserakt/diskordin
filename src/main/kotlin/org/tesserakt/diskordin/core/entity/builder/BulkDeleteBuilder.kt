@@ -8,9 +8,7 @@ import org.tesserakt.diskordin.core.data.json.request.BulkDeleteRequest
 class BulkDeleteBuilder : BuilderBase<BulkDeleteRequest>() {
     private val messages = mutableListOf<Snowflake>()
 
-    override fun create(): BulkDeleteRequest = BulkDeleteRequest(
-        messages.map { it.asLong() }.toTypedArray()
-    )
+    override fun create(): BulkDeleteRequest = BulkDeleteRequest(messages.toTypedArray())
 
     operator fun Snowflake.unaryPlus() {
         messages += this
@@ -22,5 +20,4 @@ class BulkDeleteBuilder : BuilderBase<BulkDeleteRequest>() {
 
     inline fun BulkDeleteBuilder.message(id: Snowflake) = id
     inline fun BulkDeleteBuilder.messages(ids: Iterable<Snowflake>) = ids
-    inline fun BulkDeleteBuilder.messages(vararg id: Snowflake) = id
 }

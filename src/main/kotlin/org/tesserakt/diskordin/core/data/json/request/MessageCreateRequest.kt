@@ -4,7 +4,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 
 data class MessageCreateRequest(
     val content: String?,
-    val nonce: Long? = null,
+    val nonce: Snowflake? = null,
     val tts: Boolean? = null,
     val embed: EmbedCreateRequest? = null,
     val allowedMentions: AllowedMentionsRequest? = null

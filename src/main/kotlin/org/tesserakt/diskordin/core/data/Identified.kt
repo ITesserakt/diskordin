@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.tesserakt.diskordin.core.data
 
 import arrow.Kind
@@ -18,7 +20,6 @@ typealias IdentifiedIO <E> = IdentifiedF<ForIO, E>
 infix fun <E> Snowflake.identify(render: suspend (Snowflake) -> E): IdentifiedIO<E> =
     Store(this) { IO { render(this) } }
 
-@JvmName("identifyHK")
 infix fun <F, E> Snowflake.identify(render: (Snowflake) -> Kind<F, E>): IdentifiedF<F, E> = Store(this, render)
 infix fun <E> Snowflake.identifyId(render: (Snowflake) -> E): Identified<E> = Store(this, render andThen ::Id)
 inline val Store<Snowflake, *>.id get() = state

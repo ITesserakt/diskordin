@@ -6,8 +6,8 @@ import org.tesserakt.diskordin.core.data.Snowflake
 class ReactedUsersQuery : IQuery {
     @Suppress("UNCHECKED_CAST")
     override fun create() = mapOf(
-        "before" to before?.asString(),
-        "after" to after?.asString(),
+        "before" to before?.toString(),
+        "after" to after?.toString(),
         "limit" to limit.toString()
     ).filterValues { it != null } as Query
 

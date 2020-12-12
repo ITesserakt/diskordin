@@ -29,7 +29,7 @@ class RetrofitService(private val httpClient: Eval<OkHttpClient>, private val di
             annotations: Array<Annotation>,
             retrofit: Retrofit
         ): Converter<Snowflake, String>? = when (type.getRawType()) {
-            Snowflake::class.java -> Converter { it.asString() }
+            Snowflake::class.java -> Converter { it.toString() }
             else -> null
         }
     }

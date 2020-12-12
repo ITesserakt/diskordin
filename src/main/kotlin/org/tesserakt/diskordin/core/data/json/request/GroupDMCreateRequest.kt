@@ -1,9 +1,11 @@
 package org.tesserakt.diskordin.core.data.json.request
 
+import org.tesserakt.diskordin.core.data.Snowflake
+
 
 data class GroupDMCreateRequest(
     val access_tokens: Array<String>,
-    val nicks: Map<Long, String>
+    val nicks: Map<Snowflake, String>
 ) : JsonRequest() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

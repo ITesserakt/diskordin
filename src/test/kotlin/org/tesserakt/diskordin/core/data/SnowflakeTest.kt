@@ -11,25 +11,25 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.map
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.azstring
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
+import kotlin.random.nextLong
 
 private const val MIN_SNOWFLAKE = 4194305L
 
 @ExperimentalUnsignedTypes
 class SnowflakeTest : FunSpec() {
-    private val snowflakes
-        get() = Arb.long(min = MIN_SNOWFLAKE).filter { it >= MIN_SNOWFLAKE }.map { it.asSnowflake() }
+    private val snowflakes = arbitrary { it.random.nextLong(MIN_SNOWFLAKE..Long.MAX_VALUE) }
 
     init {
         test("Snowflake.toString should return number in string") {
             checkAll(snowflakes) {
-                it.toString() shouldBe "$it"
+                it.asSnowflake().toString() shouldBe "$it"
             }
         }
 
@@ -51,7 +51,7 @@ class SnowflakeTest : FunSpec() {
             }
 
             test("Number, that less then $MIN_SNOWFLAKE") {
-                checkAll(Arb.long(1..MIN_SNOWFLAKE).filter { it in 1..MIN_SNOWFLAKE }) {
+                checkAll(arbitrary { it.random.nextLong(MIN_SNOWFLAKE) }) {
                     shouldThrow<IllegalArgumentException> {
                         it.asSnowflake()
                     }.message shouldBe "id must be greater than ${MIN_SNOWFLAKE - 1}"
@@ -70,7 +70,7 @@ class SnowflakeTest : FunSpec() {
             }
 
             test("Numbers, that less than $MIN_SNOWFLAKE") {
-                checkAll(Arb.long(max = MIN_SNOWFLAKE).filter { it < MIN_SNOWFLAKE }) {
+                checkAll(arbitrary { it.random.nextLong(MIN_SNOWFLAKE) }) {
                     val snowflake = it.toString()
                         .asSnowflakeSafe(Either.applicativeError()).fix()
 

@@ -45,7 +45,7 @@ internal class IdUser(override val raw: IDUserResponse) : IUser,
     }
 
     override val id: Snowflake = raw.id
-    override val mention: String = "<@${id.asString()}>"
+    override val mention: String = "<@${id}>"
 
     override fun fromCache(): IUser = cache[id] as IUser
 

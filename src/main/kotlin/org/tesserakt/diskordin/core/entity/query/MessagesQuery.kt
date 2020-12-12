@@ -6,9 +6,9 @@ import org.tesserakt.diskordin.core.data.Snowflake
 class MessagesQuery : IQuery {
     @Suppress("UNCHECKED_CAST")
     override fun create() = mapOf(
-        "around" to around?.asString(),
-        "before" to before?.asString(),
-        "after" to after?.asString(),
+        "around" to around?.toString(),
+        "before" to before?.toString(),
+        "after" to after?.toString(),
         "limit" to limit.toString()
     ).filterValues { it != null } as Query
 

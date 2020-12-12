@@ -29,7 +29,7 @@ class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderB
             parse += this.toSet()
         }
 
-        operator fun Array<out Snowflake>.unaryPlus() {
+        operator fun Array<Snowflake>.unaryPlus() {
             require(this.size <= 100)
 
             users += this.toSet()
@@ -42,8 +42,8 @@ class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderB
         }
 
         inline fun AllowedMentionsBuilder.allowOnly(vararg types: AllowedMentionTypes) = types
-        inline fun AllowedMentionsBuilder.allowUsers(vararg userIds: Snowflake) = userIds
-        inline fun AllowedMentionsBuilder.allowRoles(vararg roleIds: Snowflake) = roleIds.toList()
+        inline fun AllowedMentionsBuilder.allowUsers(userIds: Array<Snowflake>) = userIds
+        inline fun AllowedMentionsBuilder.allowRoles(roleIds: List<Snowflake>) = roleIds
         inline fun AllowedMentionsBuilder.suppressAll() {
             +allowOnly()
         }
@@ -67,7 +67,7 @@ class MessageCreateBuilder(private val required: Ior<Content, Embed>) : BuilderB
 
         return MessageCreateRequest(
             content,
-            nonce?.asLong(),
+            nonce,
             tts,
             embed?.create(),
             allowedMentions

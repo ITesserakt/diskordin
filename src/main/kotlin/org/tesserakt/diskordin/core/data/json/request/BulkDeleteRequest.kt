@@ -1,8 +1,10 @@
 package org.tesserakt.diskordin.core.data.json.request
 
+import org.tesserakt.diskordin.core.data.Snowflake
+
 
 data class BulkDeleteRequest(
-    val messages: Array<Long>
+    val messages: Array<Snowflake>
 ) : JsonRequest() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

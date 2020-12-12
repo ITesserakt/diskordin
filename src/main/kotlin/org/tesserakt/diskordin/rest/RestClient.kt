@@ -65,7 +65,6 @@ suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildCo
 ) = FN.call(UnwrapContext.GuildContext(guildId), f)
 
 @OptIn(ExperimentalTypeInference::class)
-@JvmName("callNullable")
 @OverloadResolutionByLambdaReturnType
 suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.call(
     guildId: Snowflake?,
@@ -89,7 +88,6 @@ fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> Res
 }
 
 @OptIn(ExperimentalTypeInference::class)
-@JvmName("streamNullable")
 @OverloadResolutionByLambdaReturnType
 fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.stream(
     guildId: Snowflake?,

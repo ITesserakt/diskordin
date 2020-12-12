@@ -4,10 +4,6 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 
 @RequestBuilder
-class DMCreateBuilder : BuilderBase<DMCreateRequest>() {
-    lateinit var recipientId: Snowflake
-
-    override fun create(): DMCreateRequest = DMCreateRequest(
-        recipientId
-    )
+class DMCreateBuilder(val recipientId: Snowflake) : BuilderBase<DMCreateRequest>() {
+    override fun create(): DMCreateRequest = DMCreateRequest(recipientId)
 }

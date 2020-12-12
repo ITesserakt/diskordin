@@ -7,7 +7,7 @@ import java.lang.reflect.Type
 
 class SnowflakeTypeAdapter : JsonSerializer<Snowflake>, JsonDeserializer<Snowflake> {
     override fun serialize(src: Snowflake, typeOfSrc: Type, context: JsonSerializationContext): JsonElement =
-        context.serialize(src.asString())
+        context.serialize(src.toString())
 
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Snowflake =
         json.asString.asSnowflake()

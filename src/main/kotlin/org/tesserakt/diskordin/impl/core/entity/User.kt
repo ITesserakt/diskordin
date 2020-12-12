@@ -52,15 +52,13 @@ abstract class User(raw: UserResponse<IUser>) : IUser {
         guildService.getMember(guildId, id).just()
     }.extract()
 
-    override val mention: String = "<@${id.asString()}>"
+    override val mention: String = "<@${id}>"
 }
 
 class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
     ICacheable<IUser, UnwrapContext.EmptyContext, UserResponse<IUser>> {
     override suspend fun joinIntoDM(to: Snowflake): IPrivateChannel = rest.call {
-        userService.joinToDM(DMCreateBuilder().apply {
-            recipientId = to
-        }.create())
+        userService.joinToDM(DMCreateBuilder(to).create())
     }
 
     override val guilds = rest.stream {
