@@ -13,7 +13,12 @@ import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
 
 internal class PermissionOverwrite(raw: OverwriteResponse) : IPermissionOverwrite {
-    override val type: IPermissionOverwrite.Type = IPermissionOverwrite.Type.values().first { it.ordinal == raw.type }
+    override val type: IPermissionOverwrite.Type =
+        IPermissionOverwrite.Type.values().find { it.ordinal == raw.type.toIntOrNull() } ?: when (raw.type) {
+            "role" -> IPermissionOverwrite.Type.Role
+            "member" -> IPermissionOverwrite.Type.Member
+            else -> error("Unknown type of permission override: ${raw.type}")
+        }
 
     override val targetId: Either<RoleId, MemberId> = Either.conditionally(type == IPermissionOverwrite.Type.Role,
         { raw.id },

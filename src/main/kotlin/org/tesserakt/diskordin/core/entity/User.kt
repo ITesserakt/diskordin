@@ -17,10 +17,10 @@ interface IUser : IMentioned, INamed {
     val avatar: String?
     val mfaEnabled: Boolean
     val locale: String?
-    val verified: Boolean
-    val email: String?
     val flags: ValuedEnum<Flags, Int>
     val premiumType: Type
+    val isFullyLoaded: Boolean
+    val isSystem: Boolean
 
     companion object : StaticMention<IUser, Companion> {
         override val mention: Regex = Regex(""""<@(\d{18,})>"""")

@@ -7,7 +7,9 @@ import arrow.fx.IO
 import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.json.response.*
+import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
+import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -24,6 +26,7 @@ import kotlin.time.ExperimentalTime
 
 internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     ICacheable<IGuild, UnwrapContext.EmptyContext, UserGuildResponse> {
+    override val id: Snowflake = raw.id
     override val region: IRegion by lazy { delegate.region }
     override val isEmbedEnabled: Boolean by lazy { delegate.isEmbedEnabled }
     override val defaultMessageNotificationLevel: IGuild.DefaultMessageNotificationLevel
@@ -40,12 +43,8 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val premiumTier: IGuild.PremiumTier by lazy { delegate.premiumTier }
     override val premiumSubscriptions: Int? by lazy { delegate.premiumSubscriptions }
     override val features: EnumSet<IGuild.Feature> by lazy { delegate.features }
-    override val members: List<IMember> = raw.members.map {
-        when (it) {
-            is JoinMemberResponse -> it.unwrap()
-            is GuildMemberResponse -> it.unwrap(id)
-        }
-    }
+    override val members: List<IMember> = raw.members.map { it.unwrap(id) }
+    override val isFullyLoaded: Boolean = false
 
     private val delegate by lazy {
         IO {
@@ -120,7 +119,6 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val integrations: Stream<IIntegration> by lazy { delegate.integrations }
     override val roles by lazy { raw.roles.map { it.unwrap(id) }.takeIf { it.isNotEmpty() } ?: delegate.roles }
     override val channels by lazy { delegate.channels }
-    override val id: Snowflake = raw.id
     override val name: String = raw.name
 
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)

@@ -7,9 +7,9 @@ import org.tesserakt.diskordin.impl.core.entity.Self
 
 internal val UserUpdater = CacheUpdater<IUser> { builder, data ->
     val user = builder.getUser(data.id)
-    builder.users += when {
-        data is Self || user == null || (user::class == data::class) -> mapOf(data.id to data)
-        user is Self && data is IdUser -> mapOf(data.id to user.copy {
+    builder.users[data.id] = when {
+        data is Self || data is MessageUser || user == null || (user::class == data::class) -> data
+        user is Self && data is IdUser -> user.copy {
             it.copy(
                 username = data.raw.username ?: it.username,
                 discriminator = data.raw.discriminator ?: it.discriminator,
@@ -17,37 +17,24 @@ internal val UserUpdater = CacheUpdater<IUser> { builder, data ->
                 bot = data.raw.bot ?: it.bot,
                 mfa_enabled = data.raw.mfaEnabled ?: it.mfa_enabled,
                 locale = data.raw.locale ?: it.locale,
-                verified = data.raw.verified ?: it.verified,
-                email = data.raw.email ?: it.email,
-                flags = data.raw.flags ?: it.flags,
+                publicFlags = data.raw.publicFlags ?: it.publicFlags,
                 premium_type = data.raw.premiumType ?: it.premium_type
             )
-        })
-        user is Self && data is MessageUser -> mapOf(data.id to user.copy {
-            it.copy(
-                username = data.raw.username,
-                discriminator = data.raw.discriminator.toString(),
-                avatar = data.raw.avatar,
-                bot = data.raw.bot ?: it.bot
-            )
-        })
-        user is IdUser && data is MessageUser -> mapOf(data.id to user.copy {
-            it.copy(
-                username = data.raw.username,
-                discriminator = data.raw.discriminator.toString(),
-                avatar = data.raw.avatar,
-                bot = data.raw.bot ?: it.bot
-            )
-        })
-        user is MessageUser && data is IdUser -> mapOf(data.id to user.copy {
+        }
+        user is MessageUser && data is IdUser -> user.copy {
             it.copy(
                 username = data.raw.username ?: it.username,
-                discriminator = data.raw.discriminator?.toShort() ?: it.discriminator,
+                discriminator = data.raw.discriminator ?: it.discriminator,
                 avatar = data.raw.avatar ?: it.avatar,
-                bot = data.raw.bot ?: it.bot
+                bot = data.raw.bot ?: it.bot,
+                system = data.raw.system ?: it.system,
+                mfa_enabled = data.raw.mfaEnabled ?: it.mfa_enabled,
+                locale = data.raw.locale ?: it.locale,
+                publicFlags = data.raw.publicFlags ?: it.publicFlags,
+                premium_type = data.raw.premiumType ?: it.premium_type
             )
-        })
-        else -> emptyMap()
+        }
+        else -> error("")
     }
 }
 

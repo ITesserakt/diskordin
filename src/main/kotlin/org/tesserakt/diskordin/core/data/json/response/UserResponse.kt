@@ -8,15 +8,14 @@ import org.tesserakt.diskordin.impl.core.entity.Self
 data class UserResponse<out U : IUser>(
     val id: Snowflake,
     val username: String,
-    val discriminator: String,
+    val discriminator: Short,
     val avatar: String?,
-    val bot: Boolean? = null,
+    val bot: Boolean = false,
+    val system: Boolean = false,
     val mfa_enabled: Boolean? = null,
     val locale: String? = null,
-    val verified: Boolean? = null,
-    val email: String? = null,
-    val flags: Int? = null,
-    val premium_type: Int? = null
+    val publicFlags: Int = 0,
+    val premium_type: Int = 0
 ) : DiscordResponse<U, UnwrapContext.EmptyContext>() {
     @Suppress("UNCHECKED_CAST")
     override fun unwrap(ctx: UnwrapContext.EmptyContext): U = Self(this as UserResponse<ISelf>) as? U

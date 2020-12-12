@@ -1,5 +1,6 @@
-package org.tesserakt.diskordin.impl.core.entity
+@file:Suppress("DEPRECATION")
 
+package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.Id
 import arrow.core.extensions.id.applicative.just
@@ -19,30 +20,30 @@ import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.stream
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-internal abstract class User(raw: UserResponse<IUser>) : IUser {
+abstract class User(raw: UserResponse<IUser>) : IUser {
     final override val avatar: String? = raw.avatar
 
     final override val mfaEnabled: Boolean = raw.mfa_enabled ?: false
 
     final override val locale: String? = raw.locale
 
-    final override val verified: Boolean = raw.verified ?: false
-
-    final override val email: String? = raw.email
-
-    final override val flags: ValuedEnum<IUser.Flags, Int> = ValuedEnum(raw.flags ?: 0, Int.integral())
+    final override val flags: ValuedEnum<IUser.Flags, Int> = ValuedEnum(raw.publicFlags, Int.integral())
 
     final override val premiumType: IUser.Type = when (raw.premium_type) {
-        0 -> IUser.Type.NitroClassic
-        1 -> IUser.Type.Nitro
+        1 -> IUser.Type.NitroClassic
+        2 -> IUser.Type.Nitro
         else -> IUser.Type.None
     }
 
+    final override val isFullyLoaded: Boolean = true
+
     final override val username: String = raw.username
 
-    final override val discriminator: Short = raw.discriminator.toShort()
+    final override val discriminator: Short = raw.discriminator
 
-    final override val isBot: Boolean = raw.bot ?: false
+    final override val isBot: Boolean = raw.bot
+
+    final override val isSystem = raw.system
 
     final override val id: Snowflake = raw.id
 
@@ -51,14 +52,10 @@ internal abstract class User(raw: UserResponse<IUser>) : IUser {
         guildService.getMember(guildId, id).just()
     }.extract()
 
-    override fun toString(): String {
-        return "User(avatar=$avatar, mfaEnabled=$mfaEnabled, locale=$locale, verified=$verified, email=$email, flags=$flags, premiumType=$premiumType, username='$username', discriminator=$discriminator, isBot=$isBot, id=$id, mention='$mention')"
-    }
-
     override val mention: String = "<@${id.asString()}>"
 }
 
-internal class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
+class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
     ICacheable<IUser, UnwrapContext.EmptyContext, UserResponse<IUser>> {
     override suspend fun joinIntoDM(to: Snowflake): IPrivateChannel = rest.call {
         userService.joinToDM(DMCreateBuilder().apply {

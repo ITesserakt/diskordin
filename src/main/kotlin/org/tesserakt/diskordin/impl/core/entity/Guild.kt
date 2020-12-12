@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ForId
@@ -240,6 +242,8 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override val name: String = raw.name
 
     override val members: List<IMember> = raw.members.map { it.unwrap(id) }
+
+    override val isFullyLoaded: Boolean = true
 
     @ExperimentalTime
     override fun toString(): String {

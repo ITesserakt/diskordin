@@ -25,11 +25,15 @@ suspend fun main() {
             +compressShards()
             +gatewayInterceptor(object : EventInterceptor() {
                 override suspend fun Context.messageCreate(event: MessageCreateEvent) {
-                    if (event.message().content.startsWith("!!~save cache")) {
-                        FileCacheSnapshot.fromSnapshot(event.cacheSnapshot).writeTo(file.writer().buffered())
-                        event.channel().createMessage("Saved!")
-                    } else if (event.message().content.startsWith("!!~logout")) {
-                        event.client.logout()
+                    when (event.message().content) {
+                        "!!~save cache" -> {
+                            FileCacheSnapshot.fromSnapshot(event.cacheSnapshot).writeTo(file.writer().buffered())
+                            event.channel().createMessage("Saved!")
+                        }
+                        "!!~logout" -> event.client.logout()
+                        "!!~get locales" -> event.cacheSnapshot.users.values
+                            .filter { it.isFullyLoaded }
+                            .mapNotNull { it.locale }.let(::println)
                     }
                 }
             })
@@ -37,4 +41,5 @@ suspend fun main() {
     }
 
     client.login()
+    FileCacheSnapshot.fromSnapshot(client.cacheSnapshot).writeTo(file.writer().buffered())
 }

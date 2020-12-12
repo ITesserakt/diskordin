@@ -6,6 +6,7 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
+import java.util.concurrent.ConcurrentHashMap
 
 typealias SnowflakeMutableMap<V> = MutableMap<Snowflake, V>
 
@@ -32,14 +33,14 @@ class CacheSnapshotBuilder private constructor(
 
     companion object {
         fun CacheSnapshot.mutate() = if (this is CacheSnapshotBuilder) this else CacheSnapshotBuilder(
-            privateChannels.toMutableMap(),
-            groupChannels.toMutableMap(),
-            unavailableGuilds.toMutableMap(),
-            guilds.toMutableMap(),
-            messages.toMutableMap(),
-            lastTypes.map { it.toMutableMap() }.toMutableMap(),
-            users.toMutableMap(),
-            bans.map { it.toMutableMap() }.toMutableMap()
+            ConcurrentHashMap(privateChannels),
+            ConcurrentHashMap(groupChannels),
+            ConcurrentHashMap(unavailableGuilds),
+            ConcurrentHashMap(guilds),
+            ConcurrentHashMap(messages),
+            lastTypes.map { ConcurrentHashMap(it) }.toMap(ConcurrentHashMap()),
+            ConcurrentHashMap(users),
+            bans.map { ConcurrentHashMap(it) }.toMap(ConcurrentHashMap())
         )
     }
 }

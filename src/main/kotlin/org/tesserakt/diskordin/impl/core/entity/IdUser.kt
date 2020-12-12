@@ -18,25 +18,25 @@ internal class IdUser(override val raw: IDUserResponse) : IUser,
         IO { client.rest.call { userService.getUser(id) } }.unsafeRunSync()
     }
 
+    override val isFullyLoaded: Boolean = false
     override val avatar: String? by lazy { raw.avatar ?: delegate.avatar }
     override val mfaEnabled: Boolean by lazy { raw.mfaEnabled ?: delegate.mfaEnabled }
     override val locale: String? by lazy { raw.locale ?: delegate.locale }
-    override val verified: Boolean by lazy { raw.verified ?: delegate.verified }
-    override val email: String? by lazy { raw.email ?: delegate.email }
     override val flags: ValuedEnum<IUser.Flags, Int> by lazy {
-        raw.flags?.let { ValuedEnum(it, Int.integral()) } ?: delegate.flags
+        raw.publicFlags?.let { ValuedEnum(it, Int.integral()) } ?: delegate.flags
     }
     override val premiumType: IUser.Type by lazy {
         when (raw.premiumType) {
-            0 -> IUser.Type.NitroClassic
-            1 -> IUser.Type.Nitro
+            1 -> IUser.Type.NitroClassic
+            2 -> IUser.Type.Nitro
             null -> null
             else -> IUser.Type.None
         } ?: delegate.premiumType
     }
     override val username: String by lazy { raw.username ?: delegate.username }
-    override val discriminator: Short by lazy { raw.discriminator?.toShort() ?: delegate.discriminator }
+    override val discriminator: Short by lazy { raw.discriminator ?: delegate.discriminator }
     override val isBot: Boolean by lazy { raw.bot ?: delegate.isBot }
+    override val isSystem: Boolean by lazy { raw.system ?: delegate.isSystem }
 
     override suspend fun asMember(guildId: Snowflake) = delegate.asMember(guildId)
 

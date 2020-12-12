@@ -16,7 +16,6 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
-import org.tesserakt.diskordin.impl.core.entity.IdUser
 import org.tesserakt.diskordin.impl.core.entity.MessageUser
 import org.tesserakt.diskordin.impl.core.entity.Self
 import org.tesserakt.diskordin.rest.WithoutRest
@@ -34,38 +33,35 @@ class UserHandlerTest : FunSpec({
     val fakeUser = UserResponse<IUser>(
         id,
         "Test",
-        "1234",
+        1234,
         "*hash*",
         bot = true,
         mfa_enabled = false,
         locale = "ru-RU",
-        verified = true,
-        email = "Email",
-        flags = null,
+        publicFlags = 0,
         premium_type = 0
     ).unwrap()
 
     val fakeIdUser = IDUserResponse(
         id,
         "Test2",
-        "1235",
+        1235,
         null,
         bot = false,
         mfaEnabled = true,
         locale = "Aether",
         verified = false,
         email = "Overworld",
-        flags = 1,
-        premiumType = 1
+        publicFlags = 1,
+        premiumType = 1,
+        system = null
     ).unwrap()
 
     val fakeMessageUser = MessageUserResponse(
         "Test3",
         id,
         1236,
-        "not a hash",
-        null,
-        null
+        "not a hash"
     ).unwrap()
 
     context("updater") {
@@ -85,14 +81,12 @@ class UserHandlerTest : FunSpec({
             cachedUser.shouldBeTypeOf<Self>()
             cachedUser.raw.asClue {
                 it.username shouldBe "Test2"
-                it.discriminator shouldBe "1235"
+                it.discriminator shouldBe 1235
                 it.avatar shouldBe "*hash*"
                 it.bot shouldBe false
                 it.mfa_enabled shouldBe true
                 it.locale shouldBe "Aether"
-                it.verified shouldBe false
-                it.email shouldBe "Overworld"
-                it.flags shouldBe 1
+                it.publicFlags shouldBe 1
                 it.premium_type shouldBe 1
             }
         }
@@ -103,19 +97,8 @@ class UserHandlerTest : FunSpec({
             cache = handler.handleAndGet(cache, fakeMessageUser)
             val cachedUser = cache.getUser(id)
 
-            cachedUser.shouldBeTypeOf<Self>()
-            cachedUser.raw.asClue {
-                it.username shouldBe "Test3"
-                it.discriminator shouldBe "1236"
-                it.avatar shouldBe "not a hash"
-                it.bot shouldBe true
-                it.mfa_enabled shouldBe false
-                it.locale shouldBe "ru-RU"
-                it.verified shouldBe true
-                it.email shouldBe "Email"
-                it.flags shouldBe null
-                it.premium_type shouldBe 0
-            }
+            cachedUser.shouldBeTypeOf<MessageUser>()
+            cachedUser.raw shouldBe (fakeMessageUser as MessageUser).raw
         }
 
         test("Fields of idUser should update after adding user") {
@@ -125,7 +108,7 @@ class UserHandlerTest : FunSpec({
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
-            // all fields are replaced and there is no need to check
+            cachedUser.raw shouldBe (fakeUser as Self).raw
         }
 
         test("Fields of idUser should update after adding messageUser") {
@@ -134,10 +117,10 @@ class UserHandlerTest : FunSpec({
             cache = handler.handleAndGet(cache, fakeMessageUser)
             val cachedUser = cache.getUser(id)
 
-            cachedUser.shouldBeTypeOf<IdUser>()
+            cachedUser.shouldBeTypeOf<MessageUser>()
             cachedUser.raw.asClue {
                 it.username shouldBe "Test3"
-                it.discriminator shouldBe "1236"
+                it.discriminator shouldBe 1236
                 it.avatar shouldBe "not a hash"
                 it.bot shouldBe false
             }
@@ -150,6 +133,7 @@ class UserHandlerTest : FunSpec({
             val cachedUser = cache.getUser(id)
 
             cachedUser.shouldBeTypeOf<Self>()
+            cachedUser.raw shouldBe (fakeUser as Self).raw
         }
 
         test("Fields of messageUser should update after adding idUser") {

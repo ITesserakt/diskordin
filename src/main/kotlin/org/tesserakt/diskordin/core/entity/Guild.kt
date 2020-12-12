@@ -52,6 +52,7 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     val roles: List<IRole>
     val channels: List<IGuildChannel>
     val members: List<IMember>
+    val isFullyLoaded: Boolean
 
     fun getRole(id: Snowflake): IRole?
     suspend fun getEmoji(emojiId: Snowflake): ICustomEmoji
