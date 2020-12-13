@@ -10,6 +10,7 @@ import kotlin.reflect.jvm.kotlinFunction
 
 class FunctionBodyCompiler : PersistentCompilerExtension<FunctionBody>() {
     override fun compileFeature(function: MethodInfo, name: String): FunctionBody {
+        @Suppress("UNCHECKED_CAST")
         val method = function.loadClassAndGetMethod().kotlinFunction as? KFunction<Unit>
             ?: throw NotKotlinFunction(function.loadClassAndGetMethod())
 

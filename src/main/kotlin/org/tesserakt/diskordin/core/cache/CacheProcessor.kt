@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.cache
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
@@ -22,7 +21,6 @@ import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
 import kotlin.reflect.KClass
 
-@ExperimentalCoroutinesApi
 internal class CacheProcessor(
     private val updaters: Map<KClass<*>, CacheUpdater<*>>,
     private val deleters: Map<KClass<*>, CacheDeleter<*>>,

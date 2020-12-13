@@ -1,13 +1,11 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.datetime.Clock
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.event.lifecycle.HeartbeatACKEvent
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import kotlin.time.ExperimentalTime
 
-@ExperimentalCoroutinesApi
 class HeartbeatACKInterceptor : EventInterceptor() {
     @ExperimentalTime
     override suspend fun Context.heartbeatACK(event: HeartbeatACKEvent) {

@@ -2,7 +2,6 @@
 
 package org.tesserakt.diskordin.gateway.shard
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.Instant
@@ -10,8 +9,6 @@ import org.tesserakt.diskordin.gateway.GatewayLifecycleManager
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-@Suppress("MemberVisibilityCanBePrivate")
-@ExperimentalCoroutinesApi
 data class Shard(
     val token: String,
     val shardData: Data,

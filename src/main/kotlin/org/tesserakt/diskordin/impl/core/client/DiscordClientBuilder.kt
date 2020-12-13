@@ -6,7 +6,7 @@ import arrow.core.extensions.either.monad.mproduct
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.eval.applicative.just
 import arrow.core.extensions.map.foldable.foldLeft
-import arrow.fx.coroutines.Environment
+import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.*
 import org.tesserakt.diskordin.core.client.*
 import org.tesserakt.diskordin.core.data.EntityCache
@@ -57,7 +57,7 @@ object DiscordClientBuilder {
             .mapLeft { NoTokenProvided }.mproduct { it.verify(Either.monadError()) }()
 
         val gatewayStats = Eval.later {
-            Environment().unsafeRunSync { builder.restClient.call { gatewayService.getGatewayBot() } }
+            runBlocking { builder.restClient.call { gatewayService.getGatewayBot() } }
         }
 
         val intents: ValuedEnum<Intents, Short> = when (val strategy = builder.gatewaySettings.intents) {

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.tesserakt.diskordin.impl.core.entity
 
 

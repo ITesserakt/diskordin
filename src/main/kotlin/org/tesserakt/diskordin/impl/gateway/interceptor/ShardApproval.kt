@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.event.lifecycle.InvalidSessionEvent
 import org.tesserakt.diskordin.core.data.event.lifecycle.ReadyEvent
@@ -9,7 +8,6 @@ import org.tesserakt.diskordin.core.data.event.lifecycle.ResumedEvent
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.shard.Shard
 
-@ExperimentalCoroutinesApi
 class ShardApproval : EventInterceptor() {
     private val logger = KotlinLogging.logger { }
 

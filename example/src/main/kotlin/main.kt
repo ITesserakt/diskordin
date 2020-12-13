@@ -8,10 +8,12 @@ import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.cacheSnapshot
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
+import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.impl.core.client.configure
 import org.tesserakt.diskordin.rest.integration.Ktor
+import org.tesserakt.diskordin.util.enums.or
 import java.io.File
 
 @ExperimentalCoroutinesApi
@@ -23,6 +25,7 @@ suspend fun main() {
     val client = DiscordClientBuilder by Ktor(CIO) configure {
         +gatewaySettings {
             +compressShards()
+            +featureOverrides(0, Intents.Guilds or Intents.GuildMessages)
             +gatewayInterceptor(object : EventInterceptor() {
                 override suspend fun Context.messageCreate(event: MessageCreateEvent) {
                     when (event.message().content) {
@@ -33,7 +36,9 @@ suspend fun main() {
                         "!!~logout" -> event.client.logout()
                         "!!~get locales" -> event.cacheSnapshot.users.values
                             .filter { it.isFullyLoaded }
-                            .mapNotNull { it.locale }.let(::println)
+                            .mapNotNull { it.locale }
+                            .let { event.channel().createMessage(it.toString()) }
+                        "!!~boom" -> error("test")
                     }
                 }
             })

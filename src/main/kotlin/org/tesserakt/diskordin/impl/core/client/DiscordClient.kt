@@ -6,7 +6,6 @@ import arrow.core.fix
 import arrow.core.left
 import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
-import arrow.fx.coroutines.Promise
 import arrow.fx.coroutines.parTraverse
 import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,8 +45,6 @@ internal class DiscordClient private constructor(
     override val token: String = context[ShardContext].token
     override val rest: RestClient get() = context[RestClient]
 
-    private val logoutToken = Promise.unsafe<Unit>()
-
     override val self: IdentifiedIO<ISelf> = selfId.identify<ISelf> {
         rest.callCaching { userService.getCurrentUser() }
     }
@@ -55,7 +52,6 @@ internal class DiscordClient private constructor(
     override val users get() = cacheSnapshot.users.values.toList()
     override val guilds get() = cacheSnapshot.guilds.values.toList()
 
-    @ExperimentalCoroutinesApi
     override suspend fun login() {
         gateway.run().parTraverse { it.drain() }
     }
@@ -64,7 +60,6 @@ internal class DiscordClient private constructor(
     override suspend fun logout() {
         gateway.close()
         DiscordClient.client.tryTake()
-        logoutToken.complete(Unit)
     }
 
     override suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild = rest.callCaching {

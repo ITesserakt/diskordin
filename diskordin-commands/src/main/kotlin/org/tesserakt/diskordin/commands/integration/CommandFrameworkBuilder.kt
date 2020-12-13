@@ -18,7 +18,7 @@ class CommandFrameworkBuilder {
     private val graph = ClassGraph()
         .enableAnnotationInfo()
         .enableMethodInfo()
-        .blacklistModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
+        .rejectModules("java.*", "javax.*", "sun.*", "com.sun.*", "kotlin.*", "kotlinx.*")
 
     operator fun CompilerExtension<*>.unaryPlus() {
         extensions += this

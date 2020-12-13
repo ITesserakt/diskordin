@@ -1,13 +1,10 @@
 package org.tesserakt.diskordin.gateway
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
-import arrow.fx.IO
-import arrow.fx.coroutines.ForkConnected
 import arrow.fx.coroutines.stream.Stream
-import arrow.fx.extensions.io.environment.environment
 import arrow.syntax.function.partially1
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.tesserakt.diskordin.gateway.json.Message
 import org.tesserakt.diskordin.gateway.json.Opcode
@@ -39,9 +36,9 @@ suspend fun GatewayConnection.sendPayload(
     }.invoke(sequenceId)
     val json = payload.toJson()
 
-    ForkConnected(IO.environment().dispatchers().io()) {
-        val isSent = Either.catch { connection.send(Message.Text(json)) }.isRight()
-        if (isSent) logger.debug("---> SENT ${payload.opcode()}").right()
-        else IllegalStateException("Payload was not send").left()
+    withContext(Dispatchers.IO) {
+        Either.catch { connection.send(Message.Text(json)) }.fold(
+            { logger.error("-x-> NOT SENT ${payload.opcode()}", it) },
+            { logger.debug("---> SENT ${payload.opcode()}") })
     }
 }

@@ -1,8 +1,8 @@
 package org.tesserakt.diskordin.gateway.shard
 
-import arrow.fx.coroutines.ForkConnected
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.GatewayLifecycleManager
@@ -12,6 +12,7 @@ import org.tesserakt.diskordin.gateway.sendPayload
 import org.tesserakt.diskordin.impl.gateway.interceptor.ConnectionObserver
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
+import kotlin.coroutines.EmptyCoroutineContext
 
 private const val INDEX_OUT_OF_SHARD_COUNT = "Given index of shard more than shard count"
 
@@ -21,7 +22,6 @@ class ShardController internal constructor(
 ) {
     private val logger = KotlinLogging.logger { }
 
-    @ExperimentalCoroutinesApi
     private val shards = mutableListOf<Shard>()
     private val observer = ConnectionObserver(this)
 
@@ -48,7 +48,6 @@ class ShardController internal constructor(
 
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
-    @ExperimentalCoroutinesApi
     suspend fun openShard(shardIndex: Int, sequence: StateFlow<Int?>) {
         require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
         val identify = Identify(
@@ -65,14 +64,12 @@ class ShardController internal constructor(
         lifecycles[shardIndex].connection.sendPayload(identify, sequence.value, shardIndex)
     }
 
-    @ExperimentalCoroutinesApi
     suspend fun approveShard(shard: Shard, sessionId: String) {
         shard._sessionId.value = sessionId
         shards += shard
-        ForkConnected { observer.observe(shard) }
+        CoroutineScope(EmptyCoroutineContext).launch { observer.observe(shard) }
     }
 
-    @ExperimentalCoroutinesApi
     suspend fun closeShard(shardIndex: Int) {
         require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
         val shard = shards.find { it.shardData.index == shardIndex }
@@ -88,7 +85,6 @@ class ShardController internal constructor(
         }
     }
 
-    @ExperimentalCoroutinesApi
     suspend fun resumeShard(shard: Shard) {
         lifecycles[shard.shardData.index].start()
         val resume = Resume(shard.token, shard.sessionId.value!!, shard.sequence.value)

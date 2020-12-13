@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.gateway.interceptor
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
@@ -21,10 +20,8 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
-@ExperimentalCoroutinesApi
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
-    @ExperimentalCoroutinesApi
     class Context constructor(
         val event: IEvent,
         controller: ShardController,
@@ -116,7 +113,6 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
     }
 }
 
-@ExperimentalCoroutinesApi
 @Suppress("NOTHING_TO_INLINE")
 internal suspend inline fun EventInterceptor.Context.sendPayload(data: GatewayCommand) =
     shard.lifecycle.connection.sendPayload(data, shard.sequence.value, shard.shardData.index)

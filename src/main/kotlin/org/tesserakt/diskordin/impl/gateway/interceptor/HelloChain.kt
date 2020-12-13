@@ -1,18 +1,15 @@
 package org.tesserakt.diskordin.impl.gateway.interceptor
 
-import arrow.fx.coroutines.milliseconds
-import arrow.fx.coroutines.sleep
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import org.tesserakt.diskordin.core.data.event.lifecycle.HelloEvent
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.shard.Shard
 
 class HelloChain : EventInterceptor() {
-    @ExperimentalCoroutinesApi
     override suspend fun Context.hello(event: HelloEvent) {
         val interval = event.heartbeatInterval
 
-        sleep((5500 * (shard.shardData.index)).milliseconds)
+        delay(5500L * shard.shardData.index)
         if (shard.isReady())
             controller.resumeShard(shard)
         else {
@@ -21,7 +18,7 @@ class HelloChain : EventInterceptor() {
 
         shard._state.value = Shard.State.Handshaking
         while (!shard.isReady()) {
-            sleep(100.milliseconds)
+            delay(100)
         }
         HeartbeatProcess(interval).start(this)
     }

@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.core.cache
 
 import arrow.core.extensions.map.functor.map
-import arrow.fx.coroutines.ForkConnected
-import arrow.fx.coroutines.IOPool
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
@@ -105,7 +105,7 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
 
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun writeTo(writer: BufferedWriter) = resource { writer } release {
-        ForkConnected(IOPool) { it.close() }.join()
+        withContext(Dispatchers.IO) { it.close() }
     } use { writer.write(text.joinToString(impossibleDelimiter)) }
 
     fun loadToMemory() = MemoryCacheSnapshot(
@@ -116,7 +116,7 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
         suspend operator fun invoke(file: File) = FileCacheSnapshot(file.bufferedReader())
 
         suspend operator fun invoke(reader: BufferedReader) = resource { reader }.release {
-            ForkConnected(IOPool) { reader.close() }.join()
+            withContext(Dispatchers.IO) { it.close() }
         }.map { it.readText().splitToSequence(impossibleDelimiter) }.map(::FileCacheSnapshot)
 
         suspend fun fromSnapshot(snapshot: CacheSnapshot): FileCacheSnapshot {

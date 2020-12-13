@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.tesserakt.diskordin.util
 
 import arrow.core.Id
