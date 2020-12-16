@@ -16,7 +16,6 @@ import org.tesserakt.diskordin.gateway.interceptor.Interceptor
 import org.tesserakt.diskordin.gateway.shard.*
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.util.enums.IValued
-import org.tesserakt.diskordin.util.enums.ValuedEnum
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -31,7 +30,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         val shardCount: Int,
         val threshold: ShardThreshold,
         val initialPresence: UserStatusUpdateRequest?,
-        val intents: IntentsStrategy,
+        val intents: Short,
         val url: String
     ) : JsonRequest()
 
@@ -51,7 +50,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
     private var shardCount = 0
     private var threshold = ShardThreshold(emptyMap())
     private var request: UserStatusUpdateRequest? = null
-    private var intents: IntentsStrategy = IntentsStrategy.EnableAll
+    private var intents: IValued<Intents, Short> = Intents.allNonPrivileged
 
     @Suppress("UNCHECKED_CAST")
     operator fun Interceptor<*>.unaryPlus() {
@@ -91,14 +90,8 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         this@GatewayBuilder.request = this@unaryPlus.create()
     }
 
-    operator fun Pair<Int, Short>.unaryPlus() {
-        intents = when (intents) {
-            IntentsStrategy.EnableAll -> IntentsStrategy.EnableOnly(mapOf(this))
-            is IntentsStrategy.EnableOnly -> {
-                val saved = (intents as IntentsStrategy.EnableOnly).enabled
-                IntentsStrategy.EnableOnly(saved + this)
-            }
-        }
+    operator fun IValued<Intents, Short>.unaryPlus() {
+        intents = this
     }
 
     operator fun CoroutineContext.unaryPlus() {
@@ -128,11 +121,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
     inline fun GatewayBuilder.initialPresence(builder: PresenceBuilder.() -> Unit) =
         PresenceBuilder().apply(builder)
 
-    inline fun GatewayBuilder.featureOverrides(shardIndex: Int, value: ValuedEnum<Intents, Short>) =
-        shardIndex to value.code
-
-    inline fun GatewayBuilder.featureOverrides(shardIndex: Int, value: IValued<Intents, Short>) =
-        shardIndex to value.code
+    inline fun GatewayBuilder.featureOverrides(value: IValued<Intents, Short>) = value
 
     inline fun GatewayBuilder.coroutineContext(context: CoroutineContext) = context
 
@@ -149,7 +138,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
         shardCount,
         threshold,
         request,
-        intents,
+        intents.code,
         gatewayUrl
     )
 }

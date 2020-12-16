@@ -5,7 +5,6 @@ import arrow.core.computations.either
 import arrow.core.extensions.either.monad.mproduct
 import arrow.core.extensions.either.monadError.monadError
 import arrow.core.extensions.eval.applicative.just
-import arrow.core.extensions.map.foldable.foldLeft
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.*
 import org.tesserakt.diskordin.core.client.*
@@ -15,12 +14,10 @@ import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IGatewayStats
 import org.tesserakt.diskordin.gateway.shard.Intents
-import org.tesserakt.diskordin.gateway.shard.IntentsStrategy
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import kotlin.experimental.or
 
 inline class BackendProvider<B : DiscordClientBuilderScope>(private val provider: () -> B) {
     suspend operator fun invoke(block: suspend B.() -> Unit) = DiscordClientBuilder.invoke(provider, block)
@@ -60,10 +57,7 @@ object DiscordClientBuilder {
             runBlocking { builder.restClient.call { gatewayService.getGatewayBot() } }
         }
 
-        val intents: ValuedEnum<Intents, Short> = when (val strategy = builder.gatewaySettings.intents) {
-            is IntentsStrategy.EnableOnly -> ValuedEnum(strategy.enabled.foldLeft(0, Short::or), Short.integral())
-            else -> ValuedEnum.all(Short.integral())
-        }
+        val intents: ValuedEnum<Intents, Short> = ValuedEnum(builder.gatewaySettings.intents, Short.integral())
 
         val sifter = EntitySifter(intents)
         val processor = CacheProcessor(

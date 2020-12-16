@@ -13,7 +13,6 @@ import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.impl.core.client.configure
 import org.tesserakt.diskordin.rest.integration.Ktor
-import org.tesserakt.diskordin.util.enums.not
 import java.io.File
 
 @KtorExperimentalAPI
@@ -25,7 +24,7 @@ suspend fun main() {
         +gatewaySettings {
             +compressShards()
             +useShards(3)
-            +featureOverrides(0, !(Intents.GuildMembers))
+            +featureOverrides(Intents.all)
             +gatewayInterceptor<TokenInterceptor.Context> { println(it.token) }
             +gatewayInterceptor(object : EventInterceptor() {
                 override suspend fun Context.messageCreate(event: MessageCreateEvent) {

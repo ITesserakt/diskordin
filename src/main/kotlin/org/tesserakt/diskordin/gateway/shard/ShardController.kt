@@ -10,8 +10,6 @@ import org.tesserakt.diskordin.gateway.json.commands.Identify
 import org.tesserakt.diskordin.gateway.json.commands.Resume
 import org.tesserakt.diskordin.gateway.sendPayload
 import org.tesserakt.diskordin.impl.gateway.interceptor.ConnectionObserver
-import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.util.enums.ValuedEnum
 
 private const val INDEX_OUT_OF_SHARD_COUNT = "Given index of shard more than shard count"
 
@@ -41,11 +39,6 @@ class ShardController internal constructor(
         is GuildSubscriptionsStrategy.SubscribeTo -> shardIndex in context.guildSubscriptionsStrategy.shardIndexes
     }
 
-    private fun getShardIntents(shardIndex: Int) = when (context.intents) {
-        IntentsStrategy.EnableAll -> ValuedEnum.all<Intents, Short>(Short.integral()).code
-        is IntentsStrategy.EnableOnly -> context.intents.enabled[shardIndex]
-    }
-
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
     suspend fun openShard(shardIndex: Int, sequence: StateFlow<Int?>) {
@@ -57,7 +50,7 @@ class ShardController internal constructor(
             getShardThreshold(shardIndex),
             listOf(shardIndex, context.shardCount.extract()),
             context.initialPresence,
-            getShardIntents(shardIndex),
+            context.intents,
             isShardSubscribed(shardIndex)
         )
 

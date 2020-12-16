@@ -2,6 +2,9 @@ package org.tesserakt.diskordin.gateway.shard
 
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.IValued
+import org.tesserakt.diskordin.util.enums.ValuedEnum
+import org.tesserakt.diskordin.util.enums.not
+import org.tesserakt.diskordin.util.enums.or
 import org.tesserakt.diskordin.util.typeclass.Integral
 
 enum class Intents(override val code: Short) : IValued<Intents, Short>, Integral<Short> by Short.integral() {
@@ -19,5 +22,10 @@ enum class Intents(override val code: Short) : IValued<Intents, Short>, Integral
     GuildMessageTyping(1 shl 11),
     DirectMessages(1 shl 12),
     DirectMessageReactions(1 shl 13),
-    DirectMessageTyping(1 shl 14)
+    DirectMessageTyping(1 shl 14);
+
+    companion object {
+        val all = ValuedEnum.all<Intents, Short>(Short.integral())
+        val allNonPrivileged = !(GuildMembers or GuildPresences)
+    }
 }
