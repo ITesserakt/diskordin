@@ -5,7 +5,7 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
-import arrow.fx.coroutines.stream.Stream
+import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -24,7 +24,7 @@ import kotlin.time.ExperimentalTime
 
 interface IChannel : IMentioned, IDeletable {
     val type: Type
-    val invites: Stream<IInvite>
+    val invites: Flow<IInvite>
 
     enum class Type {
         GuildText,
@@ -61,7 +61,7 @@ interface IGuildChannel : IChannel, IGuildObject, INamed {
     val position: Int
     val permissionOverwrites: List<IPermissionOverwrite>
     val parentCategory: Snowflake?
-    override val invites: Stream<IGuildInvite>
+    override val invites: Flow<IGuildInvite>
 
     suspend fun removePermissions(toRemove: IPermissionOverwrite, reason: String?)
     suspend fun editPermissions(
@@ -86,7 +86,7 @@ interface ITextChannel : IGuildChannel, IMessageChannel,
 
     @ExperimentalUnsignedTypes
     val rateLimit: UShort
-    val pins: Stream<IMessage>
+    val pins: Flow<IMessage>
 }
 
 interface IGuildCategory : IGuildChannel {

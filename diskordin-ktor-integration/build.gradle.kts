@@ -1,6 +1,7 @@
 val ktorVersion: String by extra
 val arrowVersion: String by extra
 val jvmVersion: String by extra
+val kotlinLoggingVersion: String by extra
 
 plugins { kotlin("jvm") }
 
@@ -19,6 +20,8 @@ dependencies {
     implementation(arrow("syntax"))
 
     implementation(project(":"))
+
+    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 }
 
 tasks.compileKotlin {

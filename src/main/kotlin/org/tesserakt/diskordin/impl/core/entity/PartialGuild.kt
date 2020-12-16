@@ -4,7 +4,6 @@ import arrow.core.ForId
 import arrow.core.ListK
 import arrow.fx.ForIO
 import arrow.fx.IO
-import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -113,10 +112,10 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
 
     override suspend fun getVanityUrl(): IGuildInvite? = delegate.getVanityUrl()
 
-    override val invites: Stream<IGuildInvite> by lazy { delegate.invites }
-    override val emojis: Stream<ICustomEmoji> by lazy { delegate.emojis }
-    override val bans: Stream<IBan> by lazy { delegate.bans }
-    override val integrations: Stream<IIntegration> by lazy { delegate.integrations }
+    override val invites by lazy { delegate.invites }
+    override val emojis by lazy { delegate.emojis }
+    override val bans by lazy { delegate.bans }
+    override val integrations by lazy { delegate.integrations }
     override val roles by lazy { raw.roles.map { it.unwrap(id) }.takeIf { it.isNotEmpty() } ?: delegate.roles }
     override val channels by lazy { delegate.channels }
     override val name: String = raw.name

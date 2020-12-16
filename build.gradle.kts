@@ -33,14 +33,13 @@ allprojects {
 
 dependencies {
     api(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
     implementation(group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.1.1")
 
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
     api(arrow("ui"))
     api(arrow("fx-coroutines"))
-    api(arrow("fx-coroutines-stream"))
 
     implementation("com.google.code.gson:gson:2.8.6")
 

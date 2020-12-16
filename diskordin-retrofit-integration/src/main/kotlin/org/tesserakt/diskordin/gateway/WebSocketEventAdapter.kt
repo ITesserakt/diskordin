@@ -22,15 +22,14 @@ object WebSocketEventAdapter : ProtocolSpecificEventAdapter {
         is ProtocolEvent.OnOpened -> WebSocketEvent.ConnectionOpened.wrap()
         is ProtocolEvent.OnMessageReceived -> WebSocketEvent.MessageReceived(event.message()).wrap()
         is ProtocolEvent.OnMessageDelivered -> WebSocketEvent.MessageReceived(event.message()).wrap()
-        is ProtocolEvent.OnClosing -> event.response.toEvent(true).wrap()
-        is ProtocolEvent.OnClosed -> event.response.toEvent(false).wrap()
+        is ProtocolEvent.OnClosing -> event.response.toEvent().wrap()
+        is ProtocolEvent.OnClosed -> WebSocketEvent.ConnectionClosed.wrap()
         is ProtocolEvent.OnFailed -> WebSocketEvent.ConnectionFailed(event.throwable ?: Throwable("UNKNOWN")).wrap()
     }
 
-    private fun Protocol.CloseResponse.toEvent(closing: Boolean): WebSocketEvent {
+    private fun Protocol.CloseResponse.toEvent(): WebSocketEvent {
         val (code, reason) = (this as? OkHttpWebSocket.CloseResponse)?.shutdownReason ?: ShutdownReason.GRACEFUL
-        return if (closing) WebSocketEvent.ConnectionClosing(code.toShort(), reason)
-        else WebSocketEvent.ConnectionClosed(code.toShort(), reason)
+        return WebSocketEvent.ConnectionClosing(code.toShort(), reason)
     }
 }
 

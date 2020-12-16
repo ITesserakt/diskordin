@@ -3,6 +3,7 @@ val arrowVersion: String by extra
 val retrofitVersion: String by extra
 val scarletVersion: String by extra
 val jvmVersion: String by extra
+val kotlinLoggingVersion: String by extra
 
 plugins { kotlin("jvm") }
 
@@ -18,6 +19,8 @@ dependencies {
 
     implementation("com.tinder.scarlet:scarlet:$scarletVersion")
     implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarletVersion")
+
+    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 }
 
 tasks.compileKotlin {

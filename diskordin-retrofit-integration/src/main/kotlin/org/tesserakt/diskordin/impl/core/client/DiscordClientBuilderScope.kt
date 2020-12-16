@@ -32,12 +32,12 @@ class RetrofitScope : DiscordClientBuilderScope() {
     override lateinit var gatewayFactory: Gateway.Factory
 
     override fun create(): DiscordClientSettings {
-        val token = token ?: error(DiscordClientBuilder.NoTokenProvided)
+        val token = System.getenv("DISKORDIN_TOKEN") ?: token ?: error(DiscordClientBuilder.NoTokenProvided)
         +refineHttpClient { addInterceptor(AuthorityInterceptor(token)) }
         +install(HttpClient) { HttpClient(okHttpClient) }
         val retrofit by RetrofitService(okHttpClient, discordApiUrl)
         restClient = RetrofitRestClient(retrofit::extract, restSchedule)
-        gatewayFactory = ScarletFactory(okHttpClient, backoffStrategy, webSocketDebug)
+        gatewayFactory = ScarletFactory(okHttpClient, backoffStrategy, gatewaySettings.coroutineContext, webSocketDebug)
 
         return DiscordClientSettings(
             token,

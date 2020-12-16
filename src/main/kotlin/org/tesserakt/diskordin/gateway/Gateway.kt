@@ -1,15 +1,13 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.Either
-import arrow.core.extensions.either.applicativeError.handleErrorWith
 import arrow.core.extensions.list.functor.fproduct
-import arrow.core.getOrHandle
-import arrow.core.left
 import arrow.fx.coroutines.parTraverse
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.client.BootstrapContext
-import org.tesserakt.diskordin.core.client.GatewayContext
 import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
@@ -22,76 +20,66 @@ import org.tesserakt.diskordin.gateway.transformer.RawEventTransformer
 import org.tesserakt.diskordin.gateway.transformer.RawTokenTransformer
 import org.tesserakt.diskordin.gateway.transformer.Transformer
 import org.tesserakt.diskordin.gateway.transformer.WebSocketEventTransformer
+import kotlin.coroutines.CoroutineContext
 
 @Suppress("UNCHECKED_CAST")
 class Gateway(
-    private val context: BootstrapContext,
+    interceptors: List<Interceptor<*>>,
+    gatewayContext: CoroutineContext,
+    private val shardContext: ShardContext,
     private val lifecycles: List<GatewayLifecycleManager>
 ) {
-    private val tokenInterceptors = context[GatewayContext].interceptors
-        .filter { it.selfContext == TokenInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
+    private val tokenInterceptors = interceptors
+        .filter { it.selfContext == TokenInterceptor.Context::class } as List<Interceptor<TokenInterceptor.Context>>
 
-    private val eventInterceptors = context[GatewayContext].interceptors
-        .filter { it.selfContext == EventInterceptor.Context::class } as List<Interceptor<Interceptor.Context>>
+    private val eventInterceptors = interceptors
+        .filter { it.selfContext == EventInterceptor.Context::class } as List<Interceptor<EventInterceptor.Context>>
 
-    private val loggers = context[GatewayContext].interceptors.associateBy(
-        { it.name }, { KotlinLogging.logger(it.name) }
-    )
-
-    private val controller = ShardController(context[ShardContext], lifecycles)
     private val mainLogger = KotlinLogging.logger("[Gateway]")
+    private val scope = CoroutineScope(gatewayContext
+            + CoroutineName("[Gateway]") + CoroutineExceptionHandler { coroutineContext, throwable ->
+        val coroutineName = coroutineContext[CoroutineName]
+        mainLogger.error(throwable) { "Coroutine $coroutineName crashed" }
+    })
+    private val controller = ShardController(shardContext, lifecycles, scope)
 
     internal suspend fun run() =
-        lifecycles.map { it.start(); it }.fproduct { it.connection.receive() }.withIndex().map { (index, it) ->
+        lifecycles.onEach { it.start() }.fproduct { it.connection.receive() }.withIndex().map { (index, it) ->
             val (lifecycle, events) = it
             val shard = Shard(
-                context[ShardContext].token,
-                Shard.Data(index, context[ShardContext].shardCount.extract()),
+                shardContext.token,
+                Shard.Data(index, shardContext.shardCount.extract()),
                 lifecycle
             )
 
-            events.map { WebSocketEventTransformer.transform(it) }
-                .effectTap { shard._sequence.value = it.seq ?: shard.sequence.value }
-                .effectMap { payload ->
+            events.map(WebSocketEventTransformer::transform)
+                .onEach { shard._sequence.value = it.seq ?: shard.sequence.value }
+                .map { payload ->
                     if (payload.isTokenPayload)
-                        processIncomingAsync(payload, tokenInterceptors, RawTokenTransformer) {
+                        processIncoming(payload, tokenInterceptors, RawTokenTransformer) {
                             TokenInterceptor.Context(it, controller, shard)
                         }
-                    else processIncomingAsync(payload, eventInterceptors, RawEventTransformer) {
+                    else processIncoming(payload, eventInterceptors, RawEventTransformer) {
                         EventInterceptor.Context(it, controller, shard)
                     }
-                }
+                }.launchIn(lifecycle.coroutineScope)
         }
 
     @ExperimentalCoroutinesApi
-    internal suspend fun close() = lifecycles.parTraverse {
-        it.stop(1000, "Normal closing")
+    internal suspend fun close() {
+        lifecycles.parTraverse { it.stop(1000, "Normal closing") }
+        scope.cancel()
     }
 
-    private suspend fun <P : IPayload, C : Interceptor.Context, I : Interceptor<C>, E> processIncomingAsync(
+    private suspend fun <P : IPayload, C : Interceptor.Context, I : Interceptor<C>, E> processIncoming(
         payload: Payload<*>,
         interceptors: List<I>,
         transformer: Transformer<Payload<P>, E>,
         interceptorContext: (response: E) -> C
-    ) = CoroutineScope(Dispatchers.Unconfined).async {
-        val incoming = transformer.transformIncoming(payload as Payload<P>) ?: return@async
-        interceptors.parTraverse { it.processIncoming(payload, interceptorContext(incoming)) }
+    ) {
+        val incoming = transformer.transform(payload as Payload<P>)
+        interceptors.map { it.interceptWithJob(interceptorContext(incoming)) }
     }
-
-    private suspend fun <P : IPayload, E> Transformer<Payload<P>, E>.transformIncoming(
-        payload: Payload<P>
-    ) = Either.catch { transform(payload) }.handleErrorWith {
-        mainLogger.error(it) { "Error happened while transforming ${payload.name}#${payload.opcode()}" }
-        mainLogger.debug { payload.rawData }
-        it.left()
-    }.orNull()
-
-    private suspend fun <C : Interceptor.Context> Interceptor<C>.processIncoming(payload: Payload<*>, context: C) =
-        Either.catch { intercept(context) }.getOrHandle { t ->
-            val logger = loggers[name] ?: KotlinLogging.logger { }
-            logger.error(t) { "Unexpected fail on interceptor while processing ${payload.name}#${payload.opcode()}" }
-            logger.debug { payload.rawData }
-        }
 
     abstract class Factory {
         private val gatewayVersion = 8

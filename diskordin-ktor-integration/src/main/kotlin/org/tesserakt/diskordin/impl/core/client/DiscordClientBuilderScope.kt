@@ -54,7 +54,7 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
         httpClient = Eval.later { KHttpClient(engineFactory.create(), config) }
         +install(HttpClient) { HttpClient(httpClient) }
         restClient = KtorRestClient(httpClient, discordApiUrl, restSchedule)
-        gatewayFactory = WebSocketFactory(httpClient)
+        gatewayFactory = WebSocketFactory(httpClient, gatewaySettings.coroutineContext)
 
         return DiscordClientSettings(
             token,

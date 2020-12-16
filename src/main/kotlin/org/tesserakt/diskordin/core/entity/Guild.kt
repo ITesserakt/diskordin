@@ -5,7 +5,7 @@ package org.tesserakt.diskordin.core.entity
 import arrow.core.ForId
 import arrow.core.ListK
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Stream
+import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.IdentifiedF
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -45,10 +45,10 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     val premiumTier: PremiumTier
     val premiumSubscriptions: Int?
     val features: EnumSet<Feature>
-    val invites: Stream<IGuildInvite>
-    val emojis: Stream<ICustomEmoji>
-    val bans: Stream<IBan>
-    val integrations: Stream<IIntegration>
+    val invites: Flow<IGuildInvite>
+    val emojis: Flow<ICustomEmoji>
+    val bans: Flow<IBan>
+    val integrations: Flow<IIntegration>
     val roles: List<IRole>
     val channels: List<IGuildChannel>
     val members: List<IMember>

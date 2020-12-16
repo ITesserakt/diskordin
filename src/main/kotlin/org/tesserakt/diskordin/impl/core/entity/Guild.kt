@@ -10,7 +10,6 @@ import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
 import arrow.core.fix
-import arrow.fx.coroutines.stream.Stream
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
@@ -27,7 +26,7 @@ import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.stream
+import org.tesserakt.diskordin.rest.flow
 import java.awt.Color
 import java.io.File
 import java.util.*
@@ -191,19 +190,19 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
             guildService.getVanityUrl(id)
         }
 
-    override val invites: Stream<IGuildInvite> = rest.stream {
+    override val invites = rest.flow {
         guildService.getInvites(id)
     }
 
-    override val emojis = rest.stream<ICustomEmoji, EmojiResponse<ICustomEmoji>>(id) {
+    override val emojis = rest.flow<ICustomEmoji, EmojiResponse<ICustomEmoji>>(id) {
         emojiService.getGuildEmojis(id)
     }
 
-    override val bans = rest.stream {
+    override val bans = rest.flow {
         guildService.getBans(id)
     }
 
-    override val integrations = rest.stream(id) {
+    override val integrations = rest.flow(id) {
         guildService.getIntegrations(id)
     }
 

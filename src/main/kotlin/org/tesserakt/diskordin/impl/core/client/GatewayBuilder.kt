@@ -4,6 +4,9 @@ package org.tesserakt.diskordin.impl.core.client
 
 import arrow.fx.IO
 import arrow.fx.extensions.io.environment.environment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -110,6 +113,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
     inline fun <reified C : Interceptor.Context> GatewayBuilder.gatewayInterceptor(crossinline block: suspend (C) -> Unit) =
         object : Interceptor<C> {
             override val selfContext: KClass<C> = C::class
+            override val scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + Job() + exceptionHandler)
 
             override suspend fun intercept(context: C) = block(context)
         }

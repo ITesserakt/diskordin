@@ -17,9 +17,6 @@ class HelloChain : EventInterceptor() {
         }
 
         shard._state.value = Shard.State.Handshaking
-        while (!shard.isReady()) {
-            delay(100)
-        }
-        HeartbeatProcess(interval).start(this)
+        HeartbeatProcess(interval, scope).start(this)
     }
 }

@@ -10,7 +10,6 @@ import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.okhttp.OkHttpWebSocket
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.tesserakt.diskordin.gateway.ArrowStreamAdapter
 import org.tesserakt.diskordin.gateway.MessageAdapter
 import org.tesserakt.diskordin.gateway.WebSocketEventAdapter
 import kotlin.properties.ReadOnlyProperty
@@ -29,7 +28,7 @@ class ScarletService(
         val config = Scarlet.Configuration(
             lifecycle,
             backoffStrategy,
-            listOf(ArrowStreamAdapter),
+            emptyList(),
             listOf(MessageAdapter.Factory),
             debug
         )

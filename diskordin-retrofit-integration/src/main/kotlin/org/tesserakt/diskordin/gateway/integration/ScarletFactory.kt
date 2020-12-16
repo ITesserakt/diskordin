@@ -8,20 +8,25 @@ import com.tinder.scarlet.retry.BackoffStrategy
 import okhttp3.OkHttpClient
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.ConnectionContext
+import org.tesserakt.diskordin.core.client.GatewayContext
 import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.gateway.ScarletGatewayLifecycleManager
+import kotlin.coroutines.CoroutineContext
 
 class ScarletFactory(
     private val httpClient: Eval<OkHttpClient>,
     private val strategy: BackoffStrategy,
+    private val gatewayContext: CoroutineContext,
     private val isDebug: Boolean
 ) : Gateway.Factory() {
     private val scarlets = mutableMapOf<Int, Eval<Scarlet>>()
 
     override fun BootstrapContext.createGateway(): Gateway {
         val createLifecycle = { registry: LifecycleRegistry, id: Int ->
-            ScarletGatewayLifecycleManager(registry) { scarlets[id]?.extract() ?: error("IMPOSSIBLE") }
+            ScarletGatewayLifecycleManager(registry, gatewayContext, id) {
+                scarlets[id]?.extract() ?: error("IMPOSSIBLE")
+            }
         }
 
         val createScarlet: (String, String, Lifecycle, BackoffStrategy, Boolean, Int) -> Unit =
@@ -44,6 +49,6 @@ class ScarletFactory(
             lifecycle
         }
 
-        return Gateway(this, lifecycles)
+        return Gateway(this[GatewayContext].interceptors, gatewayContext, this[ShardContext], lifecycles)
     }
 }

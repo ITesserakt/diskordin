@@ -8,9 +8,8 @@ import arrow.core.Id
 import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
-import arrow.fx.coroutines.stream.Chunk
-import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.filterNotNull
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
@@ -40,8 +39,8 @@ internal class CustomEmoji constructor(
         client.getGuild(it)
     }
 
-    override val roles = Stream.chunk(Chunk.iterable(raw.roles.orEmpty()))
-        .effectMap { guild().getRole(it) }.filterNotNull()
+    override val roles = raw.roles.orEmpty().asFlow()
+        .mapNotNull { guild().getRole(it) }
 
     override val creator: IdentifiedF<ForId, IUser>? = raw.user?.id?.identifyId { raw.user.unwrap() }
 

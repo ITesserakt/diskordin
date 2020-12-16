@@ -6,9 +6,8 @@ import arrow.core.fix
 import arrow.core.left
 import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
-import arrow.fx.coroutines.parTraverse
-import arrow.fx.coroutines.stream.drain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.joinAll
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.ShardContext
@@ -53,7 +52,7 @@ internal class DiscordClient private constructor(
     override val guilds get() = cacheSnapshot.guilds.values.toList()
 
     override suspend fun login() {
-        gateway.run().parTraverse { it.drain() }
+        gateway.run().joinAll()
     }
 
     @ExperimentalCoroutinesApi

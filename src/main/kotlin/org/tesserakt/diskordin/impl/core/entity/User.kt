@@ -17,7 +17,7 @@ import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.rest.call
-import org.tesserakt.diskordin.rest.stream
+import org.tesserakt.diskordin.rest.flow
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
 abstract class User(raw: UserResponse<IUser>) : IUser {
@@ -61,15 +61,15 @@ class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
         userService.joinToDM(DMCreateBuilder(to).create())
     }
 
-    override val guilds = rest.stream {
+    override val guilds = rest.flow {
         userService.getCurrentUserGuilds(UserGuildsQuery().create())
     }
 
-    override val privateChannels = rest.stream {
+    override val privateChannels = rest.flow {
         userService.getUserDMs()
     }
 
-    override val connections = rest.stream {
+    override val connections = rest.flow {
         userService.getCurrentUserConnections()
     }
 

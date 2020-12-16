@@ -12,15 +12,15 @@ import org.tesserakt.diskordin.gateway.sendPayload
 import org.tesserakt.diskordin.impl.gateway.interceptor.ConnectionObserver
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import kotlin.coroutines.EmptyCoroutineContext
 
 private const val INDEX_OUT_OF_SHARD_COUNT = "Given index of shard more than shard count"
 
 class ShardController internal constructor(
     private val context: ShardContext,
-    private val lifecycles: List<GatewayLifecycleManager>
+    private val lifecycles: List<GatewayLifecycleManager>,
+    private val gatewayScope: CoroutineScope
 ) {
-    private val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger("[Gateway]")
 
     private val shards = mutableListOf<Shard>()
     private val observer = ConnectionObserver(this)
@@ -61,13 +61,13 @@ class ShardController internal constructor(
             isShardSubscribed(shardIndex)
         )
 
-        lifecycles[shardIndex].connection.sendPayload(identify, sequence.value, shardIndex)
+        lifecycles[shardIndex].connection.sendPayload(identify, sequence.value)
     }
 
     suspend fun approveShard(shard: Shard, sessionId: String) {
         shard._sessionId.value = sessionId
         shards += shard
-        CoroutineScope(EmptyCoroutineContext).launch { observer.observe(shard) }
+        gatewayScope.launch { observer.observe(shard) }
     }
 
     suspend fun closeShard(shardIndex: Int) {
@@ -79,15 +79,13 @@ class ShardController internal constructor(
 
         logger.info("Closing shard #$shardIndex")
         lifecycles[shardIndex].stop(1000, "Normal closing")
-        shard.let {
-            it._state.value = Shard.State.Disconnected
-            shards.remove(it)
-        }
+        shard._state.value = Shard.State.Disconnected
+        shards.remove(shard)
     }
 
     suspend fun resumeShard(shard: Shard) {
         lifecycles[shard.shardData.index].start()
         val resume = Resume(shard.token, shard.sessionId.value!!, shard.sequence.value)
-        lifecycles[shard.shardData.index].connection.sendPayload(resume, shard.sequence.value, shard.shardData.index)
+        lifecycles[shard.shardData.index].connection.sendPayload(resume, shard.sequence.value)
     }
 }

@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.ForId
-import arrow.fx.coroutines.stream.toList
+import kotlinx.coroutines.flow.first
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.AccountResponse
 import org.tesserakt.diskordin.core.data.json.response.GuildIntegrationResponse
@@ -26,7 +26,7 @@ internal class Integration(
 
     override suspend fun edit(builder: IntegrationEditBuilder.() -> Unit) = rest.effect {
         guildService.editIntegration(guild.id, id, builder.build(::IntegrationEditBuilder))
-    }.let { guild().integrations.toList().first { it.id == id } }
+    }.let { guild().integrations.first { it.id == id } }
 
     override fun toString(): String {
         return "Integration(guild=$guild, type='$type', enabled=$enabled, syncing=$syncing, role=$role, expireBehavior=$expireBehavior, expireGracePeriod=$expireGracePeriod, user=$user, account=$account, syncedAt=$syncedAt, id=$id, name='$name')"

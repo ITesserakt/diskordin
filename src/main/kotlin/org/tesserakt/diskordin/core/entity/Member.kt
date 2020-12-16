@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.core.entity
 
-import arrow.fx.coroutines.stream.Stream
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
@@ -10,7 +10,7 @@ interface IMember : IUser, IEditable<IMember, MemberEditBuilder>, IGuildObject {
     override val name: String
         get() = nickname ?: username
 
-    val roles: Stream<IRole>
+    val roles: Flow<IRole>
 
     val joinTime: Instant
 

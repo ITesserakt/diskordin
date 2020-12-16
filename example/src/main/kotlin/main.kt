@@ -1,22 +1,21 @@
 
 import io.ktor.client.engine.cio.*
 import io.ktor.util.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.cache.FileCacheSnapshot
 import org.tesserakt.diskordin.core.data.event.message.MessageCreateEvent
 import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.cacheSnapshot
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
+import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.impl.core.client.configure
 import org.tesserakt.diskordin.rest.integration.Ktor
-import org.tesserakt.diskordin.util.enums.or
+import org.tesserakt.diskordin.util.enums.not
 import java.io.File
 
-@ExperimentalCoroutinesApi
 @KtorExperimentalAPI
 @DiscordClientBuilderScope.InternalTestAPI
 suspend fun main() {
@@ -25,7 +24,9 @@ suspend fun main() {
     val client = DiscordClientBuilder by Ktor(CIO) configure {
         +gatewaySettings {
             +compressShards()
-            +featureOverrides(0, Intents.Guilds or Intents.GuildMessages)
+            +useShards(3)
+            +featureOverrides(0, !(Intents.GuildMembers))
+            +gatewayInterceptor<TokenInterceptor.Context> { println(it.token) }
             +gatewayInterceptor(object : EventInterceptor() {
                 override suspend fun Context.messageCreate(event: MessageCreateEvent) {
                     when (event.message().content) {
@@ -46,5 +47,4 @@ suspend fun main() {
     }
 
     client.login()
-    FileCacheSnapshot.fromSnapshot(client.cacheSnapshot).writeTo(file.writer().buffered())
 }

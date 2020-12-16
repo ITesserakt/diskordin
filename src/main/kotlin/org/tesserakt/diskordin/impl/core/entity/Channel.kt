@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.impl.core.entity
 import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.fx.ForIO
+import kotlinx.coroutines.flow.map
 import mu.KotlinLogging
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
@@ -16,7 +17,7 @@ import org.tesserakt.diskordin.core.entity.builder.PermissionEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.TextChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.VoiceChannelEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
-import org.tesserakt.diskordin.rest.stream
+import org.tesserakt.diskordin.rest.flow
 import org.tesserakt.diskordin.util.enums.and
 import org.tesserakt.diskordin.util.enums.not
 
@@ -37,7 +38,7 @@ internal sealed class Channel(raw: ChannelResponse<IChannel>) : IChannel {
         return "Channel(type=$type, id=$id, mention='$mention', invites=$invites)"
     }
 
-    override val invites = rest.stream {
+    override val invites = rest.flow {
         channelService.getChannelInvites(id)
     }
 }
@@ -55,7 +56,7 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 
     final override val name: String = raw.name!!
 
-    final override val invites = rest.stream {
+    final override val invites = rest.flow {
         channelService.getChannelInvites(id)
     }.map { it as IGuildInvite }
 
@@ -85,7 +86,7 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 
 internal class TextChannel(override val raw: ChannelResponse<ITextChannel>) : GuildChannel(raw), ITextChannel,
     ICacheable<ITextChannel, UnwrapContext.EmptyContext, ChannelResponse<ITextChannel>> {
-    override val pins = rest.stream {
+    override val pins = rest.flow {
         channelService.getPinnedMessages(id)
     }
 

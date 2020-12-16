@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.core.entity
 
-import arrow.fx.coroutines.stream.Stream
+import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import org.tesserakt.diskordin.impl.util.typeclass.integral
@@ -50,9 +50,9 @@ interface IUser : IMentioned, INamed {
 }
 
 interface ISelf : IUser, IEditable<ISelf, UserEditBuilder> {
-    val guilds: Stream<IGuild>
-    val privateChannels: Stream<IPrivateChannel>
-    val connections: Stream<IConnection>
+    val guilds: Flow<IGuild>
+    val privateChannels: Flow<IPrivateChannel>
+    val connections: Flow<IConnection>
 
     suspend fun leaveGuild(guild: IGuild)
     suspend fun leaveGuild(guildId: Snowflake)

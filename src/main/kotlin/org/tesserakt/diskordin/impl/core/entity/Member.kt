@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.fx.ForIO
-import arrow.fx.coroutines.stream.Chunk
-import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.filterNotNull
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -47,8 +46,7 @@ internal class Member<C : UnwrapContext> constructor(
 
     override val nickname: String? = raw.nick
 
-    override val roles = Stream.chunk(Chunk.array(raw.roles))
-        .effectMap { guild().getRole(it) }.filterNotNull()
+    override val roles = raw.roles.asFlow().mapNotNull { guild().getRole(it) }
 
     override val joinTime: Instant = raw.joinedAt
     override val mention: String = "<@!$id>"

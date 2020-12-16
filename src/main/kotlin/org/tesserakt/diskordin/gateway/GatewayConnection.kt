@@ -1,11 +1,8 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.Either
-import arrow.fx.coroutines.stream.Stream
 import arrow.syntax.function.partially1
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import mu.KotlinLogging
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.SharedFlow
 import org.tesserakt.diskordin.gateway.json.Message
 import org.tesserakt.diskordin.gateway.json.Opcode
 import org.tesserakt.diskordin.gateway.json.WebSocketEvent
@@ -14,18 +11,14 @@ import org.tesserakt.diskordin.gateway.json.wrapWith
 import org.tesserakt.diskordin.util.toJson
 
 interface GatewayConnection {
-    fun send(data: Message)
-    fun receive(): Stream<WebSocketEvent>
+    suspend fun send(data: Message): Job
+    fun receive(): SharedFlow<WebSocketEvent>
 }
 
 suspend fun GatewayConnection.sendPayload(
     data: GatewayCommand,
-    sequenceId: Int?,
-    shardIndex: Int
-) {
-    val connection = this@sendPayload
-    val logger = KotlinLogging.logger("[Shard #$shardIndex]")
-
+    sequenceId: Int?
+): Job {
     val payload = when (data) {
         is UpdateVoiceState -> data::wrapWith.partially1(Opcode.VOICE_STATUS_UPDATE)
         is RequestGuildMembers -> data::wrapWith.partially1(Opcode.REQUEST_GUILD_MEMBERS)
@@ -36,9 +29,5 @@ suspend fun GatewayConnection.sendPayload(
     }.invoke(sequenceId)
     val json = payload.toJson()
 
-    withContext(Dispatchers.IO) {
-        Either.catch { connection.send(Message.Text(json)) }.fold(
-            { logger.error("-x-> NOT SENT ${payload.opcode()}", it) },
-            { logger.debug("---> SENT ${payload.opcode()}") })
-    }
+    return send(Message.Text(json))
 }

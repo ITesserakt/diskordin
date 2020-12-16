@@ -3,8 +3,6 @@ package org.tesserakt.diskordin.rest
 import arrow.Kind
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
-import arrow.fx.coroutines.stream.Stream
-import arrow.fx.coroutines.stream.callback
 import arrow.typeclasses.Functor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.cache.CacheProcessor
@@ -72,30 +70,21 @@ suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.Partial
     f: suspend RestClient.() -> Kind<G, R>
 ) = FN.call(UnwrapContext.PartialGuildContext(guildId), f)
 
-fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.stream(
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.flow(
     f: suspend RestClient.() -> Iterable<R>
-) = Stream.callback {
-    callRaw(f).map { it.unwrap() }.forEach(::emit)
-    end()
-}
+) = kotlinx.coroutines.flow.flow { callRaw(f).map { it.unwrap() }.forEach { emit(it) } }
 
-fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient.stream(
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient.flow(
     guildId: Snowflake,
     f: suspend RestClient.() -> Iterable<R>
-) = Stream.callback {
-    callRaw(f).map { it.unwrap(guildId) }.forEach(::emit)
-    end()
-}
+) = kotlinx.coroutines.flow.flow { callRaw(f).map { it.unwrap(guildId) }.forEach { emit(it) } }
 
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
-fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.stream(
+fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.flow(
     guildId: Snowflake?,
     f: suspend RestClient.() -> Iterable<R>
-) = Stream.callback {
-    callRaw(f).map { it.unwrap(guildId) }.forEach(::emit)
-    end()
-}
+) = kotlinx.coroutines.flow.flow { callRaw(f).map { it.unwrap(guildId) }.forEach { emit(it) } }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.EmptyContext>, reified O : IDiscordObject> RestClient.callCaching(

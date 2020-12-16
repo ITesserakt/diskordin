@@ -31,7 +31,7 @@ object WebSocketEventTransformer :
             -1,
             null,
             "CONNECTION_CLOSED",
-            ConnectionClosed(context.code, context.reason).toJsonTree()
+            ConnectionClosed.toJsonTree()
         )
         is WebSocketEvent.ConnectionFailed -> Payload<ConnectionFailed>(
             -1,

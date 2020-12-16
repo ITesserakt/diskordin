@@ -1,5 +1,9 @@
 package org.tesserakt.diskordin.gateway.interceptor
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import org.tesserakt.diskordin.core.data.event.*
 import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
@@ -28,6 +32,8 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
         shard: Shard
     ) : Interceptor.Context(controller, shard)
 
+    final override val name: String = super.name
+    override val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + Job() + exceptionHandler + CoroutineName(name))
     override val selfContext: KClass<Context> = Context::class
 
     open suspend fun Context.allReactionsRemove(event: AllReactionsRemoveEvent) {}
@@ -111,8 +117,10 @@ abstract class EventInterceptor : Interceptor<EventInterceptor.Context> {
             else -> throw IllegalStateException("Unexpected event happened: $e")
         }
     }
+
+    final override suspend fun interceptWithJob(context: Context): Job = super.interceptWithJob(context)
 }
 
 @Suppress("NOTHING_TO_INLINE")
 internal suspend inline fun EventInterceptor.Context.sendPayload(data: GatewayCommand) =
-    shard.lifecycle.connection.sendPayload(data, shard.sequence.value, shard.shardData.index)
+    shard.lifecycle.connection.sendPayload(data, shard.sequence.value)

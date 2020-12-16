@@ -5,9 +5,9 @@ sealed class WebSocketEvent {
 
     data class MessageReceived(val message: Message) : WebSocketEvent()
 
-    data class ConnectionClosing(val code: Short, val reason: String) : WebSocketEvent()
+    object ConnectionClosed : WebSocketEvent()
 
-    data class ConnectionClosed(val code: Short, val reason: String) : WebSocketEvent()
+    data class ConnectionClosing(val code: Short, val reason: String) : WebSocketEvent()
 
     data class ConnectionFailed(val error: Throwable) : WebSocketEvent()
 }
