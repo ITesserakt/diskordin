@@ -18,12 +18,11 @@ import java.io.File
 @KtorExperimentalAPI
 @DiscordClientBuilderScope.InternalTestAPI
 suspend fun main() {
-    val file = File("cache.txt")
+    val file = File("cache.json")
 
     val client = DiscordClientBuilder by Ktor(CIO) configure {
         +gatewaySettings {
             +compressShards()
-            +useShards(3)
             +featureOverrides(Intents.all)
             +gatewayInterceptor<TokenInterceptor.Context> { println(it.token) }
             +gatewayInterceptor(object : EventInterceptor() {

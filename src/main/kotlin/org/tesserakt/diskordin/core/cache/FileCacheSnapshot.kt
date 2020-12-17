@@ -3,110 +3,96 @@ package org.tesserakt.diskordin.core.cache
 import arrow.core.extensions.map.functor.map
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
+import com.google.gson.JsonElement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
-import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
 import org.tesserakt.diskordin.impl.core.entity.*
 import org.tesserakt.diskordin.impl.core.entity.`object`.Ban
 import org.tesserakt.diskordin.util.fromJson
+import org.tesserakt.diskordin.util.gson
 import org.tesserakt.diskordin.util.toJson
+import org.tesserakt.diskordin.util.toJsonTree
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 
-private const val impossibleDelimiter = "\n~--+-=$#%~***~%#$=-+--~\n"
-
-private fun SnowflakeMap<IPrivateChannel>.privateChannelsConverter() =
-    map { listOf("PrivateChannel", (it as PrivateChannel).raw) }
-
-private fun SnowflakeMap<IGroupPrivateChannel>.groupChannelsConverter() =
-    map { listOf("GroupChannel", (it as GroupPrivateChannel).raw) }
-
 private fun SnowflakeMap<IGuild>.guildConverter() = map { guild ->
     when (guild) {
-        is Guild -> Guild::class.simpleName to guild.raw
-        is PartialGuild -> PartialGuild::class.simpleName to guild.raw
+        is Guild -> TypedObject(guild.raw)
+        is PartialGuild -> TypedObject(guild.raw)
         else -> throw IllegalArgumentException("Given `${guild::class.simpleName}`, but no guild found for this one")
-    }.let { listOf(it.first, it.second) }
+    }
 }
-
-private fun SnowflakeMap<IMessage>.messageConverter() =
-    map { arrayOf("Message", (it as Message).raw) }
 
 private fun SnowflakeMap<IUser>.userConverter() = map { user ->
     when (user) {
-        is Self -> Self::class.simpleName to user.raw
-        is IdUser -> IdUser::class.simpleName to user.raw
-        is MessageUser -> MessageUser::class.simpleName to user.raw
+        is Self -> TypedObject(user.raw as UserResponse<IUser>)
+        is IdUser -> TypedObject(user.raw)
+        is MessageUser -> TypedObject(user.raw)
         else -> throw IllegalArgumentException("Given `${user::class.simpleName}`, but no user found for this one")
-    }.let { listOf(it.first, it.second) }
+    }
 }
 
-private fun SnowflakeMap<SnowflakeMap<IBan>>.banConverter() =
-    map { listOf("Bans", it.map { b -> (b as Ban).raw }) }
+@Suppress("DataClassPrivateConstructor")
+private data class TypedObject<O : IEntity> private constructor(val type: String, val response: JsonElement) {
+    @Suppress("UNCHECKED_CAST")
+    fun <P : DiscordResponse<O, UnwrapContext.EmptyContext>> parse() =
+        (gson.fromJson(response, Class.forName(type)) as P).unwrap()
 
-class FileCacheSnapshot private constructor(private val text: Sequence<String>) : CacheSnapshot {
-    private enum class Patterns(val value: String) {
-        PrivateChannels("-=Private channels=-"),
-        GroupChannels("-=Group channels=-"),
-        UnavailableGuilds("-=Unavailable guilds=-"),
-        Guilds("-=Guilds=-"),
-        Messages("-=Messages=-"),
-        LastTypes("-=Last types=-"),
-        Users("-=Users=-"),
-        Bans("-=Bans=-");
+    companion object {
+        inline operator fun <O : IEntity, reified R : DiscordResponse<O, UnwrapContext.EmptyContext>> invoke(value: R) =
+            TypedObject<O>(R::class.simpleName!!, value.toJsonTree())
+    }
+}
 
-        val length = value.length
-    }
+private data class CacheRepresentation(
+    val privateChannels: SnowflakeMap<ChannelResponse<IPrivateChannel>>,
+    val groupPrivateChannels: SnowflakeMap<ChannelResponse<IGroupPrivateChannel>>,
+    val unavailableGuilds: SnowflakeMap<UnavailableGuild>,
+    val guilds: SnowflakeMap<TypedObject<IGuild>>,
+    val messages: SnowflakeMap<MessageResponse>,
+    val lastTypes: SnowflakeMap<SnowflakeMap<Instant>>,
+    val users: SnowflakeMap<TypedObject<IUser>>,
+    val bans: SnowflakeMap<SnowflakeMap<BanResponse>>
+)
 
-    private fun <T> getFromText(title: Patterns, unwrap: (String, String) -> T) = lazy {
-        text.find { it.startsWith(title.value) }?.drop(title.length)
-            ?.fromJson<SnowflakeMap<List<String>>>()
-            .orEmpty().map { unwrap(it[0], it[1]) }
-    }
-
-    override val privateChannels by getFromText(Patterns.PrivateChannels) { _, it ->
-        it.fromJson<ChannelResponse<IPrivateChannel>>().unwrap()
-    }
-    override val groupChannels by getFromText(Patterns.GroupChannels) { _, it ->
-        it.fromJson<ChannelResponse<IGroupPrivateChannel>>().unwrap()
-    }
-    override val unavailableGuilds by getFromText(Patterns.UnavailableGuilds) { _, it ->
-        it.fromJson<UnavailableGuild>()
-    }
-    override val guilds by getFromText(Patterns.Guilds) { type, it ->
-        when (type) {
-            Guild::class.simpleName -> it.fromJson<GuildResponse>().unwrap()
-            PartialGuild::class.simpleName -> it.fromJson<UserGuildResponse>().unwrap()
-            else -> throw IllegalArgumentException("Given `$type`, but no guild found for this one")
+class FileCacheSnapshot private constructor(private val representation: CacheRepresentation) : CacheSnapshot {
+    override val privateChannels by lazy { representation.privateChannels.map { it.unwrap() } }
+    override val groupChannels by lazy { representation.groupPrivateChannels.map { it.unwrap() } }
+    override val unavailableGuilds by lazy { representation.unavailableGuilds }
+    override val guilds by lazy {
+        representation.guilds.map {
+            when (it.type) {
+                GuildResponse::class.simpleName -> it.parse<GuildResponse>()
+                UserGuildResponse::class.simpleName -> it.parse<UserGuildResponse>()
+                else -> throw IllegalArgumentException("Given `$it.type`, but no guild found for this one")
+            }
         }
     }
-    override val messages by getFromText(Patterns.Messages) { _, it ->
-        it.fromJson<MessageResponse>().unwrap()
-    }
-    override val lastTypes: SnowflakeMap<SnowflakeMap<Instant>> by getFromText(Patterns.LastTypes) { _, it ->
-        it.fromJson()
-    }
-    override val users by getFromText(Patterns.Users) { type, it ->
-        when (type) {
-            Self::class.simpleName -> it.fromJson<UserResponse<IUser>>().unwrap()
-            IdUser::class.simpleName -> it.fromJson<IDUserResponse>().unwrap()
-            MessageUser::class.simpleName -> it.fromJson<MessageUserResponse>().unwrap()
-            else -> throw IllegalArgumentException("Given `$type`, but no user found for this one")
+    override val messages by lazy { representation.messages.map { it.unwrap() } }
+    override val lastTypes: SnowflakeMap<SnowflakeMap<Instant>> by lazy { representation.lastTypes }
+    override val users by lazy {
+        representation.users.map {
+            when (it.type) {
+                UserResponse::class.simpleName -> it.parse<UserResponse<ISelf>>()
+                IDUserResponse::class.simpleName -> it.parse<IDUserResponse>()
+                MessageUserResponse::class.simpleName -> it.parse<MessageUserResponse>()
+                else -> throw IllegalArgumentException("Given `$it.type`, but no user found for this one")
+            }
         }
     }
-    override val bans by getFromText(Patterns.Bans) { _, it ->
-        it.fromJson<SnowflakeMap<BanResponse>>().map { it.unwrap() }
+    override val bans by lazy {
+        representation.bans.map { it.map(BanResponse::unwrap) }
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun writeTo(writer: BufferedWriter) = resource { writer } release {
         withContext(Dispatchers.IO) { it.close() }
-    } use { writer.write(text.joinToString(impossibleDelimiter)) }
+    } use { writer.write(representation.toJson()) }
 
     fun loadToMemory() = MemoryCacheSnapshot(
         privateChannels, groupChannels, unavailableGuilds, guilds, messages, lastTypes, users, bans
@@ -115,25 +101,26 @@ class FileCacheSnapshot private constructor(private val text: Sequence<String>) 
     companion object {
         suspend operator fun invoke(file: File) = FileCacheSnapshot(file.bufferedReader())
 
+        @Suppress("BlockingMethodInNonBlockingContext")
         suspend operator fun invoke(reader: BufferedReader) = resource { reader }.release {
             withContext(Dispatchers.IO) { it.close() }
-        }.map { it.readText().splitToSequence(impossibleDelimiter) }.map(::FileCacheSnapshot)
+        }.map { it.readText().fromJson<CacheRepresentation>() }.map(::FileCacheSnapshot)
 
-        suspend fun fromSnapshot(snapshot: CacheSnapshot): FileCacheSnapshot {
+        fun fromSnapshot(snapshot: CacheSnapshot): FileCacheSnapshot {
             if (snapshot is FileCacheSnapshot) return snapshot
 
-            val text = sequence {
-                yield(Patterns.PrivateChannels.value + snapshot.privateChannels.privateChannelsConverter().toJson())
-                yield(Patterns.GroupChannels.value + snapshot.groupChannels.groupChannelsConverter().toJson())
-                yield(Patterns.UnavailableGuilds.value + snapshot.unavailableGuilds.toJson())
-                yield(Patterns.Guilds.value + snapshot.guilds.guildConverter().toJson())
-                yield(Patterns.Messages.value + snapshot.messages.messageConverter().toJson())
-                yield(Patterns.LastTypes.value + snapshot.lastTypes.toJson())
-                yield(Patterns.Users.value + snapshot.users.userConverter().toJson())
-                yield(Patterns.Bans.value + snapshot.bans.banConverter().toJson())
-            }
+            val representation = CacheRepresentation(
+                snapshot.privateChannels.map { (it as PrivateChannel).raw },
+                snapshot.groupChannels.map { (it as GroupPrivateChannel).raw },
+                snapshot.unavailableGuilds,
+                snapshot.guilds.guildConverter(),
+                snapshot.messages.map { (it as Message).raw },
+                snapshot.lastTypes,
+                snapshot.users.userConverter(),
+                snapshot.bans.map { inner -> inner.map { (it as Ban).raw } }
+            )
 
-            return FileCacheSnapshot(text)
+            return FileCacheSnapshot(representation)
         }
     }
 }
