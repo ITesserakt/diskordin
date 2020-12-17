@@ -3,7 +3,8 @@
 
 package org.tesserakt.diskordin.core.entity
 
-import arrow.fx.IO
+import arrow.core.getOrHandle
+import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.cache.CacheSnapshot
 import org.tesserakt.diskordin.core.client.IDiscordClient
@@ -28,7 +29,7 @@ interface IDiscordObject
  * On its start [DiscordClient.client] becomes not null
  */
 val IDiscordObject.client: IDiscordClient
-    get() = IO { DiscordClient.client.read() }.unsafeRunSync()
+    get() = runBlocking { DiscordClient.getInitialized() }.getOrHandle { error(it) }
 
 val IDiscordObject.rest: RestClient
     inline get() = client.rest

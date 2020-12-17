@@ -38,6 +38,7 @@ dependencies {
 
     implementation(arrow("syntax"))
     implementation(arrow("fx"))
+    implementation(arrow("fx-stm"))
     api(arrow("ui"))
     api(arrow("fx-coroutines"))
 

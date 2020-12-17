@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
+import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.IDUserResponse
 import org.tesserakt.diskordin.core.data.json.response.MessageUserResponse
@@ -15,12 +16,11 @@ import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
-import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.impl.core.entity.MessageUser
 import org.tesserakt.diskordin.impl.core.entity.Self
 import org.tesserakt.diskordin.rest.WithoutRest
 
-@DiscordClientBuilderScope.InternalTestAPI
+@InternalTestAPI
 class UserHandlerTest : FunSpec({
     runBlocking {
         DiscordClientBuilder[WithoutRest] {

@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.rest
 import arrow.fx.coroutines.Schedule
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.GatewayContext
+import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.client.ShardContext
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.impl.core.client.BackendProvider
@@ -40,5 +41,5 @@ class NoRestScope : DiscordClientBuilderScope() {
     )
 }
 
-@DiscordClientBuilderScope.InternalTestAPI
+@InternalTestAPI
 val WithoutRest = BackendProvider(::NoRestScope)

@@ -7,6 +7,7 @@ import arrow.fx.extensions.io.environment.environment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
@@ -125,7 +126,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
 
     inline fun GatewayBuilder.coroutineContext(context: CoroutineContext) = context
 
-    @DiscordClientBuilderScope.InternalTestAPI
+    @InternalTestAPI
     inline fun GatewayBuilder.websocketAddress(value: String) = value
 
     @Suppress("UNCHECKED_CAST")

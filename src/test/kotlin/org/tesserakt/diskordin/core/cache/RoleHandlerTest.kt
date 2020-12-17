@@ -8,17 +8,17 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
+import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
-import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilderScope
 import org.tesserakt.diskordin.impl.core.client.configure
 import org.tesserakt.diskordin.impl.core.entity.Guild
 import org.tesserakt.diskordin.impl.core.entity.Role
 import org.tesserakt.diskordin.rest.WithoutRest
 
-@DiscordClientBuilderScope.InternalTestAPI
+@InternalTestAPI
 class RoleHandlerTest : FunSpec({
     // many entities rely on discord client, for context, rest etc.
     runBlocking {

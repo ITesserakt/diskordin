@@ -3,6 +3,7 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.seconds
 import org.tesserakt.diskordin.core.client.BootstrapContext
+import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
 import org.tesserakt.diskordin.core.entity.IEntity
@@ -87,8 +88,6 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
         value: () -> C
     ) = type to value()
 
-    @RequiresOptIn("This statement should be used only in tests")
-    annotation class InternalTestAPI
     object VerificationStub
     object CompressionStub
 }

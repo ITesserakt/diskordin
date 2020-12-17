@@ -1,10 +1,7 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.ListK
+import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
-import arrow.core.fix
-import arrow.core.left
-import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.joinAll
@@ -30,15 +27,23 @@ internal class DiscordClient private constructor(
     override val context: BootstrapContext
 ) : IDiscordClient {
     object AlreadyStarted : DomainError()
+    object NotInitialized : DomainError()
 
     companion object {
-        internal val client = ConcurrentVar.unsafeEmpty<DiscordClient>()
+        private var client = ConcurrentVar.unsafeEmpty<IDiscordClient>()
 
-        internal suspend operator fun invoke(selfId: Snowflake, gateway: Gateway, context: BootstrapContext) =
+        suspend fun getInitialized() =
+            Either.conditionally(client.isNotEmpty(), { NotInitialized }) { client.read() }
+
+        suspend operator fun invoke(selfId: Snowflake, gateway: Gateway, context: BootstrapContext) =
             if (client.isEmpty()) {
                 client.put(DiscordClient(selfId, gateway, context))
                 client.read().right()
             } else AlreadyStarted.left()
+
+        internal suspend fun removeState() {
+            client.tryTake()
+        }
     }
 
     override val token: String = context[ShardContext].token
