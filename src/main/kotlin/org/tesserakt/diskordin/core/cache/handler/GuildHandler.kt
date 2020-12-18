@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.impl.core.entity.Guild

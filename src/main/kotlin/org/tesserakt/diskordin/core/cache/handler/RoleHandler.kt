@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.entity.IRole

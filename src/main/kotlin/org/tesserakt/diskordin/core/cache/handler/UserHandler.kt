@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.IdUser

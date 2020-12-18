@@ -3,6 +3,8 @@ package org.tesserakt.diskordin.core.cache
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
+import org.tesserakt.diskordin.core.cache.handler.CacheDeleter
+import org.tesserakt.diskordin.core.cache.handler.CacheUpdater
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.EntitySifter
 import org.tesserakt.diskordin.core.data.Snowflake

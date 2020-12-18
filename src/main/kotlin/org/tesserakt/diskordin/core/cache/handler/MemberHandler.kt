@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import arrow.core.extensions.map.foldable.firstOption
 import org.tesserakt.diskordin.core.data.Snowflake

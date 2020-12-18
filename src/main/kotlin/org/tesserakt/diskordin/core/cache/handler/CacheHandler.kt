@@ -1,6 +1,7 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import mu.KotlinLogging
+import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.IEntity
 

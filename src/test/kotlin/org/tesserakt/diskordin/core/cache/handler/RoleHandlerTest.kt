@@ -1,4 +1,4 @@
-package org.tesserakt.diskordin.core.cache
+package org.tesserakt.diskordin.core.cache.handler
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
@@ -8,6 +8,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
+import org.tesserakt.diskordin.core.cache.MemoryCacheSnapshot
 import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
