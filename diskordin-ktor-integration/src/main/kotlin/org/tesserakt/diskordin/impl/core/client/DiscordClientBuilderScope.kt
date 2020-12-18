@@ -58,7 +58,7 @@ class KtorScope<T : HttpClientEngineConfig>(private val engineFactory: HttpClien
 
         return DiscordClientSettings(
             token,
-            cache,
+            cachingEnabled,
             gatewaySettings,
             restSchedule,
             restClient,

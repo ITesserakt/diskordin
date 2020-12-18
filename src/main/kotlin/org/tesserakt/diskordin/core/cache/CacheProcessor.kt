@@ -35,12 +35,10 @@ internal class CacheProcessor(
     private val _state: MutableStateFlow<CacheSnapshot> = MutableStateFlow(MemoryCacheSnapshot.empty())
     val state = _state.asStateFlow()
 
-    fun <T : IDiscordObject> updateData(data: T) = updateData(data, data::class)
-
     @Suppress("UNCHECKED_CAST")
-    private fun <T : Any> updateData(data: T, clazz: KClass<out T>) {
-        val handler = updaters.filterKeys { it.java.isAssignableFrom(clazz.java) }.values.first() as CacheUpdater<T>
-
+    fun <T : IDiscordObject> updateData(data: T) {
+        val handler =
+            updaters.filterKeys { it.java.isAssignableFrom(data::class.java) }.values.first() as CacheUpdater<T>
         if (sifter.isAllowed(data)) _state.value = handler.handleAndGet(state.value.mutate(), data)
     }
 

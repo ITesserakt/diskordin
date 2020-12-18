@@ -4,15 +4,11 @@ import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.seconds
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.InternalTestAPI
-import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
-import org.tesserakt.diskordin.core.entity.IEntity
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
-import org.tesserakt.diskordin.util.NoopMap
-import java.util.concurrent.ConcurrentHashMap
 
 inline class ShardCount(val v: Int)
 
@@ -21,7 +17,7 @@ inline class ShardCount(val v: Int)
 abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope.DiscordClientSettings>() {
     data class DiscordClientSettings(
         val token: String,
-        val cache: MutableMap<Snowflake, IEntity>,
+        val cachingEnabled: Boolean,
         val gatewaySettings: GatewayBuilder.GatewaySettings,
         val restSchedule: Schedule<*, *>,
         val restClient: RestClient,
@@ -33,8 +29,7 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
 
     protected var token: String? = null
         private set
-    protected var cache: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
-        private set
+    protected var cachingEnabled: Boolean = true
     protected var gatewaySettings: GatewayBuilder.GatewaySettings = GatewayBuilder().create()
         private set
     protected var restSchedule: Schedule<*, *> = (Schedule.spaced<Any>(1.seconds) and Schedule.recurs(5)).jittered()
@@ -45,10 +40,6 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
 
     operator fun String.unaryPlus() {
         token = this
-    }
-
-    operator fun MutableMap<Snowflake, IEntity>.unaryPlus() {
-        cache = this
     }
 
     operator fun VerificationStub.unaryPlus() {
@@ -64,7 +55,7 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
     }
 
     operator fun Unit.unaryPlus() {
-        cache = NoopMap()
+        cachingEnabled = false
     }
 
     operator fun <E, C> Pair<E, C>.unaryPlus()
@@ -74,7 +65,6 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
     }
 
     inline fun DiscordClientBuilderScope.token(value: String) = value
-    inline fun DiscordClientBuilderScope.withCache(value: MutableMap<Snowflake, IEntity>) = value
     inline fun DiscordClientBuilderScope.disableCaching() = Unit
 
     @InternalTestAPI

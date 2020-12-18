@@ -6,7 +6,7 @@ import org.tesserakt.diskordin.gateway.shard.Intents.*
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import kotlin.reflect.KClass
 
-internal class EntitySifter(intents: ValuedEnum<Intents, Short>) {
+internal class EntitySifter(intents: ValuedEnum<Intents, Short>, private val isEnabled: Boolean) {
     private val denied = mutableSetOf<KClass<out IEntity>>()
 
     init {
@@ -29,5 +29,5 @@ internal class EntitySifter(intents: ValuedEnum<Intents, Short>) {
     }
 
     @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING")
-    fun <T : Any> isAllowed(item: T) = item !is IEntity || item::class !in denied
+    fun <T : Any> isAllowed(item: T) = item !is IEntity || item::class !in denied && isEnabled
 }

@@ -41,5 +41,9 @@ data class GuildResponse(
     val members: Set<GuildMemberResponse> = emptySet(),
     val channels: Set<ChannelResponse<IGuildChannel>> = emptySet()
 ) : DiscordResponse<IGuild, UnwrapContext.EmptyContext>() {
-    override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = Guild(this)
+    @Suppress("UselessCallOnNotNull") // if this unwraps with gson, members or channels may become null
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IGuild = copy(
+        channels = channels.orEmpty().map { it.copy(guild_id = it.guild_id ?: id) }.toSet(),
+        members = members.orEmpty()
+    ).let(::Guild)
 }

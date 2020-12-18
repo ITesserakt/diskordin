@@ -32,7 +32,7 @@ class NoRestScope : DiscordClientBuilderScope() {
 
     override fun create(): DiscordClientSettings = DiscordClientSettings(
         System.getenv("DISKORDIN_TOKEN") ?: token ?: error(DiscordClientBuilder.NoTokenProvided),
-        cache,
+        cachingEnabled,
         gatewaySettings,
         restSchedule,
         restClient,

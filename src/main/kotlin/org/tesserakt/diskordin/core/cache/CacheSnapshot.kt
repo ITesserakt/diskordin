@@ -51,7 +51,7 @@ interface CacheSnapshot {
         getPrivateChannel(id) ?: getGroupPrivateChannel(id) ?: getGuildChannel(id)
 
     fun getTextChannel(id: Snowflake): ITextChannel? =
-        getChannel(id).toOption().mapNotNull { it as? ITextChannel }.orNull()
+        getChannel(id)?.let { it as? ITextChannel }
 
     fun getRole(id: Snowflake): IRole? = guilds.firstMap { g -> g.roles.find { it.id == id } }
 

@@ -59,7 +59,7 @@ object DiscordClientBuilder {
 
         val intents: ValuedEnum<Intents, Short> = ValuedEnum(builder.gatewaySettings.intents, Short.integral())
 
-        val sifter = EntitySifter(intents)
+        val sifter = EntitySifter(intents, builder.cachingEnabled)
         val processor = CacheProcessor(
             mapOf(
                 IGuild::class to GuildUpdater,

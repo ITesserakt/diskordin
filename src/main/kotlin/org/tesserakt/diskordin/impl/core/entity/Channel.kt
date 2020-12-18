@@ -90,7 +90,7 @@ internal class TextChannel(override val raw: ChannelResponse<ITextChannel>) : Gu
         channelService.getPinnedMessages(id)
     }
 
-    override val isNSFW: Boolean = raw.nsfw!!
+    override val isNSFW: Boolean = raw.nsfw ?: false
 
     override val topic: String? = raw.topic
 

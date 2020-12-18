@@ -41,7 +41,7 @@ class RetrofitScope : DiscordClientBuilderScope() {
 
         return DiscordClientSettings(
             token,
-            cache,
+            cachingEnabled,
             gatewaySettings,
             restSchedule,
             restClient,
