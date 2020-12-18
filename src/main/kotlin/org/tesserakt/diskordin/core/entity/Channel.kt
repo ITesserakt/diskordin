@@ -5,12 +5,13 @@ package org.tesserakt.diskordin.core.entity
 
 import arrow.core.*
 import arrow.core.extensions.listk.functor.functor
+import arrow.core.extensions.listk.monad.flatTap
 import kotlinx.coroutines.flow.Flow
+import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
-import org.tesserakt.diskordin.core.entity.IChannel.Type.*
+import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IImage
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -18,7 +19,6 @@ import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.MessagesQuery
 import org.tesserakt.diskordin.core.entity.query.query
-import org.tesserakt.diskordin.impl.core.entity.*
 import org.tesserakt.diskordin.rest.call
 import kotlin.time.ExperimentalTime
 
@@ -37,16 +37,6 @@ interface IChannel : IMentioned, IDeletable {
 
     @Suppress("UNCHECKED_CAST")
     companion object : StaticMention<IChannel, Companion> {
-        internal fun <T : IChannel> typed(response: ChannelResponse<T>) = when (response.type) {
-            GuildText.ordinal -> TextChannel(response as ChannelResponse<ITextChannel>)
-            Private.ordinal -> PrivateChannel(response as ChannelResponse<IPrivateChannel>)
-            GuildVoice.ordinal -> VoiceChannel(response as ChannelResponse<IVoiceChannel>)
-            GuildCategory.ordinal -> Category(response as ChannelResponse<IGuildCategory>)
-            PrivateGroup.ordinal -> GroupPrivateChannel(response as ChannelResponse<IGroupPrivateChannel>)
-            GuildNews.ordinal -> AnnouncementChannel(response as ChannelResponse<IAnnouncementChannel>)
-            else -> throw IllegalAccessException("Type of channel isn`t right (!in [0; 6) range)")
-        } as T
-
         override val mention = Regex(""""<#(\d{18,})>"""")
     }
 
@@ -108,8 +98,7 @@ interface IGroupPrivateChannel : IMessageChannel, IAudioChannel, IPrivateChannel
 }
 
 interface IMessageChannel : IChannel {
-    val cachedMessages
-        get() = cache.values.filterIsInstance<IMessage>()
+    val cachedMessages get() = cacheSnapshot.messages.values.filter { it.channel.id == id }
 
     suspend fun typing() = rest.effect {
         channelService.triggerTyping(id)
@@ -117,7 +106,7 @@ interface IMessageChannel : IChannel {
 
     suspend fun getMessages(query: MessagesQuery.() -> Unit) = rest.call(ListK.functor()) {
         channelService.getMessages(id, query.query(::MessagesQuery))
-    }.fix().also { list -> cache += list.associateBy { it.id } }
+    }.flatTap { client.context[CacheProcessor].updateData(it); ListK(emptyList<Nothing>()) }
 
     suspend fun getMessage(messageId: Snowflake) = client.getMessage(id, messageId)
 

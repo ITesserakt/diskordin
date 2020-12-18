@@ -7,15 +7,10 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.core.entity.`object`.ITemplate
-import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.rest
+import org.tesserakt.diskordin.rest.callCaching
 
 class Template(raw: TemplateResponse) : ITemplate {
-    init {
-        cache[raw.sourceGuildId] = raw.serializedSourceGuild.unwrap()
-        cache[raw.creatorId] = raw.creator.unwrap()
-    }
-
     override val code: String = raw.code
     override val description: String? = raw.description
     override val usageCount: Int = raw.usageCount
@@ -26,7 +21,7 @@ class Template(raw: TemplateResponse) : ITemplate {
     override val isSynced: Boolean = raw.isDirty ?: true
     override val name: String = raw.name
 
-    override suspend fun unpackTemplate(): IGuild = rest.call {
+    override suspend fun unpackTemplate(): IGuild = rest.callCaching {
         templateService.createGuildFromTemplate(code)
     }
 }

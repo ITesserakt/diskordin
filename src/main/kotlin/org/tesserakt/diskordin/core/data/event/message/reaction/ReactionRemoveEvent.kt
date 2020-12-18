@@ -19,9 +19,4 @@ class ReactionRemoveEvent(raw: Reaction) : IMessageEvent<ForIO>, IUserEvent<ForI
         channel().cachedMessages.first { it.id == id }
     }
     val emoji = raw.emoji.unwrap(guild?.id)
-
-    init {
-        if (emoji is ICustomEmoji)
-            cache[emoji.id] = emoji
-    }
 }

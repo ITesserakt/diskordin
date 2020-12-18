@@ -91,8 +91,6 @@ internal class Message(override val raw: MessageResponse) : IMessage,
         return "Message(channel=$channel, author=$author, content='$content', isTTS=$isTTS, attachments=$attachments, isPinned=$isPinned, id=$id)"
     }
 
-    override fun fromCache(): IMessage = cache[id] as IMessage
-
     override fun copy(changes: (MessageResponse) -> MessageResponse): IMessage =
         raw.run(changes).unwrap()
 }

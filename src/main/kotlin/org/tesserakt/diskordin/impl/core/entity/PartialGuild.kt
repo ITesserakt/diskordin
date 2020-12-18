@@ -106,7 +106,7 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
 
     override fun getEveryoneRole() = delegate.getEveryoneRole()
 
-    override fun <C : IGuildChannel> getChannel(id: Snowflake) = delegate.getChannel<C>(id)
+    override fun <C : IGuildChannel> getChannel(channelId: Snowflake) = delegate.getChannel<C>(channelId)
 
     override suspend fun getWidget(): IGuildWidget = delegate.getWidget()
 
@@ -117,12 +117,10 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val bans by lazy { delegate.bans }
     override val integrations by lazy { delegate.integrations }
     override val roles by lazy { raw.roles.map { it.unwrap(id) }.takeIf { it.isNotEmpty() } ?: delegate.roles }
-    override val channels by lazy { delegate.channels }
+    override val cachedChannels by lazy { delegate.cachedChannels }
     override val name: String = raw.name
 
     override suspend fun edit(builder: GuildEditBuilder.() -> Unit): IGuild = delegate.edit(builder)
-
-    override fun fromCache(): IGuild = cache[id] as IGuild
 
     override fun copy(changes: (UserGuildResponse) -> UserGuildResponse): IGuild = raw.let(changes).unwrap()
 

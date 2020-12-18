@@ -56,5 +56,4 @@ internal class Member<C : UnwrapContext> constructor(
         is GuildMemberResponse -> copy.unwrap(guild.id)
     }
 
-    override fun fromCache(): IMember = cache[id] as IMember
 }

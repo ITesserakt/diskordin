@@ -88,7 +88,5 @@ class Self(override val raw: UserResponse<ISelf>) : User(raw), ISelf,
                 "\n   ${super.toString()}"
     }
 
-    override fun fromCache(): IUser = cache[id] as IUser
-
     override fun copy(changes: (UserResponse<IUser>) -> UserResponse<IUser>): IUser = raw.run(changes).unwrap()
 }

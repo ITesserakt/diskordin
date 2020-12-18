@@ -61,7 +61,5 @@ class Role constructor(
         return "Role(permissions=$permissions, color=$color, isHoisted=$isHoisted, isMentionable=$isMentionable, id=$id, isEveryone=$isEveryone, guild=$guild, mention='$mention', name='$name')"
     }
 
-    override fun fromCache(): IRole = cache[id] as IRole
-
     override fun copy(changes: (RoleResponse) -> RoleResponse): IRole = raw.let(changes).unwrap(guild.id)
 }

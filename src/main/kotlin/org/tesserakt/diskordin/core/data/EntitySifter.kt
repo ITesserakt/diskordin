@@ -1,32 +1,10 @@
 package org.tesserakt.diskordin.core.data
 
-import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.gateway.shard.Intents.*
 import org.tesserakt.diskordin.util.enums.ValuedEnum
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
-
-class EntityCache internal constructor(
-    cacheSifter: EntitySifter,
-    private val initial: MutableMap<Snowflake, IEntity> = ConcurrentHashMap()
-) : MutableMap<Snowflake, IEntity> by initial, BootstrapContext.ExtensionContext {
-    companion object : BootstrapContext.PersistentExtension<EntityCache>
-
-    private val deniedEntities = cacheSifter.sift()
-
-    fun disabledFeatures() = deniedEntities.mapNotNull { it.simpleName }
-
-    override fun put(key: Snowflake, value: IEntity) =
-        if (value::class in deniedEntities || deniedEntities.any { it.java.isAssignableFrom(value::class.java) }) null
-        else initial.put(key, value)
-
-    override fun toString(): String =
-        """EntityCache {disabled = ${disabledFeatures()}} with backend ${initial::class.simpleName}
-           |     Holds $size elements with types ${map { it.value::class.simpleName }.toSet()} 
-        """.trimMargin()
-}
 
 internal class EntitySifter(intents: ValuedEnum<Intents, Short>) {
     private val denied = mutableSetOf<KClass<out IEntity>>()
@@ -49,8 +27,6 @@ internal class EntitySifter(intents: ValuedEnum<Intents, Short>) {
             || GuildPresences !in intents
         ) denied += emptySet()
     }
-
-    fun sift(): Set<KClass<out IEntity>> = denied
 
     @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING")
     fun <T : Any> isAllowed(item: T) = item !is IEntity || item::class !in denied

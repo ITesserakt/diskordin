@@ -12,8 +12,12 @@ import org.tesserakt.diskordin.core.data.event.channel.ChannelCreateEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelDeleteEvent
 import org.tesserakt.diskordin.core.data.event.channel.ChannelUpdateEvent
 import org.tesserakt.diskordin.core.data.event.guild.*
+import org.tesserakt.diskordin.core.data.event.lifecycle.InvalidSessionEvent
 import org.tesserakt.diskordin.core.data.event.lifecycle.ReadyEvent
+import org.tesserakt.diskordin.core.data.event.message.MessageBulkDeleteEvent
 import org.tesserakt.diskordin.core.data.event.message.MessageCreateEvent
+import org.tesserakt.diskordin.core.data.event.message.MessageDeleteEvent
+import org.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
 import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.*
@@ -58,11 +62,32 @@ internal class CacheProcessor(
     override suspend fun Context.presenceUpdate(event: PresenceUpdateEvent) = updateData(event.user())
     override suspend fun Context.userUpdate(event: UserUpdateEvent) = updateData(event.user())
     override suspend fun Context.guildUpdate(event: GuildUpdateEvent) = updateData(event.guild())
-    override suspend fun Context.messageCreate(event: MessageCreateEvent) = updateData(event.message())
     override suspend fun Context.channelCreate(event: ChannelCreateEvent) = updateData(event.channel())
     override suspend fun Context.channelUpdate(event: ChannelUpdateEvent) = updateData(event.channel())
     override suspend fun Context.channelDelete(event: ChannelDeleteEvent) = deleteData<IChannel>(event.channel.id)
     override suspend fun Context.memberUpdate(event: MemberUpdateEvent) = updateData(event.user())
+    override suspend fun Context.ban(event: BanEvent) = updateData(event.user())
+    override suspend fun Context.memberChunk(event: MemberChunkEvent) = event.members.forEach(::updateData)
+    override suspend fun Context.roleCreate(event: RoleCreateEvent) = updateData(event.role())
+    override suspend fun Context.roleDelete(event: RoleDeleteEvent) = deleteData<IRole>(event.roleId)
+    override suspend fun Context.roleUpdate(event: RoleUpdateEvent) = updateData(event.role())
+    override suspend fun Context.unban(event: UnbanEvent) = updateData(event.user())
+    override suspend fun Context.messageDelete(event: MessageDeleteEvent) = deleteData<IMessage>(event.messageId)
+    override suspend fun Context.messageUpdate(event: MessageUpdateEvent) = updateData(event.message())
+    override suspend fun Context.invalidSession(event: InvalidSessionEvent) = clean()
+
+    override suspend fun Context.messageCreate(event: MessageCreateEvent) {
+        updateData(event.message())
+        event.author?.invoke()?.let(::updateData)
+    }
+
+    override suspend fun Context.messageBulkDelete(event: MessageBulkDeleteEvent) =
+        event.deletedMessages.forEach { deleteData<IMessage>(it) }
+
+    override suspend fun Context.emojisUpdate(event: EmojisUpdateEvent) {
+        //TODO handle emojis updates
+    }
+
     override suspend fun Context.ready(event: ReadyEvent) {
         updateData(event.self())
         //event.guilds.map { it.id }.parTraverseN(2) { event.client.getGuild(it) }

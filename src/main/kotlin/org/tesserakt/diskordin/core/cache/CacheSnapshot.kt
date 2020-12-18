@@ -43,9 +43,9 @@ interface CacheSnapshot {
         getChannelMessages(channelId)[messageId]
 
     fun getGuildChannel(guildId: Snowflake, channelId: Snowflake): IGuildChannel? =
-        guilds[guildId]?.channels?.find { it.id == channelId }
+        guilds[guildId]?.cachedChannels?.find { it.id == channelId }
 
-    fun getGuildChannel(id: Snowflake) = guilds.firstMap { g -> g.channels.find { it.id == id } }
+    fun getGuildChannel(id: Snowflake) = guilds.firstMap { g -> g.cachedChannels.find { it.id == id } }
 
     fun getChannel(id: Snowflake): IChannel? =
         getPrivateChannel(id) ?: getGroupPrivateChannel(id) ?: getGuildChannel(id)

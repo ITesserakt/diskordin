@@ -7,7 +7,6 @@ import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.ICacheable
 import org.tesserakt.diskordin.core.entity.IUser
-import org.tesserakt.diskordin.core.entity.cache
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
@@ -46,8 +45,6 @@ internal class IdUser(override val raw: IDUserResponse) : IUser,
 
     override val id: Snowflake = raw.id
     override val mention: String = "<@${id}>"
-
-    override fun fromCache(): IUser = cache[id] as IUser
 
     override fun copy(changes: (IDUserResponse) -> IDUserResponse): IUser = raw.run(changes).unwrap()
 }

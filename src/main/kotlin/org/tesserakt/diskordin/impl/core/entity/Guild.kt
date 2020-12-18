@@ -9,9 +9,10 @@ import arrow.core.extensions.id.applicative.just
 import arrow.core.extensions.id.comonad.extract
 import arrow.core.extensions.id.functor.functor
 import arrow.core.extensions.listk.functor.functor
+import arrow.core.extensions.listk.monad.flatTap
 import arrow.core.fix
+import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.identify
 import org.tesserakt.diskordin.core.data.identifyId
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -178,7 +179,8 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override fun getEveryoneRole() = id identifyId { getRole(it)!! } //everyone role id == guild id
 
-    override fun <C : IGuildChannel> getChannel(id: Snowflake): C = cache[id] as C
+    override fun <C : IGuildChannel> getChannel(channelId: Snowflake) =
+        cacheSnapshot.getGuildChannel(id, channelId) as C
 
     override suspend fun getWidget(): IGuildWidget = rest.call {
         guildService.getGuildWidget(id)
@@ -210,8 +212,6 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
         guildService.editGuild(id, builder.build(::GuildEditBuilder))
     }
 
-    override fun fromCache(): IGuild = cache[id] as IGuild
-
     override fun copy(changes: (GuildResponse) -> GuildResponse): IGuild =
         raw.let(changes).unwrap()
 
@@ -221,7 +221,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override val owner = raw.owner_id.identify<IMember> { userId -> client.getMember(userId, id) }
 
     override val afkChannel = raw.afk_channel_id?.identify<IVoiceChannel> { id ->
-        (channels.find { it.id == id } ?: client.getChannel(id)) as IVoiceChannel
+        (cachedChannels.find { it.id == id } ?: client.getChannel(id)) as IVoiceChannel
     }
 
     @ExperimentalTime
@@ -234,9 +234,9 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override suspend fun getMembers(query: MemberQuery.() -> Unit) = rest.call(id, ListK.functor()) {
         guildService.getMembers(id, query.query(::MemberQuery))
-    }.fix().also { list -> cache += list.associateBy { it.id } }
+    }.flatTap { client.context[CacheProcessor].updateData(it); ListK(emptyList<Nothing>()) }
 
-    override val channels get() = cache.values.filterIsInstance<IGuildChannel>().filter { it.guild.id == id }
+    override val cachedChannels = raw.channels.filter { it.guild_id != null }.map { it.unwrap() }
 
     override val name: String = raw.name
 

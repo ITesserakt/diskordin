@@ -1,5 +1,4 @@
 
-import io.ktor.client.engine.cio.*
 import io.ktor.util.*
 import org.tesserakt.diskordin.core.cache.FileCacheSnapshot
 import org.tesserakt.diskordin.core.client.InternalTestAPI
@@ -12,7 +11,7 @@ import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.configure
-import org.tesserakt.diskordin.rest.integration.Ktor
+import org.tesserakt.diskordin.rest.integration.Retrofit
 import java.io.File
 
 @KtorExperimentalAPI
@@ -20,7 +19,7 @@ import java.io.File
 suspend fun main() {
     val file = File("cache.json")
 
-    val client = DiscordClientBuilder by Ktor(CIO) configure {
+    val client = DiscordClientBuilder by Retrofit configure {
         +gatewaySettings {
             +compressShards()
             +featureOverrides(Intents.all)

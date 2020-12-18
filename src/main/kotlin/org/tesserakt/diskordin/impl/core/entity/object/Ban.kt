@@ -21,7 +21,5 @@ internal class Ban(override val raw: BanResponse) : IBan, ICacheable<IBan, Unwra
         return "Ban(reason=$reason, user=$user)"
     }
 
-    override fun fromCache(): IBan = TODO()
-
     override fun copy(changes: (BanResponse) -> BanResponse): IBan = raw.run(changes).unwrap()
 }

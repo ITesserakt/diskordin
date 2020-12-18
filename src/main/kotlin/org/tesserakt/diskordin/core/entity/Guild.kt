@@ -50,7 +50,7 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     val bans: Flow<IBan>
     val integrations: Flow<IIntegration>
     val roles: List<IRole>
-    val channels: List<IGuildChannel>
+    val cachedChannels: List<IGuildChannel>
     val members: List<IMember>
     val isFullyLoaded: Boolean
 
@@ -72,7 +72,7 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
     suspend fun addIntegration(id: Snowflake, type: String)
     fun getEveryoneRole(): IdentifiedF<ForId, IRole>
-    fun <C : IGuildChannel> getChannel(id: Snowflake): C
+    fun <C : IGuildChannel> getChannel(channelId: Snowflake): C
     suspend fun getWidget(): IGuildWidget
     suspend fun getVanityUrl(): IGuildInvite?
     suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole

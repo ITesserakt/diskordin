@@ -5,7 +5,10 @@ import org.tesserakt.diskordin.core.data.json.response.MessageUserResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.ICacheable
+import org.tesserakt.diskordin.core.entity.IMember
+import org.tesserakt.diskordin.core.entity.IUser
+import org.tesserakt.diskordin.core.entity.client
 
 internal class MessageUser(override val raw: MessageUserResponse) : IUser, User(
     UserResponse(
@@ -25,8 +28,6 @@ internal class MessageUser(override val raw: MessageUserResponse) : IUser, User(
         raw.member?.unwrap(guildId) ?: client.getMember(id, guildId)
 
     override val mention: String = "<@$id>"
-
-    override fun fromCache(): IUser = cache[id] as IUser
 
     override fun copy(changes: (MessageUserResponse) -> MessageUserResponse): IUser =
         raw.run(changes).unwrap()

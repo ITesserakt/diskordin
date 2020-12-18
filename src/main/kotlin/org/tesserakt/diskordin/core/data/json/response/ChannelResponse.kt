@@ -1,8 +1,9 @@
 package org.tesserakt.diskordin.core.data.json.response
 
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.entity.IChannel
-import org.tesserakt.diskordin.core.entity.IUser
+import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.IChannel.Type.*
+import org.tesserakt.diskordin.impl.core.entity.*
 
 
 data class ChannelResponse<out C : IChannel>(
@@ -25,5 +26,14 @@ data class ChannelResponse<out C : IChannel>(
     val parent_id: Snowflake? = null,
     val last_pin_timestamp: String? = null
 ) : DiscordResponse<C, UnwrapContext.EmptyContext>() {
-    override fun unwrap(ctx: UnwrapContext.EmptyContext): C = IChannel.typed(this)
+    @Suppress("UNCHECKED_CAST")
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): C = when (this.type) {
+        GuildText.ordinal -> TextChannel(this as ChannelResponse<ITextChannel>)
+        Private.ordinal -> PrivateChannel(this as ChannelResponse<IPrivateChannel>)
+        GuildVoice.ordinal -> VoiceChannel(this as ChannelResponse<IVoiceChannel>)
+        GuildCategory.ordinal -> Category(this as ChannelResponse<IGuildCategory>)
+        PrivateGroup.ordinal -> GroupPrivateChannel(this as ChannelResponse<IGroupPrivateChannel>)
+        GuildNews.ordinal -> AnnouncementChannel(this as ChannelResponse<IAnnouncementChannel>)
+        else -> throw IllegalAccessException("Type of channel isn`t right (!in [0; 6) range)")
+    } as C
 }

@@ -108,8 +108,6 @@ internal class TextChannel(override val raw: ChannelResponse<ITextChannel>) : Gu
                 "\n   ${super.toString()}"
     }
 
-    override fun fromCache(): ITextChannel = cache[id] as ITextChannel
-
     override fun copy(changes: (ChannelResponse<ITextChannel>) -> ChannelResponse<ITextChannel>): ITextChannel =
         raw.run(changes).unwrap()
 }
@@ -130,8 +128,6 @@ internal class VoiceChannel(override val raw: ChannelResponse<IVoiceChannel>) : 
                 "\n   ${super.toString()}"
     }
 
-    override fun fromCache(): IVoiceChannel = cache[id] as IVoiceChannel
-
     override fun copy(changes: (ChannelResponse<IVoiceChannel>) -> ChannelResponse<IVoiceChannel>): IVoiceChannel =
         raw.run(changes).unwrap()
 }
@@ -139,10 +135,14 @@ internal class VoiceChannel(override val raw: ChannelResponse<IVoiceChannel>) : 
 internal class Category(override val raw: ChannelResponse<IGuildCategory>) : GuildChannel(raw), IGuildCategory,
     ICacheable<IGuildCategory, UnwrapContext.EmptyContext, ChannelResponse<IGuildCategory>> {
     override val parentId: Snowflake? = raw.parent_id
-    override fun fromCache(): IGuildCategory = cache[id] as IGuildCategory
 
     override fun copy(changes: (ChannelResponse<IGuildCategory>) -> ChannelResponse<IGuildCategory>): IGuildCategory =
         raw.run(changes).unwrap()
+
+    override fun toString(): String {
+        return "Category(parentId=$parentId) " +
+                "\n   ${super.toString()}"
+    }
 }
 
 internal class AnnouncementChannel(override val raw: ChannelResponse<IAnnouncementChannel>) : GuildChannel(raw),
@@ -157,8 +157,6 @@ internal class AnnouncementChannel(override val raw: ChannelResponse<IAnnounceme
         channelService.crosspostMessage(id, messageId)
     }
 
-    override fun fromCache(): IAnnouncementChannel = cache[id] as IAnnouncementChannel
-
     override fun copy(changes: (ChannelResponse<IAnnouncementChannel>) -> ChannelResponse<IAnnouncementChannel>) =
         raw.run(changes).unwrap()
 }
@@ -171,8 +169,6 @@ internal class PrivateChannel(override val raw: ChannelResponse<IPrivateChannel>
     override fun toString(): String {
         return "PrivateChannel(recipient=$recipient)\n    ${super.toString()}"
     }
-
-    override fun fromCache(): IPrivateChannel = cache[id] as IPrivateChannel
 
     override fun copy(changes: (ChannelResponse<IPrivateChannel>) -> ChannelResponse<IPrivateChannel>) =
         raw.run(changes).unwrap()
@@ -189,8 +185,6 @@ internal class GroupPrivateChannel(override val raw: ChannelResponse<IGroupPriva
 
     override val owner: IdentifiedF<ForIO, IUser> = raw.owner_id?.identify<IUser> { client.getUser(it) } ?: client.self
     override val recipient: NonEmptyList<IUser> = Nel.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
-
-    override fun fromCache(): IGroupPrivateChannel = cache[id] as IGroupPrivateChannel
 
     override fun copy(changes: (ChannelResponse<IGroupPrivateChannel>) -> ChannelResponse<IGroupPrivateChannel>) =
         raw.run(changes).unwrap()

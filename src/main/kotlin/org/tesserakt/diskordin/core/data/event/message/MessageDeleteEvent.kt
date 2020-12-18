@@ -4,7 +4,10 @@ import arrow.fx.ForIO
 import arrow.fx.fix
 import org.tesserakt.diskordin.core.data.event.channel.IChannelEvent
 import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.IGuild
+import org.tesserakt.diskordin.core.entity.IMessageChannel
+import org.tesserakt.diskordin.core.entity.ITextChannel
+import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.MessageDelete
 
 class MessageDeleteEvent(raw: MessageDelete) : IChannelEvent<ForIO> {
@@ -15,9 +18,5 @@ class MessageDeleteEvent(raw: MessageDelete) : IChannelEvent<ForIO> {
             null -> client.getChannel(it) as IMessageChannel
             else -> guild.extract().fix().suspended().getChannel<ITextChannel>(it)
         }
-    }
-
-    init {
-        cache -= messageId
     }
 }

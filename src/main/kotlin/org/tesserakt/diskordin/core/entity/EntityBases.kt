@@ -8,7 +8,6 @@ import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.cache.CacheSnapshot
 import org.tesserakt.diskordin.core.client.IDiscordClient
-import org.tesserakt.diskordin.core.data.EntityCache
 import org.tesserakt.diskordin.core.data.IdentifiedIO
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.DiscordResponse
@@ -33,9 +32,6 @@ val IDiscordObject.client: IDiscordClient
 
 val IDiscordObject.rest: RestClient
     inline get() = client.rest
-
-internal val IDiscordObject.cache: EntityCache
-    get() = client.context[EntityCache]
 
 val IDiscordObject.cacheSnapshot: CacheSnapshot get() = client.context[CacheProcessor].state.value
 
@@ -64,7 +60,6 @@ interface IPreviewed<E : IEntity> : IDiscordObject {
 }
 
 interface ICacheable<O : IDiscordObject, C : UnwrapContext, R : DiscordResponse<O, C>> {
-    fun fromCache(): O
     fun copy(changes: (R) -> R): O
 
     val raw: R
