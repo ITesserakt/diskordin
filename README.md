@@ -40,12 +40,18 @@ For snapshot versions use
 
 ``` groovy
 repositories {
-    jcenter()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-    maven { url 'https://jitpack.io' }
+    mavencentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" } // for scarlet (if you're using retrofit-integration module)
+    maven { url "https://kotlin.bintray.com/kotlinx/" } // for kotlinx-datetime
+    maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" } // for arrow
+    maven { url 'https://jitpack.io' } // for this snapshot
 }
 dependencies {
-    implementation 'com.github.ITesserakt:diskordin:master-SNAPSHOT'
+    // ...
+    implementation("com.github.ITesserakt.diskordin:diskordin-base:-SNAPSHOT")
+    implementation("com.github.ITesserakt.diskordin:diskordin-ktor-integration:-SNAPSHOT") // use this
+    implementation("com.github.ITesserakt.diskordin:diskordin-retrofit-integration:-SNAPSHOT") // OR this, else build errors are guaranteed
+    implementation("com.github.ITesserakt.diskordin:diskordin-commands:-SNAPSHOT")
 }
 ```
 
