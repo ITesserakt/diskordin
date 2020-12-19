@@ -13,7 +13,7 @@ fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 dependencies {
-    implementation(project(":"))
+    implementation(project(":diskordin-base"))
     implementation(project(":diskordin-commands"))
     implementation(project(":diskordin-retrofit-integration"))
 
@@ -37,4 +37,12 @@ tasks.compileKotlin {
 }
 tasks.compileTestKotlin {
     kotlinOptions.jvmTarget = jvmVersion
+}
+tasks.kotlinSourcesJar {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+artifacts {
+    archives(tasks.kotlinSourcesJar)
 }

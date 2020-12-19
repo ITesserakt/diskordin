@@ -3,7 +3,10 @@ val arrowVersion: String by extra
 val jvmVersion: String by extra
 val kotlinLoggingVersion: String by extra
 
-plugins { kotlin("jvm") }
+plugins {
+    kotlin("jvm")
+    maven
+}
 
 fun ktor(module: String, version: String = ktorVersion) =
     "io.ktor:ktor-$module:$version"
@@ -19,7 +22,7 @@ dependencies {
 
     implementation(arrow("syntax"))
 
-    implementation(project(":"))
+    implementation(project(":diskordin-base"))
 
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 }
@@ -32,4 +35,12 @@ tasks.compileKotlin {
 }
 tasks.compileTestKotlin {
     kotlinOptions.jvmTarget = jvmVersion
+}
+tasks.kotlinSourcesJar {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+artifacts {
+    archives(tasks.kotlinSourcesJar)
 }

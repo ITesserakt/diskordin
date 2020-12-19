@@ -5,13 +5,16 @@ val scarletVersion: String by extra
 val jvmVersion: String by extra
 val kotlinLoggingVersion: String by extra
 
-plugins { kotlin("jvm") }
+plugins {
+    kotlin("jvm")
+    maven
+}
 
 fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 dependencies {
-    implementation(project(":"))
+    implementation(project(":diskordin-base"))
 
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
@@ -31,4 +34,12 @@ tasks.compileKotlin {
 }
 tasks.compileTestKotlin {
     kotlinOptions.jvmTarget = jvmVersion
+}
+tasks.kotlinSourcesJar {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+artifacts {
+    archives(tasks.kotlinSourcesJar)
 }
