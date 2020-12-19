@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: diskordin_test_report_${{github.run_id}}
-          path: build/reports/
+          path: diskordin-base/build/reports/
       - name: Upload diskordin-commands test results
         if: always()
         uses: actions/upload-artifact@v1.0.0
