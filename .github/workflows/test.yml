@@ -21,9 +21,7 @@ jobs:
           token: ${{secrets.discord_token}}
           kotest.proptest.default.iteration.count: ${{secrets.test_depth}}
         run: |
-          chmod +x gradlew
-          ./gradlew :build :diskordin-commands:build
-          ./gradlew :check :diskordin-commands:check
+          gradle --parallel test
       - name: Upload diskordin test results
         if: always()
         uses: actions/upload-artifact@v1.0.0
