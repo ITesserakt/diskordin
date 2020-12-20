@@ -122,15 +122,8 @@ $RECYCLE.BIN/
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 # Project exclude paths
-/.gradle/
-/build/
-/.idea/
-gradle.properties
-gradlew
-gradlew.bat
-src/main/java/
-src/test/java/
-src/test/resources/
-*.meta
-/diskordin-commands/build/
-/diskordin-commands/.gradle/
+.gradle/
+.idea/
+build/
+META-INF/
+cache.json
