@@ -2,8 +2,10 @@ package org.tesserakt.diskordin.core.cache.handler
 
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
-import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.IChannel
+import org.tesserakt.diskordin.core.entity.IGroupPrivateChannel
+import org.tesserakt.diskordin.core.entity.IGuildChannel
+import org.tesserakt.diskordin.core.entity.IPrivateChannel
 import org.tesserakt.diskordin.impl.core.entity.*
 
 internal val PrivateChannelUpdater = CacheUpdater<IPrivateChannel> { builder, data ->

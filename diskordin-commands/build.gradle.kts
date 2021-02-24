@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":diskordin-base"))
 
     implementation(arrow("fx"))
-    implementation(arrow("mtl"))
+    //implementation(arrow("mtl"))
     implementation(arrow("syntax"))
 
     implementation("io.github.classgraph:classgraph:4.8.90")

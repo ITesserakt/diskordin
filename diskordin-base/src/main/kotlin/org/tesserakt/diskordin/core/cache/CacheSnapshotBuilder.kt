@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.cache
 
-import arrow.core.extensions.map.functor.map
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
@@ -38,9 +37,9 @@ class CacheSnapshotBuilder private constructor(
             ConcurrentHashMap(unavailableGuilds),
             ConcurrentHashMap(guilds),
             ConcurrentHashMap(messages),
-            lastTypes.map { ConcurrentHashMap(it) }.toMap(ConcurrentHashMap()),
+            lastTypes.mapValues { (_, a) -> ConcurrentHashMap(a) }.toMap(ConcurrentHashMap()),
             ConcurrentHashMap(users),
-            bans.map { ConcurrentHashMap(it) }.toMap(ConcurrentHashMap())
+            bans.mapValues { (_, a) -> ConcurrentHashMap(a) }.toMap(ConcurrentHashMap())
         )
     }
 }

@@ -2,7 +2,7 @@
 
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -27,9 +27,9 @@ interface GuildService {
         request: NicknameEditRequest
     ): String?
 
-    suspend fun getInvites(id: Snowflake): ListK<InviteResponse<IGuildInvite>>
+    suspend fun getInvites(id: Snowflake): List<InviteResponse<IGuildInvite>>
 
-    suspend fun getGuildChannels(id: Snowflake): ListK<ChannelResponse<IGuildChannel>>
+    suspend fun getGuildChannels(id: Snowflake): List<ChannelResponse<IGuildChannel>>
 
     suspend fun createGuildChannel(
         id: Snowflake,
@@ -50,7 +50,7 @@ interface GuildService {
     suspend fun getMembers(
         id: Snowflake,
         query: Query
-    ): ListK<GuildMemberResponse>
+    ): List<GuildMemberResponse>
 
     suspend fun newMember(
         guildId: Snowflake,
@@ -85,7 +85,7 @@ interface GuildService {
         reason: String?
     )
 
-    suspend fun getRoles(id: Snowflake): ListK<RoleResponse>
+    suspend fun getRoles(id: Snowflake): List<RoleResponse>
 
     suspend fun createRole(
         id: Snowflake,
@@ -96,7 +96,7 @@ interface GuildService {
     suspend fun editRolePositions(
         id: Snowflake,
         request: Array<PositionEditRequest>
-    ): ListK<RoleResponse>
+    ): List<RoleResponse>
 
     suspend fun editRole(
         guildId: Snowflake,
@@ -111,7 +111,7 @@ interface GuildService {
         reason: String?
     )
 
-    suspend fun getBans(id: Snowflake): ListK<BanResponse>
+    suspend fun getBans(id: Snowflake): List<BanResponse>
 
     suspend fun getBan(
         guildId: Snowflake,
@@ -141,7 +141,7 @@ interface GuildService {
         reason: String?
     ): Int
 
-    suspend fun getIntegrations(id: Snowflake): ListK<GuildIntegrationResponse>
+    suspend fun getIntegrations(id: Snowflake): List<GuildIntegrationResponse>
 
     suspend fun createIntegration(
         id: Snowflake,

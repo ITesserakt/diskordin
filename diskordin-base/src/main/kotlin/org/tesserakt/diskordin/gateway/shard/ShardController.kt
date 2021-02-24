@@ -42,13 +42,13 @@ class ShardController internal constructor(
     private fun getShardThreshold(shardIndex: Int) = context.shardThresholdOverrides.overrides[shardIndex] ?: 50
 
     suspend fun openShard(shardIndex: Int, sequence: StateFlow<Int?>) {
-        require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
+        require(shardIndex < context.shardCount.value()) { INDEX_OUT_OF_SHARD_COUNT }
         val identify = Identify(
             context.token,
             connectionProperties,
             isShardCompressed(shardIndex),
             getShardThreshold(shardIndex),
-            listOf(shardIndex, context.shardCount.extract()),
+            listOf(shardIndex, context.shardCount.value()),
             context.initialPresence,
             context.intents,
             isShardSubscribed(shardIndex)
@@ -64,7 +64,7 @@ class ShardController internal constructor(
     }
 
     suspend fun closeShard(shardIndex: Int) {
-        require(shardIndex < context.shardCount.extract()) { INDEX_OUT_OF_SHARD_COUNT }
+        require(shardIndex < context.shardCount.value()) { INDEX_OUT_OF_SHARD_COUNT }
         val shard = shards.find { it.shardData.index == shardIndex }
 
         if (shard == null || shard.state.value == Shard.State.Closing) return

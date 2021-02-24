@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.DMCreateRequest
 import org.tesserakt.diskordin.core.data.json.request.UserEditRequest
@@ -25,17 +25,17 @@ interface UserServiceImpl : UserService {
     override suspend fun editCurrentUser(@Body request: UserEditRequest): UserResponse<ISelf>
 
     @GET("/api/v6/users/@me/guilds")
-    override suspend fun getCurrentUserGuilds(@QueryMap query: Query): ListK<UserGuildResponse>
+    override suspend fun getCurrentUserGuilds(@QueryMap query: Query): List<UserGuildResponse>
 
     @DELETE("/api/v6/users/@me/guilds/{id}")
     override suspend fun leaveGuild(@Path("id") id: Snowflake)
 
     @GET("/api/v6/users/@me/channels")
-    override suspend fun getUserDMs(): ListK<ChannelResponse<IPrivateChannel>>
+    override suspend fun getUserDMs(): List<ChannelResponse<IPrivateChannel>>
 
     @POST("/api/v6/users/@me/channels")
     override suspend fun joinToDM(@Body request: DMCreateRequest): ChannelResponse<IPrivateChannel>
 
     @GET("/api/v6/users/@me/connections")
-    override suspend fun getCurrentUserConnections(): ListK<ConnectionResponse>
+    override suspend fun getCurrentUserConnections(): List<ConnectionResponse>
 }

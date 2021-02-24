@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -31,7 +31,7 @@ interface ChannelServiceImpl : ChannelService {
     override suspend fun triggerTyping(@Path("id") id: Snowflake)
 
     @GET("/api/v6/channels/{id}/messages")
-    override suspend fun getMessages(@Path("id") id: Snowflake, @QueryMap query: Query): ListK<MessageResponse>
+    override suspend fun getMessages(@Path("id") id: Snowflake, @QueryMap query: Query): List<MessageResponse>
 
     @GET("/api/v6/channels/{channelId}/messages/{messageId}")
     override suspend fun getMessage(
@@ -76,7 +76,7 @@ interface ChannelServiceImpl : ChannelService {
     ): FollowedChannelResponse
 
     @GET("/api/v6/channels/{id}/pins")
-    override suspend fun getPinnedMessages(@Path("id") id: Snowflake): ListK<MessageResponse>
+    override suspend fun getPinnedMessages(@Path("id") id: Snowflake): List<MessageResponse>
 
     @PUT("/api/v6/channels/{channelId}/pins/{messageId}")
     override suspend fun pinMessage(@Path("channelId") channelId: Snowflake, @Path("messageId") messageId: Snowflake)
@@ -112,7 +112,7 @@ interface ChannelServiceImpl : ChannelService {
         @Path("messageId") messageId: Snowflake,
         @Path("emoji", encoded = true) emoji: String,
         @QueryMap query: Query
-    ): ListK<UserResponse<IUser>>
+    ): List<UserResponse<IUser>>
 
     @DELETE("/api/v6/channels/{channelId}/messages/{messageId}/reactions")
     override suspend fun removeAllReactions(
@@ -128,7 +128,7 @@ interface ChannelServiceImpl : ChannelService {
     )
 
     @GET("/api/v6/channels/{id}/invites")
-    override suspend fun getChannelInvites(@Path("id") id: Snowflake): ListK<InviteResponse<IInvite>>
+    override suspend fun getChannelInvites(@Path("id") id: Snowflake): List<InviteResponse<IInvite>>
 
     @POST("/api/v6/channels/{id}/invites")
     override suspend fun createChannelInvite(

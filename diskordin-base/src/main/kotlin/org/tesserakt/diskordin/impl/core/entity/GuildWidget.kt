@@ -1,12 +1,10 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.data.invoke
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.json.response.GuildWidgetResponse
 import org.tesserakt.diskordin.core.data.json.response.InviteResponse
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.core.entity.IGuild
 import org.tesserakt.diskordin.core.entity.IGuildChannel
 import org.tesserakt.diskordin.core.entity.IGuildWidget
 import org.tesserakt.diskordin.core.entity.`object`.IGuildWidgetSettings
@@ -47,7 +45,7 @@ class GuildWidget(raw: GuildWidgetResponse) : IGuildWidget {
     class ChannelPreview(raw: GuildWidgetResponse.ChannelResponse, guildId: Snowflake) : IGuildWidget.IChannelPreview {
         override val id: Snowflake = raw.id
         override val name: String = raw.name
-        private val guild = guildId.identify<IGuild> {
+        private val guild = guildId deferred {
             client.getGuild(it)
         }
 

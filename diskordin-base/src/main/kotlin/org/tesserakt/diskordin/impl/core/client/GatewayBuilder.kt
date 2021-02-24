@@ -2,8 +2,6 @@
 
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.fx.IO
-import arrow.fx.extensions.io.environment.environment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,7 +35,7 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
 
     private var gatewayUrl = "wss://gateway.discord.gg"
     private var compression = ""
-    private var gatewayContext: CoroutineContext = IO.environment().dispatchers().io()
+    private var gatewayContext: CoroutineContext = Dispatchers.IO
     private val interceptors: MutableList<Interceptor<out Interceptor.Context>> = mutableListOf(
         WebSocketStateInterceptor(),
         HeartbeatInterceptor(),

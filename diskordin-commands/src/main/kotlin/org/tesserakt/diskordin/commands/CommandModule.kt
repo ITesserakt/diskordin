@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.commands
 
 import arrow.core.Ior
-import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.builder.Content
 import org.tesserakt.diskordin.core.entity.builder.Embed
 import org.tesserakt.diskordin.core.entity.builder.MessageCreateBuilder

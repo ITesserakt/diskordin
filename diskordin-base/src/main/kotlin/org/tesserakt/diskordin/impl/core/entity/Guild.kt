@@ -2,19 +2,9 @@
 
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.ForId
-import arrow.core.Id
-import arrow.core.ListK
-import arrow.core.extensions.id.applicative.just
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
-import arrow.core.extensions.listk.functor.functor
-import arrow.core.extensions.listk.monad.flatTap
-import arrow.core.fix
+
 import org.tesserakt.diskordin.core.cache.CacheProcessor
-import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.data.identifyId
+import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
@@ -26,7 +16,6 @@ import org.tesserakt.diskordin.core.entity.query.MemberQuery
 import org.tesserakt.diskordin.core.entity.query.PruneQuery
 import org.tesserakt.diskordin.core.entity.query.query
 import org.tesserakt.diskordin.impl.core.entity.`object`.Region
-import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.flow
 import java.awt.Color
 import java.io.File
@@ -62,12 +51,12 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override val isWidgetEnabled: Boolean = raw.widget_enabled ?: false
 
-    override val widgetChannel = raw.widget_channel_id?.identifyId {
-        getChannel<IGuildChannel>(it)
+    override val widgetChannel: LazyIdentified<IGuildChannel>? = raw.widget_channel_id?.lazy {
+        getChannel(it)
     }
 
-    override val systemChannel = raw.system_channel_id?.identifyId {
-        getChannel<IGuildChannel>(it)
+    override val systemChannel: LazyIdentified<IGuildChannel>? = raw.system_channel_id?.lazy {
+        getChannel(it)
     }
 
     override val maxMembers: Long? = raw.max_members
@@ -92,18 +81,15 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override fun getRole(id: Snowflake) = roles.find { it.id == id }
 
     override suspend fun getEmoji(emojiId: Snowflake) =
-        rest.call<ForId, ICustomEmoji, EmojiResponse<ICustomEmoji>>(id, Id.functor()) {
-            emojiService.getGuildEmoji(id, emojiId).just()
-        }.extract()
+        rest.callRaw { emojiService.getGuildEmoji(id, emojiId) }.unwrap(id)
 
-    override suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji =
-        rest.call<ForId, ICustomEmoji, EmojiResponse<ICustomEmoji>>(id, Id.functor()) {
-            emojiService.createGuildEmoji(id, EmojiCreateBuilder().apply {
-                this.name = name
-                this.image = image
-                this.roles = roles
-            }.create()).just()
-        }.extract()
+    override suspend fun createEmoji(name: String, image: File, roles: Array<Snowflake>): ICustomEmoji = rest.callRaw {
+        emojiService.createGuildEmoji(id, EmojiCreateBuilder().apply {
+            this.name = name
+            this.image = image
+            this.roles = roles
+        }.create())
+    }.unwrap(id)
 
     override suspend fun editOwnNickname(newNickname: String): String? = rest.callRaw {
         guildService.editCurrentNickname(id, NicknameEditBuilder(newNickname).create())
@@ -130,9 +116,9 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     }
 
     override suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit) =
-        rest.call(id, Id.functor()) {
-            guildService.newMember(id, userId, MemberAddBuilder(accessToken).apply(builder).create()).just()
-        }.extract()
+        rest.callRaw {
+            guildService.newMember(id, userId, MemberAddBuilder(accessToken).apply(builder).create())
+        }.unwrap(id)
 
     override suspend fun kick(member: IMember, reason: String?) = kick(member.id, reason)
 
@@ -141,17 +127,17 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     }
 
     override suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit) =
-        rest.call(id, Id.functor()) {
+        rest.callRaw {
             val inst = builder.instance { RoleCreateBuilder(name, color) }
-            guildService.createRole(id, inst.create(), inst.reason).just()
-        }.extract()
+            guildService.createRole(id, inst.create(), inst.reason)
+        }.unwrap(id)
 
-    override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole> =
-        rest.call(id, ListK.functor()) {
+    override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): List<IRole> =
+        rest.callRaw {
             guildService.editRolePositions(id, builder.map { (id, pos) ->
                 PositionEditBuilder(id, pos).create()
             }.toTypedArray())
-        }.fix()
+        }.map { it.unwrap(id) }
 
     override suspend fun getBan(userId: Snowflake): IBan = rest.call {
         guildService.getBan(id, userId)
@@ -177,7 +163,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
         guildService.createIntegration(id, IntegrationCreateBuilder(id, type).create())
     }
 
-    override fun getEveryoneRole() = id identifyId { getRole(it)!! } //everyone role id == guild id
+    override fun getEveryoneRole(): LazyIdentified<IRole> = id lazy { getRole(it)!! } //everyone role id == guild id
 
     override fun <C : IGuildChannel> getChannel(channelId: Snowflake) =
         cacheSnapshot.getGuildChannel(id, channelId) as C
@@ -218,9 +204,10 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override val iconHash: String? = raw.icon
     override val splashHash: String? = raw.splash
 
-    override val owner = raw.owner_id.identify<IMember> { userId -> client.getMember(userId, id) }
+    override val owner: DeferredIdentified<IMember> =
+        raw.owner_id deferred { userId -> client.getMember(userId, id) }
 
-    override val afkChannel = raw.afk_channel_id?.identify<IVoiceChannel> { id ->
+    override val afkChannel = raw.afk_channel_id?.deferred { id ->
         (cachedChannels.find { it.id == id } ?: client.getChannel(id)) as IVoiceChannel
     }
 
@@ -232,9 +219,9 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
 
     override val roles = raw.roles.map { it.unwrap(id) }
 
-    override suspend fun getMembers(query: MemberQuery.() -> Unit) = rest.call(id, ListK.functor()) {
+    override suspend fun getMembers(query: MemberQuery.() -> Unit) = rest.callRaw {
         guildService.getMembers(id, query.query(::MemberQuery))
-    }.flatTap { client.context[CacheProcessor].updateData(it); ListK(emptyList<Nothing>()) }
+    }.map { it.unwrap(id) }.onEach { client.context[CacheProcessor].updateData(it) }
 
     override val cachedChannels = raw.channels.filter { it.guild_id != null }.map { it.unwrap() }
 

@@ -1,8 +1,6 @@
 package org.tesserakt.diskordin.core.client
 
-import arrow.core.ListK
-import arrow.fx.ForIO
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.DeferredIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -13,7 +11,7 @@ import org.tesserakt.diskordin.rest.RestClient
 interface IDiscordClient : IDiscordObject {
     val context: BootstrapContext
     val token: String
-    val self: IdentifiedF<ForIO, ISelf>
+    val self: DeferredIdentified<ISelf>
     val rest: RestClient
 
     /*
@@ -30,7 +28,7 @@ interface IDiscordClient : IDiscordObject {
     suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild
     suspend fun getInvite(code: String): IInvite
     suspend fun deleteInvite(code: String, reason: String?)
-    suspend fun getRegions(): ListK<IRegion>
+    suspend fun getRegions(): List<IRegion>
     suspend fun getMessage(channelId: Snowflake, messageId: Snowflake): IMessage
 
     val users: List<IUser>

@@ -1,8 +1,6 @@
 package org.tesserakt.diskordin.util.typeclass
 
-import arrow.typeclasses.Order
-
-interface Numeric<F> : Order<F> {
+interface Numeric<F> {
     fun F.toInt(): Int
     fun F.toLong(): Long
     fun F.toDouble(): Double
@@ -33,4 +31,6 @@ interface Numeric<F> : Order<F> {
     val maxValue: F
     val minValue: F
     val zero get() = 0.fromInt()
+
+    operator fun F.compareTo(other: F): Int
 }

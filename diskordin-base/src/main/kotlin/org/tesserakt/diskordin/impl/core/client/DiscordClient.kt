@@ -1,23 +1,24 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.*
-import arrow.core.extensions.listk.functor.functor
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import arrow.fx.coroutines.ConcurrentVar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.joinAll
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.IDiscordClient
 import org.tesserakt.diskordin.core.client.ShardContext
-import org.tesserakt.diskordin.core.data.IdentifiedIO
+import org.tesserakt.diskordin.core.data.DeferredIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.deferred
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
 import org.tesserakt.diskordin.core.entity.`object`.IRegion
 import org.tesserakt.diskordin.core.entity.builder.GuildCreateBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
-import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.callCaching
 import org.tesserakt.diskordin.util.DomainError
 
@@ -30,7 +31,7 @@ internal class DiscordClient private constructor(
     object NotInitialized : DomainError()
 
     companion object {
-        private var client = ConcurrentVar.unsafeEmpty<IDiscordClient>()
+        private val client = ConcurrentVar.unsafeEmpty<IDiscordClient>()
 
         suspend fun getInitialized() =
             Either.conditionally(client.isNotEmpty(), { NotInitialized }) { client.read() }
@@ -49,7 +50,7 @@ internal class DiscordClient private constructor(
     override val token: String = context[ShardContext].token
     override val rest: RestClient get() = context[RestClient]
 
-    override val self: IdentifiedIO<ISelf> = selfId.identify<ISelf> {
+    override val self: DeferredIdentified<ISelf> = selfId deferred {
         rest.callCaching { userService.getCurrentUser() }
     }
 
@@ -63,7 +64,7 @@ internal class DiscordClient private constructor(
     @ExperimentalCoroutinesApi
     override suspend fun logout() {
         gateway.close()
-        DiscordClient.client.tryTake()
+        removeState()
     }
 
     override suspend fun createGuild(name: String, builder: GuildCreateBuilder.() -> Unit): IGuild = rest.callCaching {
@@ -76,9 +77,9 @@ internal class DiscordClient private constructor(
     override suspend fun deleteInvite(code: String, reason: String?) =
         rest.effect { inviteService.deleteInvite(code) }
 
-    override suspend fun getRegions(): ListK<IRegion> = rest.call(ListK.functor()) {
+    override suspend fun getRegions(): List<IRegion> = rest.callRaw {
         voiceService.getVoiceRegions()
-    }.fix()
+    }.map { it.unwrap() }
 
     override suspend fun getChannel(id: Snowflake) = cacheSnapshot.getChannel(id)
         ?: rest.callCaching { channelService.getChannel(id) }

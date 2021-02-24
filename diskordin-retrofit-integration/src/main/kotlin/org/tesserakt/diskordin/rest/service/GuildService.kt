@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -26,10 +26,10 @@ interface GuildServiceImpl : GuildService {
     override suspend fun editCurrentNickname(@Path("id") id: Snowflake, @Body request: NicknameEditRequest): String?
 
     @GET("/api/v6/guilds/{id}/invites")
-    override suspend fun getInvites(@Path("id") id: Snowflake): ListK<InviteResponse<IGuildInvite>>
+    override suspend fun getInvites(@Path("id") id: Snowflake): List<InviteResponse<IGuildInvite>>
 
     @GET("/api/v6/guilds/{id}/channels")
-    override suspend fun getGuildChannels(@Path("id") id: Snowflake): ListK<ChannelResponse<IGuildChannel>>
+    override suspend fun getGuildChannels(@Path("id") id: Snowflake): List<ChannelResponse<IGuildChannel>>
 
     @POST("/api/v6/guilds/{id}/channels")
     override suspend fun createGuildChannel(
@@ -48,7 +48,7 @@ interface GuildServiceImpl : GuildService {
     ): GuildMemberResponse
 
     @GET("/api/v6/guilds/{id}/members")
-    override suspend fun getMembers(@Path("id") id: Snowflake, @QueryMap query: Query): ListK<GuildMemberResponse>
+    override suspend fun getMembers(@Path("id") id: Snowflake, @QueryMap query: Query): List<GuildMemberResponse>
 
     @PUT("/api/v6/guilds/{guildId}/members/{userId}")
     override suspend fun newMember(
@@ -89,7 +89,7 @@ interface GuildServiceImpl : GuildService {
     )
 
     @GET("/api/v6/guilds/{id}/roles")
-    override suspend fun getRoles(@Path("id") id: Snowflake): ListK<RoleResponse>
+    override suspend fun getRoles(@Path("id") id: Snowflake): List<RoleResponse>
 
     @POST("/api/v6/guilds/{id}/roles")
     override suspend fun createRole(
@@ -102,7 +102,7 @@ interface GuildServiceImpl : GuildService {
     override suspend fun editRolePositions(
         @Path("id") id: Snowflake,
         @Body request: Array<PositionEditRequest>
-    ): ListK<RoleResponse>
+    ): List<RoleResponse>
 
     @PATCH("/api/v6/guilds/{guildId}/roles/{roleId}")
     override suspend fun editRole(
@@ -120,7 +120,7 @@ interface GuildServiceImpl : GuildService {
     )
 
     @GET("/api/v6/guilds/{id}/bans")
-    override suspend fun getBans(@Path("id") id: Snowflake): ListK<BanResponse>
+    override suspend fun getBans(@Path("id") id: Snowflake): List<BanResponse>
 
     @GET("/api/v6/guilds/{guildId}/bans/{userId}")
     override suspend fun getBan(@Path("guildId") guildId: Snowflake, @Path("userId") userId: Snowflake): BanResponse
@@ -150,7 +150,7 @@ interface GuildServiceImpl : GuildService {
     ): Int
 
     @GET("/api/v6/guilds/{id}/integrations")
-    override suspend fun getIntegrations(@Path("id") id: Snowflake): ListK<GuildIntegrationResponse>
+    override suspend fun getIntegrations(@Path("id") id: Snowflake): List<GuildIntegrationResponse>
 
     @POST("/api/v6/guilds/{id}/integrations")
     override suspend fun createIntegration(@Path("id") id: Snowflake, @Body request: IntegrationCreateRequest)

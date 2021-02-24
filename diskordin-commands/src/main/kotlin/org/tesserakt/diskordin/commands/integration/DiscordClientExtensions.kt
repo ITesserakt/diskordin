@@ -4,7 +4,7 @@ package org.tesserakt.diskordin.commands.integration
 
 import arrow.core.Eval
 import arrow.core.getOrHandle
-import arrow.fx.IO
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.tesserakt.diskordin.commands.CommandRegistry
 import org.tesserakt.diskordin.commands.compiler.CommandModuleCompiler
@@ -50,7 +50,7 @@ suspend operator fun Pair<CommandFramework, DiscordClientBuilderScope>.unaryPlus
     val loader = CommandModuleLoader(compiler, first.graph, workersCount)
 
     val registry: Eval<CommandRegistry> = Eval.always {
-        val summary = IO { loader.load() }.unsafeRunSync()
+        val summary = runBlocking { loader.load() }
 
         summary.also { first.logger.logSummary(it) }
         first.logger.logs.forEach(realLogger::info)

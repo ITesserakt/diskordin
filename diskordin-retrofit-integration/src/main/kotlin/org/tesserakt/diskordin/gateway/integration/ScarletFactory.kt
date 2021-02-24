@@ -25,7 +25,7 @@ class ScarletFactory(
     override fun BootstrapContext.createGateway(): Gateway {
         val createLifecycle = { registry: LifecycleRegistry, id: Int ->
             ScarletGatewayLifecycleManager(registry, gatewayContext, id) {
-                scarlets[id]?.extract() ?: error("IMPOSSIBLE")
+                scarlets[id]?.value() ?: error("IMPOSSIBLE")
             }
         }
 
@@ -35,7 +35,7 @@ class ScarletFactory(
                 scarlets[id] = scarlet
             }
 
-        val lifecycles = (0 until this[ShardContext].shardCount.extract()).map {
+        val lifecycles = (0 until this[ShardContext].shardCount.value()).map {
             val lifecycle = createLifecycle(LifecycleRegistry(), it)
             createScarlet(
                 this[ConnectionContext].url,

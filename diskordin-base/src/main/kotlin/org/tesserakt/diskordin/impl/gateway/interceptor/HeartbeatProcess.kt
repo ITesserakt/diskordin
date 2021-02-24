@@ -2,7 +2,6 @@ package org.tesserakt.diskordin.impl.gateway.interceptor
 
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
-import arrow.fx.coroutines.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
@@ -14,12 +13,15 @@ import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor.Context
 import org.tesserakt.diskordin.gateway.interceptor.sendPayload
 import org.tesserakt.diskordin.gateway.json.commands.Heartbeat
 import org.tesserakt.diskordin.gateway.shard.Shard
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 class HeartbeatProcess(private val interval: Long, private val scope: CoroutineScope) {
+    @OptIn(ExperimentalTime::class)
     suspend fun start(context: Context) {
         val process = scope.async(start = CoroutineStart.LAZY) {
             while (true) {
-                retry(Schedule.exponential(1.seconds)) {
+                Schedule.exponential<Throwable>(1.seconds).retry {
                     context.sendPayload(Heartbeat(context.shard.sequence.value))
                     context.shard._heartbeats.value = Clock.System.now()
                 }

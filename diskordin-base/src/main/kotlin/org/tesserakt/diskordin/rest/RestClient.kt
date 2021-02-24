@@ -1,9 +1,7 @@
 package org.tesserakt.diskordin.rest
 
-import arrow.Kind
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
-import arrow.typeclasses.Functor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -35,12 +33,7 @@ abstract class RestClient(
     @Suppress("UNCHECKED_CAST")
     suspend fun <R> callRaw(
         f: suspend RestClient.() -> R
-    ): R = retry(schedule as Schedule<Throwable, R>) { this.f() }
-
-    suspend inline fun <G, C : UnwrapContext, E : IDiscordObject, R : DiscordResponse<E, C>> Functor<G>.call(
-        ctx: C,
-        crossinline f: suspend RestClient.() -> Kind<G, R>
-    ) = callRaw { this.f() }.map { it.unwrap(ctx) }
+    ): R = (schedule as Schedule<Throwable, R>).retry { this.f() }
 
     suspend inline fun <E : IDiscordObject, reified R : DiscordResponse<E, UnwrapContext.EmptyContext>> call(
         crossinline f: suspend RestClient.() -> R
@@ -50,25 +43,6 @@ abstract class RestClient(
         crossinline f: suspend RestClient.() -> Unit
     ) = callRaw { this.f() }
 }
-
-suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.call(
-    FN: Functor<G>,
-    f: suspend RestClient.() -> Kind<G, R>
-) = FN.call(UnwrapContext.EmptyContext, f)
-
-suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> RestClient.call(
-    guildId: Snowflake,
-    FN: Functor<G>,
-    f: suspend RestClient.() -> Kind<G, R>
-) = FN.call(UnwrapContext.GuildContext(guildId), f)
-
-@OptIn(ExperimentalTypeInference::class)
-@OverloadResolutionByLambdaReturnType
-suspend fun <G, E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.call(
-    guildId: Snowflake?,
-    FN: Functor<G>,
-    f: suspend RestClient.() -> Kind<G, R>
-) = FN.call(UnwrapContext.PartialGuildContext(guildId), f)
 
 fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.EmptyContext>> RestClient.flow(
     f: suspend RestClient.() -> Iterable<R>

@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import io.ktor.client.*
 import io.ktor.client.request.*
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -10,7 +10,7 @@ import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.entity.ICustomEmoji
 
 class EmojiServiceImpl(private val ktor: HttpClient, private val discordApiUrl: String) : EmojiService {
-    override suspend fun getGuildEmojis(id: Snowflake): ListK<EmojiResponse<ICustomEmoji>> =
+    override suspend fun getGuildEmojis(id: Snowflake): List<EmojiResponse<ICustomEmoji>> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/emojis")
 
     override suspend fun getGuildEmoji(guildId: Snowflake, emojiId: Snowflake): EmojiResponse<ICustomEmoji> =

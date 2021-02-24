@@ -1,16 +1,14 @@
 package org.tesserakt.diskordin.core.entity
 
-import arrow.core.ForId
-import arrow.core.ListK
-import arrow.fx.ForIO
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import org.tesserakt.diskordin.core.data.DeferredIdentified
+import org.tesserakt.diskordin.core.data.EagerIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import org.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 
 interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder> {
-    val channel: IdentifiedF<ForIO, IMessageChannel>
-    val author: IdentifiedF<ForId, IUser>?
+    val channel: DeferredIdentified<IMessageChannel>
+    val author: EagerIdentified<IUser>?
     val content: String
     val isTTS: Boolean
     val attachments: List<IAttachment>?
@@ -23,7 +21,7 @@ interface IMessage : IEntity, IDeletable, IEditable<IMessage, MessageEditBuilder
     suspend fun deleteReaction(emoji: IEmoji, user: IUser)
     suspend fun deleteReaction(emoji: IEmoji, userId: Snowflake)
     suspend fun deleteAllReactions(emoji: IEmoji)
-    suspend fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): ListK<IUser>
+    suspend fun reactedUsers(emoji: IEmoji, builder: ReactedUsersQuery.() -> Unit): List<IUser>
     suspend fun deleteAllReactions()
     suspend fun crosspostToFollowers(): IMessage?
 }

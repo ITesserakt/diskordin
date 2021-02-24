@@ -1,21 +1,19 @@
 package org.tesserakt.diskordin.core.data.event.message.reaction
 
-import arrow.fx.ForIO
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.event.IUserEvent
 import org.tesserakt.diskordin.core.data.event.channel.IChannelEvent
 import org.tesserakt.diskordin.core.data.event.message.IMessageEvent
-import org.tesserakt.diskordin.core.data.id
-import org.tesserakt.diskordin.core.data.identify
-import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.IMessageChannel
+import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.json.events.Reaction
 
-class ReactionRemoveEvent(raw: Reaction) : IMessageEvent<ForIO>, IUserEvent<ForIO>, IChannelEvent<ForIO> {
-    override val user = raw.userId.identify<IUser> { client.getUser(it) }
-    override val channel = raw.channelId.identify<IMessageChannel> { client.getChannel(it) as IMessageChannel }
-    val guild = raw.guildId?.identify<IGuild> { client.getGuild(it) }
-    override val message = raw.messageId.identify<IMessage> { id ->
+class ReactionRemoveEvent(raw: Reaction) : IMessageEvent.Deferred, IUserEvent.Deferred, IChannelEvent.Deferred {
+    override val user = raw.userId deferred { client.getUser(it) }
+    override val channel = raw.channelId deferred { client.getChannel(it) as IMessageChannel }
+    val guild = raw.guildId?.deferred { client.getGuild(it) }
+    override val message = raw.messageId deferred { id ->
         channel().cachedMessages.first { it.id == id }
     }
     val emoji = raw.emoji.unwrap(guild?.id)

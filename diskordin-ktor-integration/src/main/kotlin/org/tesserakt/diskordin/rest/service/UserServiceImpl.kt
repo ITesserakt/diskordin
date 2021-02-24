@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import io.ktor.client.*
 import io.ktor.client.request.*
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -26,14 +26,14 @@ class UserServiceImpl(private val ktor: HttpClient, private val discordApiUrl: S
             body = request
         }
 
-    override suspend fun getCurrentUserGuilds(query: Query): ListK<UserGuildResponse> =
+    override suspend fun getCurrentUserGuilds(query: Query): List<UserGuildResponse> =
         ktor.get("$discordApiUrl/api/v6/users/@me/guilds") {
             parameters(query)
         }
 
     override suspend fun leaveGuild(id: Snowflake): Unit = ktor.delete("$discordApiUrl/api/v6/users/@me/guilds/$id")
 
-    override suspend fun getUserDMs(): ListK<ChannelResponse<IPrivateChannel>> =
+    override suspend fun getUserDMs(): List<ChannelResponse<IPrivateChannel>> =
         ktor.get("$discordApiUrl/api/v6/users/@me/channels")
 
     override suspend fun joinToDM(request: DMCreateRequest): ChannelResponse<IPrivateChannel> =
@@ -41,6 +41,6 @@ class UserServiceImpl(private val ktor: HttpClient, private val discordApiUrl: S
             body = request
         }
 
-    override suspend fun getCurrentUserConnections(): ListK<ConnectionResponse> =
+    override suspend fun getCurrentUserConnections(): List<ConnectionResponse> =
         ktor.get("$discordApiUrl/api/v6/users/@me/connections")
 }

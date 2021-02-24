@@ -1,9 +1,6 @@
 package org.tesserakt.diskordin.commands
 
-import arrow.Kind
-import arrow.core.*
-import arrow.core.extensions.either.traverse.traverse
-import arrow.core.extensions.validated.traverse.traverse
+import arrow.core.NonEmptyList
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.nel.forExactly
 import io.kotest.assertions.arrow.nel.shouldHaveSize
@@ -30,12 +27,9 @@ class CommandBuilderTest : FunSpec({
             )
         }
 
-        val validated: Kind<Kind<ForValidated, NonEmptyList<ValidationError>>, CommandObject> =
-            CommandBuilder.Validator.accumulateErrors {
-                command.validate(this, Validated.traverse())
-            }
+        val validated = command.validate()
 
-        validated.fix() shouldBeValid { (it: CommandObject) ->
+        validated shouldBeValid { (it: CommandObject) ->
             it.name shouldBe "Test"
             it.hasFeature<HiddenFeature>().shouldBeFalse()
             it.requiredFeatures shouldContainExactly setOf(
@@ -55,12 +49,9 @@ class CommandBuilderTest : FunSpec({
         }
 
         test("Errors should accumulate with Validated") {
-            val validated: Kind<Kind<ForValidated, NonEmptyList<ValidationError>>, CommandObject> =
-                CommandBuilder.Validator.accumulateErrors {
-                    command.validate(this, Validated.traverse())
-                }
+            val validated = command.validate()
 
-            validated.fix() shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
+            validated shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
                 nel shouldHaveSize 2
                 nel.toList() shouldHaveSingleElement { it is ValidationError.BlankName }
                 nel.toList() shouldHaveSingleElement { it is AliasesFeature.DuplicatedAliases }
@@ -68,12 +59,9 @@ class CommandBuilderTest : FunSpec({
         }
 
         test("Fail fast with Either") {
-            val validated: Kind<Kind<ForEither, NonEmptyList<ValidationError>>, CommandObject> =
-                CommandBuilder.Validator.failFast {
-                    command.validate(this, Either.traverse())
-                }
+            val validated = command.validate().toEither()
 
-            validated.fix() shouldBeLeft { nel ->
+            validated shouldBeLeft { nel ->
                 nel shouldHaveSize 1
                 nel.forExactly(1) { it is ValidationError.BlankName }
             }

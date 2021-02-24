@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.ForId
 import kotlinx.coroutines.flow.first
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.AccountResponse
@@ -18,7 +17,7 @@ internal class Integration(
         guildService.syncIntegration(guild.id, id)
     }
 
-    override val guild = guildId.identify<IGuild> { client.getGuild(it) }
+    override val guild = guildId deferred { client.getGuild(it) }
 
     override suspend fun delete(reason: String?) = rest.effect {
         guildService.deleteIntegration(guild.id, id)
@@ -38,7 +37,7 @@ internal class Integration(
 
     override val syncing: Boolean = raw.syncing
 
-    override val role = raw.role_id.identify<IRole> { id ->
+    override val role: DeferredIdentified<IRole> = raw.role_id deferred { id ->
         guild().getRole(id)!!
     }
 
@@ -46,7 +45,7 @@ internal class Integration(
 
     override val expireGracePeriod: Int = raw.expire_grace_period
 
-    override val user: IdentifiedF<ForId, IUser> = raw.user.id identifyId { raw.user.unwrap() }
+    override val user: EagerIdentified<IUser> = raw.user.id eager { raw.user.unwrap() }
 
     override val account: IIntegration.IAccount = Account(raw.account)
 

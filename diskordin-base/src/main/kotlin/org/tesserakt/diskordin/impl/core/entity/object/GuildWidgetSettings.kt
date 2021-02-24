@@ -1,8 +1,8 @@
 package org.tesserakt.diskordin.impl.core.entity.`object`
 
-import org.tesserakt.diskordin.core.data.IdentifiedIO
+import org.tesserakt.diskordin.core.data.DeferredIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.json.response.GuildWidgetSettingsResponse
 import org.tesserakt.diskordin.core.entity.IGuildChannel
 import org.tesserakt.diskordin.core.entity.`object`.IGuildWidgetSettings
@@ -12,7 +12,7 @@ import org.tesserakt.diskordin.core.entity.client
 
 class GuildWidgetSettings(raw: GuildWidgetSettingsResponse) : IGuildWidgetSettings {
     override val isEnabled: Boolean = raw.enabled
-    override val channel: IdentifiedIO<IGuildChannel>? = raw.channelId?.identify<IGuildChannel> {
+    override val channel: DeferredIdentified<IGuildChannel>? = raw.channelId?.deferred {
         client.getChannel(it) as IGuildChannel
     }
 

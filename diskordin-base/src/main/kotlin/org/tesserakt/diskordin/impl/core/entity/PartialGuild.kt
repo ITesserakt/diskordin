@@ -1,10 +1,8 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.ForId
-import arrow.core.ListK
-import arrow.fx.ForIO
-import arrow.fx.IO
-import org.tesserakt.diskordin.core.data.IdentifiedF
+import kotlinx.coroutines.runBlocking
+import org.tesserakt.diskordin.core.data.DeferredIdentified
+import org.tesserakt.diskordin.core.data.LazyIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.UserGuildResponse
@@ -33,8 +31,8 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val explicitContentFilter: IGuild.ExplicitContentFilter by lazy { delegate.explicitContentFilter }
     override val mfaLevel: IGuild.MFALevel by lazy { delegate.mfaLevel }
     override val isWidgetEnabled: Boolean by lazy { delegate.isWidgetEnabled }
-    override val widgetChannel: IdentifiedF<ForId, IGuildChannel>? by lazy { delegate.widgetChannel }
-    override val systemChannel: IdentifiedF<ForId, IGuildChannel>? by lazy { delegate.systemChannel }
+    override val widgetChannel by lazy { delegate.widgetChannel }
+    override val systemChannel by lazy { delegate.systemChannel }
     override val maxMembers: Long? by lazy { delegate.maxMembers }
     override val maxPresences: Long by lazy { delegate.maxPresences }
     override val description: String? by lazy { delegate.description }
@@ -46,14 +44,14 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
     override val isFullyLoaded: Boolean = false
 
     private val delegate by lazy {
-        IO {
+        runBlocking {
             client.rest.call { guildService.getGuild(id) }
-        }.unsafeRunSync()
+        }
     }
 
     override val iconHash: String = raw.icon
     override val splashHash: String? by lazy { delegate.splashHash }
-    override val owner: IdentifiedF<ForIO, IMember> by lazy { delegate.owner }
+    override val owner: DeferredIdentified<IMember> by lazy { delegate.owner }
     override val afkChannel by lazy { delegate.afkChannel }
 
     @ExperimentalTime
@@ -87,7 +85,7 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
 
     override suspend fun kick(memberId: Snowflake, reason: String?) = delegate.kick(memberId, reason)
 
-    override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole> =
+    override suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): List<IRole> =
         delegate.moveRoles(*builder)
 
     override suspend fun getBan(userId: Snowflake): IBan = delegate.getBan(userId)
@@ -104,7 +102,7 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
 
     override suspend fun addIntegration(id: Snowflake, type: String) = delegate.addIntegration(id, type)
 
-    override fun getEveryoneRole() = delegate.getEveryoneRole()
+    override fun getEveryoneRole(): LazyIdentified<IRole> = delegate.getEveryoneRole()
 
     override fun <C : IGuildChannel> getChannel(channelId: Snowflake) = delegate.getChannel<C>(channelId)
 
@@ -124,7 +122,7 @@ internal class PartialGuild(override val raw: UserGuildResponse) : IGuild,
 
     override fun copy(changes: (UserGuildResponse) -> UserGuildResponse): IGuild = raw.let(changes).unwrap()
 
-    override suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember> = delegate.getMembers(query)
+    override suspend fun getMembers(query: MemberQuery.() -> Unit): List<IMember> = delegate.getMembers(query)
 
     override suspend fun addRole(name: String, color: Color, builder: RoleCreateBuilder.() -> Unit): IRole =
         delegate.addRole(name, color, builder)

@@ -1,7 +1,5 @@
 package org.tesserakt.diskordin.commands
 
-import arrow.core.Validated
-import arrow.core.extensions.validated.traverse.traverse
 import arrow.core.getOrHandle
 import arrow.core.orNull
 import io.kotest.core.spec.style.FunSpec
@@ -34,14 +32,14 @@ class CommandRegistryTest : FunSpec() {
             val commands = client.context[Commands]
             commands.shouldNotBeNull()
 
-            commands.registry.extract().shouldBeEmpty()
+            commands.registry.value().shouldBeEmpty()
         }
 
         context("Non-empty registry") {
             lateinit var first: CommandObject
             lateinit var second: CommandObject
 
-            val registry = CommandRegistry(CommandBuilder.Validator.AccumulateErrors, Validated.traverse()) {
+            val registry = CommandRegistry {
                 first = command {
                     +name("Test 1")
                 }.orNull()!!

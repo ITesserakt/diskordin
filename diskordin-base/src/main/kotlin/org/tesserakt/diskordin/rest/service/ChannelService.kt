@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.*
 import org.tesserakt.diskordin.core.data.json.response.*
@@ -29,7 +28,7 @@ interface ChannelService {
     suspend fun getMessages(
         id: Snowflake,
         query: Query
-    ): ListK<MessageResponse>
+    ): List<MessageResponse>
 
     suspend fun getMessage(
         channelId: Snowflake,
@@ -69,7 +68,7 @@ interface ChannelService {
         request: FollowRequest
     ): FollowedChannelResponse
 
-    suspend fun getPinnedMessages(id: Snowflake): ListK<MessageResponse>
+    suspend fun getPinnedMessages(id: Snowflake): List<MessageResponse>
 
     suspend fun pinMessage(
         channelId: Snowflake,
@@ -105,7 +104,7 @@ interface ChannelService {
         messageId: Snowflake,
         emoji: String,
         query: Query
-    ): ListK<UserResponse<IUser>>
+    ): List<UserResponse<IUser>>
 
     suspend fun removeAllReactions(
         channelId: Snowflake,
@@ -118,7 +117,7 @@ interface ChannelService {
         emoji: String
     )
 
-    suspend fun getChannelInvites(id: Snowflake): ListK<InviteResponse<IInvite>>
+    suspend fun getChannelInvites(id: Snowflake): List<InviteResponse<IInvite>>
 
     suspend fun createChannelInvite(
         id: Snowflake,

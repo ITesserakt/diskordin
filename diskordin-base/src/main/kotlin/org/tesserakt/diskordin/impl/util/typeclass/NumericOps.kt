@@ -2,12 +2,10 @@
 
 package org.tesserakt.diskordin.impl.util.typeclass
 
-import arrow.core.Ordering
-import arrow.core.extensions.*
 import org.tesserakt.diskordin.util.typeclass.Numeric
 import java.math.BigDecimal
 
-interface IntNumeric : Numeric<Int>, IntOrder {
+interface IntNumeric : Numeric<Int> {
     override fun Int.toInt(): Int = this
     override fun Int.toLong(): Long = this.toLong()
     override fun Int.toDouble(): Double = this.toDouble()
@@ -24,9 +22,11 @@ interface IntNumeric : Numeric<Int>, IntOrder {
 
     override val maxValue get() = Int.MAX_VALUE
     override val minValue get() = Int.MIN_VALUE
+
+    override fun Int.compareTo(other: Int): Int = compareTo(other)
 }
 
-interface LongNumeric : Numeric<Long>, LongOrder {
+interface LongNumeric : Numeric<Long> {
     override fun Long.toInt(): Int = this.toInt()
     override fun Long.toLong(): Long = this
     override fun Long.toDouble(): Double = this.toDouble()
@@ -43,9 +43,11 @@ interface LongNumeric : Numeric<Long>, LongOrder {
 
     override val maxValue get() = Long.MAX_VALUE
     override val minValue get() = Long.MIN_VALUE
+
+    override fun Long.compareTo(other: Long): Int = compareTo(other)
 }
 
-interface FloatNumeric : Numeric<Float>, FloatOrder {
+interface FloatNumeric : Numeric<Float> {
     override fun Float.toInt(): Int = this.toInt()
     override fun Float.toLong(): Long = this.toLong()
     override fun Float.toDouble(): Double = this.toDouble()
@@ -62,9 +64,11 @@ interface FloatNumeric : Numeric<Float>, FloatOrder {
 
     override val maxValue get() = Float.MAX_VALUE
     override val minValue get() = Float.MIN_VALUE
+
+    override fun Float.compareTo(other: Float): Int = compareTo(other)
 }
 
-interface DoubleNumeric : Numeric<Double>, DoubleOrder {
+interface DoubleNumeric : Numeric<Double> {
     override fun Double.toInt(): Int = this.toInt()
     override fun Double.toLong(): Long = this.toLong()
     override fun Double.toDouble(): Double = this
@@ -81,9 +85,11 @@ interface DoubleNumeric : Numeric<Double>, DoubleOrder {
 
     override val maxValue get() = Double.MAX_VALUE
     override val minValue get() = Double.MIN_VALUE
+
+    override fun Double.compareTo(other: Double): Int = compareTo(other)
 }
 
-interface ShortNumeric : Numeric<Short>, ShortOrder {
+interface ShortNumeric : Numeric<Short> {
     override fun Short.toInt() = toInt()
     override fun Short.toLong(): Long = toLong()
     override fun Short.toDouble(): Double = toDouble()
@@ -100,9 +106,11 @@ interface ShortNumeric : Numeric<Short>, ShortOrder {
 
     override val maxValue get() = Short.MAX_VALUE
     override val minValue get() = Short.MIN_VALUE
+
+    override fun Short.compareTo(other: Short): Int = compareTo(other)
 }
 
-interface ByteNumeric : Numeric<Byte>, ByteOrder {
+interface ByteNumeric : Numeric<Byte> {
     override fun Byte.toInt(): Int = toInt()
     override fun Byte.toLong(): Long = toLong()
     override fun Byte.toDouble(): Double = toDouble()
@@ -119,6 +127,8 @@ interface ByteNumeric : Numeric<Byte>, ByteOrder {
 
     override val maxValue get() = Byte.MAX_VALUE
     override val minValue get() = Byte.MIN_VALUE
+
+    override fun Byte.compareTo(other: Byte): Int = compareTo(other)
 }
 
 interface BigDecimalNumeric : Numeric<BigDecimal> {
@@ -147,10 +157,10 @@ interface BigDecimalNumeric : Numeric<BigDecimal> {
         else -> toBigDecimal()
     }
 
-    override fun BigDecimal.compare(b: BigDecimal): Ordering = Ordering.fromInt(this.compareTo(b))
-
     override val maxValue: BigDecimal get() = BigDecimal(10).pow(1024) //does not maximum, but enough
     override val minValue get() = -maxValue
+
+    override fun BigDecimal.compareTo(other: BigDecimal): Int = compareTo(other)
 }
 
 private val int = object : IntNumeric {}

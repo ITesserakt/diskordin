@@ -1,10 +1,5 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.ForId
-import arrow.core.ListK
-import arrow.core.extensions.listk.functor.functor
-import arrow.core.fix
-import arrow.fx.ForIO
 import org.tesserakt.diskordin.core.data.*
 import org.tesserakt.diskordin.core.data.json.response.MessageResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -14,7 +9,6 @@ import org.tesserakt.diskordin.core.entity.builder.MessageEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.query.ReactedUsersQuery
 import org.tesserakt.diskordin.core.entity.query.query
-import org.tesserakt.diskordin.rest.call
 
 internal class Message(override val raw: MessageResponse) : IMessage,
     ICacheable<IMessage, UnwrapContext.EmptyContext, MessageResponse> {
@@ -37,9 +31,9 @@ internal class Message(override val raw: MessageResponse) : IMessage,
     override suspend fun reactedUsers(
         emoji: IEmoji,
         builder: ReactedUsersQuery.() -> Unit
-    ) = rest.call(ListK.functor()) {
+    ) = rest.callRaw {
         channelService.getReactions(channel.id, id, emoji.name, builder.query(::ReactedUsersQuery))
-    }.fix()
+    }.map { it.unwrap() }
 
     override suspend fun crosspostToFollowers(): IMessage? =
         if (channel() is IAnnouncementChannel) (channel() as IAnnouncementChannel).crosspostToFollowers(id)
@@ -57,13 +51,11 @@ internal class Message(override val raw: MessageResponse) : IMessage,
         channelService.deleteMessage(channel.id, id, reason)
     }
 
-    override val channel: IdentifiedF<ForIO, IMessageChannel> = raw.channel_id.identify<IMessageChannel> {
+    override val channel: DeferredIdentified<IMessageChannel> = raw.channel_id.deferred {
         client.getChannel(it) as IMessageChannel
     }
 
-    override val author: IdentifiedF<ForId, IUser>? = raw.author?.id?.identifyId {
-        raw.author.unwrap()
-    }
+    override val author: EagerIdentified<IUser>? = raw.author?.unwrap()?.identified()
 
     override val content: String = raw.content
 

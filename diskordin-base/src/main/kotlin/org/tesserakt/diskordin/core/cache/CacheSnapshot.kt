@@ -1,15 +1,11 @@
 package org.tesserakt.diskordin.core.cache
 
-import arrow.Kind
-import arrow.core.*
-import arrow.core.extensions.map.foldable.find
-import arrow.core.extensions.mapk.foldable.foldable
-import arrow.core.extensions.mapk.functorFilter.functorFilter
-import arrow.typeclasses.Foldable
-import arrow.typeclasses.FunctorFilter
+import arrow.core.Either
+import arrow.core.filterMap
+import arrow.core.left
+import arrow.core.right
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
@@ -28,7 +24,7 @@ interface CacheSnapshot {
 
     fun getPrivateChannel(id: Snowflake): IPrivateChannel? = privateChannels[id]
     fun getUserPrivateChannel(userId: Snowflake): IPrivateChannel? =
-        (privateChannels + groupChannels).find { it.owner.id == userId }.orNull()
+        (privateChannels + groupChannels).values.firstOrNull { it.owner.id == userId }
 
     fun getGroupPrivateChannel(id: Snowflake): IGroupPrivateChannel? = groupChannels[id]
     fun getGuild(id: Snowflake): IGuild? = guilds[id]
@@ -63,8 +59,6 @@ interface CacheSnapshot {
     fun getMember(guildId: Snowflake, memberId: Snowflake) = guilds[guildId]?.members?.find { it.id == memberId }
 }
 
-fun <F, A, B> Kind<F, A>.firstMap(FF: FunctorFilter<F>, FL: Foldable<F>, f: (A) -> B?) = FF.run {
-    FL.run { filterMap { f(it).toOption() }.firstOrNone().orNull() }
-}
-
-fun <K, V, U> Map<K, V>.firstMap(f: (V) -> U?) = k().firstMap(MapK.functorFilter(), MapK.foldable(), f)
+fun <A, B> List<A>.firstMap(f: (A) -> B?) = mapNotNull(f).firstOrNull()
+fun <A, B> Set<A>.firstMap(f: (A) -> B?) = mapNotNull(f).firstOrNull()
+fun <K, V, U> Map<K, V>.firstMap(f: (V) -> U?) = filterMap(f).values.firstOrNull()

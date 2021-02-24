@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -36,7 +36,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
 
     override suspend fun triggerTyping(id: Snowflake): Unit = ktor.post("$discordApiURL/api/v6/channels/$id/typing")
 
-    override suspend fun getMessages(id: Snowflake, query: Query): ListK<MessageResponse> =
+    override suspend fun getMessages(id: Snowflake, query: Query): List<MessageResponse> =
         ktor.get("$discordApiURL/api/v6/channels/$id/messages") {
             parameters(query)
         }
@@ -75,7 +75,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
             body = request
         }
 
-    override suspend fun getPinnedMessages(id: Snowflake): ListK<MessageResponse> =
+    override suspend fun getPinnedMessages(id: Snowflake): List<MessageResponse> =
         ktor.get("$discordApiURL/api/v6/channels/{id}/pins")
 
     override suspend fun pinMessage(channelId: Snowflake, messageId: Snowflake): Unit =
@@ -103,7 +103,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
         messageId: Snowflake,
         emoji: String,
         query: Query
-    ): ListK<UserResponse<IUser>> =
+    ): List<UserResponse<IUser>> =
         ktor.get("$discordApiURL/api/v6/channels/$channelId/messages/$messageId/reactions/${emoji.encodeURLPath()}") {
             parameters(query)
         }
@@ -114,7 +114,7 @@ class ChannelServiceImpl(private val ktor: HttpClient, private val discordApiURL
     override suspend fun removeAllReactionsForEmoji(channelId: Snowflake, messageId: Snowflake, emoji: String): Unit =
         ktor.delete("$discordApiURL/api/v6/channels/$channelId/messages/$messageId/reactions/${emoji.encodeURLPath()}")
 
-    override suspend fun getChannelInvites(id: Snowflake): ListK<InviteResponse<IInvite>> =
+    override suspend fun getChannelInvites(id: Snowflake): List<InviteResponse<IInvite>> =
         ktor.get("$discordApiURL/api/v6/channels/$id/invites")
 
     override suspend fun createChannelInvite(

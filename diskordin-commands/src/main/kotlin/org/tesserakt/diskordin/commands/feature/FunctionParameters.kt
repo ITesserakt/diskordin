@@ -1,8 +1,8 @@
 package org.tesserakt.diskordin.commands.feature
 
-import arrow.core.Nel
-import arrow.core.nel
-import arrow.typeclasses.ApplicativeError
+import arrow.core.ValidatedNel
+import arrow.core.invalidNel
+import arrow.core.validNel
 import io.github.classgraph.ClassRefTypeSignature
 import io.github.classgraph.MethodParameterInfo
 import org.tesserakt.diskordin.commands.ValidationError
@@ -27,15 +27,15 @@ data class FunctionParameters(
     private fun ClassRefTypeSignature.isSuperClassOf(type: ClassRefTypeSignature) =
         loadClass().isAssignableFrom(type.loadClass())
 
-    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>) = AE.run {
+    override fun validate(): ValidatedNel<ValidationError, FunctionParameters> {
         val contextParams = _parameters.map { it.typeSignatureOrTypeDescriptor }
             .filterIsInstance<ClassRefTypeSignature>()
             .filter { it == _moduleContext || it.isSuperClassOf(_moduleContext) }
 
-        when (contextParams.size) {
-            1 -> this@FunctionParameters.just()
-            0 -> raiseError(MissedParameters(commandName, _moduleContext.toStringWithSimpleNames(), parameters).nel())
-            else -> raiseError(DuplicatedParameters(commandName, parameters).nel())
+        return when (contextParams.size) {
+            1 -> this@FunctionParameters.validNel()
+            0 -> MissedParameters(commandName, _moduleContext.toStringWithSimpleNames(), parameters).invalidNel()
+            else -> DuplicatedParameters(commandName, parameters).invalidNel()
         }
     }
 

@@ -2,8 +2,10 @@ package org.tesserakt.diskordin.core.cache
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import mu.KotlinLogging
 import org.tesserakt.diskordin.core.cache.CacheSnapshotBuilder.Companion.mutate
 import org.tesserakt.diskordin.core.cache.handler.CacheDeleter
+import org.tesserakt.diskordin.core.cache.handler.CacheHandler
 import org.tesserakt.diskordin.core.cache.handler.CacheUpdater
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.EntitySifter
@@ -20,11 +22,8 @@ import org.tesserakt.diskordin.core.data.event.message.MessageBulkDeleteEvent
 import org.tesserakt.diskordin.core.data.event.message.MessageCreateEvent
 import org.tesserakt.diskordin.core.data.event.message.MessageDeleteEvent
 import org.tesserakt.diskordin.core.data.event.message.MessageUpdateEvent
-import org.tesserakt.diskordin.core.data.id
-import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
-import org.tesserakt.diskordin.gateway.json.events.UnavailableGuild
 import kotlin.reflect.KClass
 
 internal class CacheProcessor(
@@ -32,19 +31,29 @@ internal class CacheProcessor(
     private val deleters: Map<KClass<*>, CacheDeleter<*>>,
     private val sifter: EntitySifter
 ) : EventInterceptor(), BootstrapContext.ExtensionContext {
+    private val logger = KotlinLogging.logger { }
     private val _state: MutableStateFlow<CacheSnapshot> = MutableStateFlow(MemoryCacheSnapshot.empty())
     val state = _state.asStateFlow()
 
+    private fun <T : Any, H : CacheHandler<*>> findHandler(handlers: Map<KClass<*>, H>, clazz: KClass<T>) =
+        handlers.filterKeys { it.java.isAssignableFrom(clazz.java) }.let {
+            if (it.values.isEmpty()) {
+                logger.error("No cache handler found for $clazz class")
+                return null
+            }
+
+            it.values.firstOrNull()
+        }
+
     @Suppress("UNCHECKED_CAST")
     fun <T : IDiscordObject> updateData(data: T) {
-        val handler =
-            updaters.filterKeys { it.java.isAssignableFrom(data::class.java) }.values.first() as CacheUpdater<T>
+        val handler = findHandler(updaters, data::class) as? CacheUpdater<T> ?: return
         if (sifter.isAllowed(data)) _state.value = handler.handleAndGet(state.value.mutate(), data)
     }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : IEntity> deleteData(id: Snowflake) {
-        val handler = deleters.filterKeys { it.java.isAssignableFrom(T::class.java) }.values.first() as CacheDeleter<T>
+        val handler = findHandler(deleters, T::class) as? CacheDeleter<T> ?: return
 
         _state.value = state.value.mutate().also {
             handler.delete(it, id)
@@ -94,7 +103,9 @@ internal class CacheProcessor(
     }
 
     override suspend fun Context.guildDelete(event: GuildDeleteEvent) {
-        if (event.isUnavailable) updateData(UnavailableGuild(event.guildId, false))
+        if (event.isRemovedOrLeave || event.guildId == null) return
+
+        //if (event.isUnavailable) updateData(UnavailableGuild(event.guildId, false))
         deleteData<IGuild>(event.guildId)
     }
 

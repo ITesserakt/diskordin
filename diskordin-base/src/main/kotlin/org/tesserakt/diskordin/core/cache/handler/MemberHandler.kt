@@ -1,8 +1,6 @@
 package org.tesserakt.diskordin.core.cache.handler
 
-import arrow.core.extensions.map.foldable.firstOption
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.data.json.response.GuildMemberResponse
 import org.tesserakt.diskordin.core.data.json.response.JoinMemberResponse
 import org.tesserakt.diskordin.core.entity.IEntity
@@ -40,7 +38,7 @@ internal val MemberUpdater = CacheUpdater<IMember> { builder, data ->
 }
 
 internal val MemberDeleter = CacheDeleter<IMember> { builder, data ->
-    val guild = builder.guilds.firstOption { data in it.members.map(IEntity::id) }.orNull() ?: return@CacheDeleter
+    val guild = builder.guilds.values.firstOrNull { data in it.members.map(IEntity::id) } ?: return@CacheDeleter
     val newGuild = when (guild) {
         is Guild -> guild.copy {
             it.copy(members = guild.raw.members.filter { member -> member.user.id == data }.toSet())

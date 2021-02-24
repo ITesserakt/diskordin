@@ -2,7 +2,6 @@
 
 package org.tesserakt.diskordin.commands
 
-import arrow.typeclasses.Traverse
 import org.tesserakt.diskordin.commands.feature.HiddenFeature
 
 @RequiresOptIn("This statement should not be used. This is part of a private implementation")
@@ -16,12 +15,10 @@ abstract class CommandRegistry private constructor(private val allCommands: List
         val EMPTY: CommandRegistry = object : CommandRegistry(emptyList()), List<CommandObject> by emptyList() {}
 
         @OptIn(PrivateStatement::class)
-        operator fun <F> invoke(
-            validator: CommandBuilder.Validator<F>,
-            T: Traverse<F>,
-            f: RegisterScope<F>.() -> Unit
+        operator fun invoke(
+            f: RegisterScope.() -> Unit
         ): CommandRegistry {
-            val allCommands = RegisterScope(validator, T).apply(f).commands
+            val allCommands = RegisterScope().apply(f).commands
             val publicCommands = allCommands.filter { !it.hasFeature<HiddenFeature>() }
             return object : CommandRegistry(allCommands), List<CommandObject> by publicCommands {}
         }
@@ -32,7 +29,7 @@ abstract class CommandRegistry private constructor(private val allCommands: List
         }
     }
 
-    class RegisterScope<F>(private val validator: CommandBuilder.Validator<F>, private val T: Traverse<F>) {
+    class RegisterScope {
         @PrivateStatement
         internal val commands: MutableList<CommandObject> = mutableListOf()
 
@@ -41,9 +38,9 @@ abstract class CommandRegistry private constructor(private val allCommands: List
             commands += this
         }
 
-        fun RegisterScope<F>.command(f: CommandBuilder.() -> Unit) =
-            CommandBuilder().apply(f).validate(validator, T)
+        fun RegisterScope.command(f: CommandBuilder.() -> Unit) =
+            CommandBuilder().apply(f).validate()
 
-        fun RegisterScope<F>.command(value: CommandBuilder) = value.validate(validator, T)
+        fun RegisterScope.command(value: CommandBuilder) = value.validate()
     }
 }

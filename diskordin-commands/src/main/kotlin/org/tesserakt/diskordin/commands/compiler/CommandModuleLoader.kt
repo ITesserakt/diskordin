@@ -1,19 +1,14 @@
 package org.tesserakt.diskordin.commands.compiler
 
-import arrow.core.NonEmptyList
-import arrow.core.Validated
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.nonemptylist.semigroup.semigroup
-import arrow.core.extensions.validated.applicative.applicative
-import arrow.core.extensions.validated.traverse.traverse
-import arrow.core.fix
+import arrow.core.nonEmptyList
+import arrow.core.sequenceValidated
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
+import arrow.typeclasses.Semigroup
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
 import io.github.classgraph.ScanResult
 import mu.KotlinLogging
-import org.tesserakt.diskordin.commands.CommandBuilder
 import org.tesserakt.diskordin.commands.CommandRegistry
 import org.tesserakt.diskordin.commands.compiler.CompilerExtension.Constants.IGNORE
 
@@ -47,8 +42,8 @@ class CommandModuleLoader(
         val modules = scan.commandModules().toList().filter { !it.hasAnnotation(IGNORE) }
         val compiled = modules.map { compiler.compileModule(it) }.flatten()
         val commands = compiled.map {
-            it.validate(CommandBuilder.Validator.AccumulateErrors, Validated.traverse())
-        }.sequence(Validated.applicative(NonEmptyList.semigroup())).fix().map { CommandRegistry(it.fix()) }
+            it.validate()
+        }.sequenceValidated(Semigroup.nonEmptyList()).map { CommandRegistry(it) }
 
         return CompilerSummary(modules.size, compiled.size, commands.toEither())
     }

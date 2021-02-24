@@ -2,14 +2,8 @@
 
 package org.tesserakt.diskordin.commands
 
-import arrow.Kind
 import arrow.core.*
-import arrow.core.extensions.either.applicativeError.applicativeError
-import arrow.core.extensions.list.traverse.traverse
-import arrow.core.extensions.nonemptylist.semigroup.semigroup
-import arrow.core.extensions.validated.applicativeError.applicativeError
-import arrow.typeclasses.ApplicativeError
-import arrow.typeclasses.Traverse
+import arrow.typeclasses.Semigroup
 import org.tesserakt.diskordin.commands.feature.Feature
 import org.tesserakt.diskordin.core.entity.builder.Name
 
@@ -28,34 +22,19 @@ class CommandBuilder {
     inline fun CommandBuilder.name(value: String) = Name(value)
     inline fun CommandBuilder.features(values: Set<Feature<*>>) = values
 
-    fun <V : Validator<F>, F> validate(validator: V, T: Traverse<F>) = validator.run {
-        mapN(
-            name.validateName(),
-            validateFeatures(T)
-        ) { (name, features) ->
-            CommandObject(name, features.toSet())
-        }
+    fun validate() = Validator.run {
+        Validated.mapN(Semigroup.nonEmptyList(), name.validateName(), validateFeatures(), ::CommandObject)
     }
 
-    sealed class Validator<F>(private val AE: ApplicativeError<F, Nel<ValidationError>>) :
-        ApplicativeError<F, Nel<ValidationError>> by AE {
+    object Validator {
+        @JvmStatic
         fun String.validateName() =
-            if (this.isBlank()) raiseError(ValidationError.BlankName.nel())
-            else just(this)
+            if (this.isBlank()) ValidationError.BlankName.invalidNel()
+            else this.validNel()
 
-        fun CommandBuilder.validateFeatures(T: Traverse<F>): Kind<F, ListK<Feature<*>>> = T.run {
-            features.map { it.validate(AE) }.traverse(AE, ::identity).map { it.fix() }
-        }
-
-        object AccumulateErrors :
-            Validator<ValidatedPartialOf<NonEmptyList<ValidationError>>>(Validated.applicativeError(NonEmptyList.semigroup()))
-
-        object FailFast : Validator<EitherPartialOf<NonEmptyList<ValidationError>>>(Either.applicativeError())
-
-        companion object {
-            fun <A> accumulateErrors(f: AccumulateErrors.() -> A) = AccumulateErrors.f()
-            fun <A> failFast(f: FailFast.() -> A) = FailFast.f()
-        }
+        @JvmStatic
+        fun CommandBuilder.validateFeatures() =
+            features.map { it.validate() }.sequenceValidated(Semigroup.nonEmptyList()).map { it.toSet() }
     }
 }
 

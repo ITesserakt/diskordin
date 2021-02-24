@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.commands.feature
 
-import arrow.Kind
-import arrow.core.Nel
-import arrow.core.nel
-import arrow.typeclasses.ApplicativeError
+import arrow.core.ValidatedNel
+import arrow.core.invalidNel
+import arrow.core.validNel
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.commands.CommandModule
 import org.tesserakt.diskordin.commands.ValidationError
@@ -18,11 +17,10 @@ data class ModuleInstanceFeature(
     data class TypeNonEquality(val expected: KClass<*>, val actual: Class<*>) :
         ValidationError("Expected ${expected.qualifiedName ?: "<local class>"} as module type but got ${actual.name}")
 
-    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, ModuleInstanceFeature> = AE.run {
-        if (!moduleType.isSubclassOf(instance::class)) raiseError(
-            TypeNonEquality(moduleType, instance::class.java).nel()
-        )
-        else just(this@ModuleInstanceFeature)
+    override fun validate(): ValidatedNel<ValidationError, ModuleInstanceFeature> {
+        return if (!moduleType.isSubclassOf(instance::class))
+            TypeNonEquality(moduleType, instance::class.java).invalidNel()
+        else validNel()
     }
 
     @Suppress("UNCHECKED_CAST")

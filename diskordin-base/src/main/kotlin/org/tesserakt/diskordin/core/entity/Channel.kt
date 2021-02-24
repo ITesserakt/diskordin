@@ -4,14 +4,12 @@
 package org.tesserakt.diskordin.core.entity
 
 import arrow.core.*
-import arrow.core.extensions.listk.functor.functor
-import arrow.core.extensions.listk.monad.flatTap
 import kotlinx.coroutines.flow.Flow
 import org.tesserakt.diskordin.core.cache.CacheProcessor
-import org.tesserakt.diskordin.core.data.IdentifiedIO
+import org.tesserakt.diskordin.core.data.DeferredIdentified
 import org.tesserakt.diskordin.core.data.Permissions
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
+import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
 import org.tesserakt.diskordin.core.entity.`object`.IImage
 import org.tesserakt.diskordin.core.entity.`object`.IInvite
@@ -19,7 +17,6 @@ import org.tesserakt.diskordin.core.entity.`object`.IPermissionOverwrite
 import org.tesserakt.diskordin.core.entity.builder.*
 import org.tesserakt.diskordin.core.entity.query.MessagesQuery
 import org.tesserakt.diskordin.core.entity.query.query
-import org.tesserakt.diskordin.rest.call
 import kotlin.time.ExperimentalTime
 
 interface IChannel : IMentioned, IDeletable {
@@ -89,7 +86,7 @@ interface IAnnouncementChannel : IGuildChannel, IMessageChannel {
 }
 
 interface IPrivateChannel : IMessageChannel, IAudioChannel {
-    val owner: IdentifiedIO<IUser>
+    val owner: DeferredIdentified<IUser>
     val recipient: NonEmptyList<IUser>
 }
 
@@ -104,9 +101,9 @@ interface IMessageChannel : IChannel {
         channelService.triggerTyping(id)
     }
 
-    suspend fun getMessages(query: MessagesQuery.() -> Unit) = rest.call(ListK.functor()) {
+    suspend fun getMessages(query: MessagesQuery.() -> Unit) = rest.callRaw {
         channelService.getMessages(id, query.query(::MessagesQuery))
-    }.flatTap { client.context[CacheProcessor].updateData(it); ListK(emptyList<Nothing>()) }
+    }.map { it.unwrap() }.onEach { client.context[CacheProcessor].updateData(it) }
 
     suspend fun getMessage(messageId: Snowflake) = client.getMessage(id, messageId)
 
@@ -124,7 +121,7 @@ interface IMessageChannel : IChannel {
         content: String,
         embed: EmbedCreateBuilder.() -> Unit,
         builder: MessageCreateBuilder.() -> Unit = {}
-    ) = createMessage((content toT EmbedCreateBuilder().apply(embed)).bothIor(), builder)
+    ) = createMessage((content to EmbedCreateBuilder().apply(embed)).bothIor(), builder)
 
     suspend fun deleteMessages(builder: BulkDeleteBuilder.() -> Unit) = rest.effect {
         channelService.bulkDeleteMessages(id, builder.build(::BulkDeleteBuilder))

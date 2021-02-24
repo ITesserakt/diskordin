@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.cache.handler
 
-import org.tesserakt.diskordin.core.data.id
 import org.tesserakt.diskordin.core.entity.IRole
 import org.tesserakt.diskordin.impl.core.entity.Guild
 import org.tesserakt.diskordin.impl.core.entity.PartialGuild

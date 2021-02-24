@@ -2,10 +2,6 @@
 
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.core.Id
-import arrow.core.extensions.id.applicative.just
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.UserResponse
@@ -16,7 +12,6 @@ import org.tesserakt.diskordin.core.entity.builder.UserEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.query.UserGuildsQuery
 import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.rest.flow
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
@@ -48,9 +43,9 @@ abstract class User(raw: UserResponse<IUser>) : IUser {
     final override val id: Snowflake = raw.id
 
     @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-    override suspend fun asMember(guildId: Snowflake): IMember = rest.call(guildId, Id.functor()) {
-        guildService.getMember(guildId, id).just()
-    }.extract()
+    override suspend fun asMember(guildId: Snowflake): IMember = rest.callRaw {
+        guildService.getMember(guildId, id)
+    }.unwrap(guildId)
 
     override val mention: String = "<@${id}>"
 }

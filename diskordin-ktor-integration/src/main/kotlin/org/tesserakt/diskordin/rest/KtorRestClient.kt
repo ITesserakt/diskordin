@@ -10,7 +10,7 @@ class KtorRestClient(
     private val discordApiUrl: String,
     schedule: Schedule<*, *>
 ) : RestClient(schedule) {
-    private val ktor by lazy { _ktor.memoize().extract() }
+    private val ktor by lazy { _ktor.memoize().value() }
 
     private val _channelService: ChannelService by lazy { ChannelServiceImpl(ktor, discordApiUrl) }
     private val _gatewayService: GatewayService by lazy { GatewayServiceImpl(ktor, discordApiUrl) }

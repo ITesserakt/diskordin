@@ -1,9 +1,5 @@
-@file:Suppress("DEPRECATION")
-
 package org.tesserakt.diskordin.util
 
-import arrow.core.Id
-import arrow.core.ListK
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -12,14 +8,14 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.gateway.json.Payload
-import org.tesserakt.diskordin.util.typeAdapter.*
+import org.tesserakt.diskordin.util.typeAdapter.InstantTypeAdapter
+import org.tesserakt.diskordin.util.typeAdapter.PayloadSerializer
+import org.tesserakt.diskordin.util.typeAdapter.SnowflakeTypeAdapter
 
 val gsonBuilder: GsonBuilder.() -> Unit = {
     setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
     registerTypeAdapter(Snowflake::class.java, SnowflakeTypeAdapter())
     registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
-    registerTypeAdapter(ListK::class.java, ListKTypeAdapter())
-    registerTypeAdapter(Id::class.java, IdTypeAdapter())
     registerTypeAdapter(Payload::class.java, PayloadSerializer())
     setPrettyPrinting()
     serializeNulls()

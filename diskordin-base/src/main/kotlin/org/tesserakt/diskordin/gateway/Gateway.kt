@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.extensions.list.functor.fproduct
+import arrow.core.fproduct
 import arrow.fx.coroutines.parTraverse
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
@@ -48,7 +48,7 @@ class Gateway(
             val (lifecycle, events) = it
             val shard = Shard(
                 shardContext.token,
-                Shard.Data(index, shardContext.shardCount.extract()),
+                Shard.Data(index, shardContext.shardCount.value()),
                 lifecycle
             )
 

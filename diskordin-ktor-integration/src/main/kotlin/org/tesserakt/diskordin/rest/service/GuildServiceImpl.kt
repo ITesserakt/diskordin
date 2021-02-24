@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import io.ktor.client.*
 import io.ktor.client.request.*
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -29,10 +29,10 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
             body = request
         }
 
-    override suspend fun getInvites(id: Snowflake): ListK<InviteResponse<IGuildInvite>> =
+    override suspend fun getInvites(id: Snowflake): List<InviteResponse<IGuildInvite>> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/invites")
 
-    override suspend fun getGuildChannels(id: Snowflake): ListK<ChannelResponse<IGuildChannel>> =
+    override suspend fun getGuildChannels(id: Snowflake): List<ChannelResponse<IGuildChannel>> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/channels")
 
     override suspend fun createGuildChannel(
@@ -52,7 +52,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
     override suspend fun getMember(guildId: Snowflake, userId: Snowflake): GuildMemberResponse =
         ktor.get("$discordApiUrl/api/v6/guilds/$guildId/members/$userId")
 
-    override suspend fun getMembers(id: Snowflake, query: Query): ListK<GuildMemberResponse> =
+    override suspend fun getMembers(id: Snowflake, query: Query): List<GuildMemberResponse> =
         ktor.get("$discordApiUrl/api/v6/guilds/{guildId}/members") {
             parameters(query)
         }
@@ -100,7 +100,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
             reasonHeader(reason)
         }
 
-    override suspend fun getRoles(id: Snowflake): ListK<RoleResponse> =
+    override suspend fun getRoles(id: Snowflake): List<RoleResponse> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/roles")
 
     override suspend fun createRole(id: Snowflake, request: GuildRoleCreateRequest, reason: String?): RoleResponse =
@@ -109,7 +109,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
             reasonHeader(reason)
         }
 
-    override suspend fun editRolePositions(id: Snowflake, request: Array<PositionEditRequest>): ListK<RoleResponse> =
+    override suspend fun editRolePositions(id: Snowflake, request: Array<PositionEditRequest>): List<RoleResponse> =
         ktor.patch("$discordApiUrl/api/v6/guilds/$id/roles") {
             body = request
         }
@@ -129,7 +129,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
             reasonHeader(reason)
         }
 
-    override suspend fun getBans(id: Snowflake): ListK<BanResponse> = ktor.get("$discordApiUrl/api/v6/guilds/$id/bans")
+    override suspend fun getBans(id: Snowflake): List<BanResponse> = ktor.get("$discordApiUrl/api/v6/guilds/$id/bans")
 
     override suspend fun getBan(guildId: Snowflake, userId: Snowflake): BanResponse =
         ktor.get("$discordApiUrl/api/v6/guilds/$guildId/bans/$userId")
@@ -154,7 +154,7 @@ class GuildServiceImpl(private val ktor: HttpClient, private val discordApiUrl: 
             reasonHeader(reason)
         }
 
-    override suspend fun getIntegrations(id: Snowflake): ListK<GuildIntegrationResponse> =
+    override suspend fun getIntegrations(id: Snowflake): List<GuildIntegrationResponse> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/integrations")
 
     override suspend fun createIntegration(id: Snowflake, request: IntegrationCreateRequest): Unit =

@@ -1,6 +1,8 @@
 package org.tesserakt.diskordin.core.data
 
-import arrow.typeclasses.ApplicativeError
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.LessThenDiscordEpoch
 import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
@@ -47,15 +49,14 @@ fun ULong.asSnowflake(): Snowflake {
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
-fun <F> String.asSnowflakeSafe(AE: ApplicativeError<F, Snowflake.ConstructionError>) = AE.run {
-    val stringToConvert = this@asSnowflakeSafe
+fun String.asSnowflakeEither(): Either<Snowflake.ConstructionError, Snowflake> {
+    val stringToConvert = this@asSnowflakeEither
 
     if (stringToConvert.toLongOrNull() == null)
-        NotNumber.raiseError()
-    else {
-        val raw = toULongOrNull()
-        if (raw == null || (raw.toLong() shr 22) <= 0)
-            LessThenDiscordEpoch.raiseError()
-        else asSnowflake().just()
-    }
+        return NotNumber.left()
+    val raw = toULongOrNull()
+    if (raw == null || (raw.toLong() shr 22) <= 0)
+        return LessThenDiscordEpoch.left()
+
+    return asSnowflake().right()
 }

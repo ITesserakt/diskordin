@@ -2,10 +2,12 @@ package org.tesserakt.diskordin.impl.core.entity
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.fx.ForIO
 import kotlinx.coroutines.flow.map
 import mu.KotlinLogging
-import org.tesserakt.diskordin.core.data.*
+import org.tesserakt.diskordin.core.data.DeferredIdentified
+import org.tesserakt.diskordin.core.data.Permissions
+import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.json.response.ChannelResponse
 import org.tesserakt.diskordin.core.data.json.response.ImageResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
@@ -50,7 +52,7 @@ internal sealed class GuildChannel(raw: ChannelResponse<IGuildChannel>) : Channe
 
     final override val parentCategory: Snowflake? = raw.parent_id
 
-    final override val guild = raw.guild_id!!.identify<IGuild> {
+    final override val guild = raw.guild_id!! deferred {
         client.getGuild(it)
     }
 
@@ -164,7 +166,7 @@ internal class AnnouncementChannel(override val raw: ChannelResponse<IAnnounceme
 internal class PrivateChannel(override val raw: ChannelResponse<IPrivateChannel>) : Channel(raw), IPrivateChannel,
     ICacheable<IPrivateChannel, UnwrapContext.EmptyContext, ChannelResponse<IPrivateChannel>> {
     override val recipient = NonEmptyList.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
-    override val owner: IdentifiedIO<IUser> = raw.owner_id?.identify<IUser> { client.getUser(it) } ?: client.self
+    override val owner: DeferredIdentified<IUser> = raw.owner_id?.deferred { client.getUser(it) } ?: client.self
 
     override fun toString(): String {
         return "PrivateChannel(recipient=$recipient)\n    ${super.toString()}"
@@ -183,7 +185,7 @@ internal class GroupPrivateChannel(override val raw: ChannelResponse<IGroupPriva
         return "GroupPrivateChannel(icon=$icon)\n   ${super.toString()}"
     }
 
-    override val owner: IdentifiedF<ForIO, IUser> = raw.owner_id?.identify<IUser> { client.getUser(it) } ?: client.self
+    override val owner = raw.owner_id?.deferred { client.getUser(it) } ?: client.self
     override val recipient: NonEmptyList<IUser> = Nel.fromListUnsafe(raw.recipients!!.map { it.unwrap() })
 
     override fun copy(changes: (ChannelResponse<IGroupPrivateChannel>) -> ChannelResponse<IGroupPrivateChannel>) =

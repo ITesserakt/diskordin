@@ -2,12 +2,9 @@
 
 package org.tesserakt.diskordin.core.entity
 
-import arrow.core.ForId
-import arrow.core.ListK
-import arrow.fx.ForIO
 import kotlinx.coroutines.flow.Flow
-import org.tesserakt.diskordin.core.data.IdentifiedF
-import org.tesserakt.diskordin.core.data.IdentifiedIO
+import org.tesserakt.diskordin.core.data.DeferredIdentified
+import org.tesserakt.diskordin.core.data.LazyIdentified
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.entity.`object`.IBan
 import org.tesserakt.diskordin.core.entity.`object`.IGuildInvite
@@ -27,8 +24,8 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     val afkChannelTimeout: Duration
     val iconHash: String?
     val splashHash: String?
-    val owner: IdentifiedF<ForIO, IMember>
-    val afkChannel: IdentifiedIO<IVoiceChannel>?
+    val owner: DeferredIdentified<IMember>
+    val afkChannel: DeferredIdentified<IVoiceChannel>?
     val verificationLevel: VerificationLevel
     val region: IRegion
     val isEmbedEnabled: Boolean
@@ -36,8 +33,8 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     val explicitContentFilter: ExplicitContentFilter
     val mfaLevel: MFALevel
     val isWidgetEnabled: Boolean
-    val widgetChannel: IdentifiedF<ForId, IGuildChannel>?
-    val systemChannel: IdentifiedF<ForId, IGuildChannel>?
+    val widgetChannel: LazyIdentified<IGuildChannel>?
+    val systemChannel: LazyIdentified<IGuildChannel>?
     val maxMembers: Long?
     val maxPresences: Long
     val description: String?
@@ -63,15 +60,15 @@ interface IGuild : IEntity, INamed, IEditable<IGuild, GuildEditBuilder> {
     suspend fun addMember(userId: Snowflake, accessToken: String, builder: MemberAddBuilder.() -> Unit): IMember
     suspend fun kick(member: IMember, reason: String?)
     suspend fun kick(memberId: Snowflake, reason: String?)
-    suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): ListK<IRole>
+    suspend fun moveRoles(vararg builder: Pair<Snowflake, Int>): List<IRole>
     suspend fun getBan(userId: Snowflake): IBan
     suspend fun ban(member: IMember, builder: BanQuery.() -> Unit)
-    suspend fun getMembers(query: MemberQuery.() -> Unit): ListK<IMember>
+    suspend fun getMembers(query: MemberQuery.() -> Unit): List<IMember>
     suspend fun ban(memberId: Snowflake, builder: BanQuery.() -> Unit)
     suspend fun pardon(userId: Snowflake, reason: String?)
     suspend fun getPruneCount(builder: PruneQuery.() -> Unit): Int
     suspend fun addIntegration(id: Snowflake, type: String)
-    fun getEveryoneRole(): IdentifiedF<ForId, IRole>
+    fun getEveryoneRole(): LazyIdentified<IRole>
     fun <C : IGuildChannel> getChannel(channelId: Snowflake): C
     suspend fun getWidget(): IGuildWidget
     suspend fun getVanityUrl(): IGuildInvite?

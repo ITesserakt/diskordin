@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.commands.feature
 
-import arrow.Kind
-import arrow.core.Nel
-import arrow.core.nel
-import arrow.typeclasses.ApplicativeError
+import arrow.core.ValidatedNel
+import arrow.core.invalidNel
+import arrow.core.validNel
 import org.tesserakt.diskordin.commands.ValidationError
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -21,11 +20,9 @@ data class ReturnType(
 
     val returnType = Unit::class
 
-    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, ReturnType> = AE.run {
-        when {
-            _returnType.isMarkedNullable -> raiseError(InvalidReturnType(commandName, _returnType).nel())
-            _returnType.classifier is KClass<*> && returnType.isSubclassOf(_returnType.classifier as KClass<*>) -> this@ReturnType.just()
-            else -> raiseError(UnresolvedType(_returnType).nel())
-        }
+    override fun validate(): ValidatedNel<ValidationError, ReturnType> = when {
+        _returnType.isMarkedNullable -> InvalidReturnType(commandName, _returnType).invalidNel()
+        _returnType.classifier is KClass<*> && returnType.isSubclassOf(_returnType.classifier as KClass<*>) -> validNel()
+        else -> UnresolvedType(_returnType).invalidNel()
     }
 }

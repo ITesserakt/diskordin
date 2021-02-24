@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.impl.core.entity
 
-import arrow.fx.ForIO
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.datetime.Instant
-import org.tesserakt.diskordin.core.data.*
+import org.tesserakt.diskordin.core.data.Snowflake
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.json.response.*
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.core.entity.builder.MemberEditBuilder
@@ -14,7 +14,7 @@ internal class Member<C : UnwrapContext> constructor(
     override val raw: MemberResponse<C>,
     guildId: Snowflake
 ) : User(raw.user), IMember, ICacheable<IMember, C, MemberResponse<C>> {
-    override val guild: IdentifiedF<ForIO, IGuild> = guildId.identify<IGuild> { client.getGuild(it) }
+    override val guild = guildId deferred { client.getGuild(it) }
 
     override suspend fun asMember(guildId: Snowflake): IMember = this
 

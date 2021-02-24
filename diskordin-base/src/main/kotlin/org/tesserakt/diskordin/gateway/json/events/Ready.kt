@@ -7,7 +7,7 @@ import org.tesserakt.diskordin.core.data.json.response.UserResponse
 import org.tesserakt.diskordin.core.entity.*
 import org.tesserakt.diskordin.gateway.json.IRawEvent
 
-data class UnavailableGuild(val id: Snowflake, val available: Boolean) : IPreviewed<IGuild> {
+data class UnavailableGuild(val id: Snowflake, val unavailable: Boolean) : IPreviewed<IGuild> {
     override suspend fun extend(): IGuild = client.getGuild(id)
 }
 

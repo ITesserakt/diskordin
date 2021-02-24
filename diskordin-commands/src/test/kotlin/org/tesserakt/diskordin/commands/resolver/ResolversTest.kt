@@ -1,12 +1,7 @@
 package org.tesserakt.diskordin.commands.resolver
 
 import arrow.core.Either
-import arrow.core.Tuple2
-import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.either.applicative.map
-import arrow.core.extensions.list.traverse.sequence
-import arrow.core.extensions.listk.foldable.toList
-import arrow.core.toT
+import arrow.core.sequenceEither
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.FunSpec
@@ -21,8 +16,8 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.arbitrary.stringPattern
 import io.kotest.property.exhaustive.exhaustive
 import org.tesserakt.diskordin.commands.CommandContext
-import org.tesserakt.diskordin.core.data.Identified
-import org.tesserakt.diskordin.core.data.IdentifiedIO
+import org.tesserakt.diskordin.core.data.DeferredIdentified
+import org.tesserakt.diskordin.core.data.EagerIdentified
 import org.tesserakt.diskordin.core.entity.IMessage
 import org.tesserakt.diskordin.core.entity.IMessageChannel
 import org.tesserakt.diskordin.core.entity.IUser
@@ -37,27 +32,25 @@ class ResolversTest : FunSpec() {
         badInput: Gen<String>,
         goodInput: Gen<String>,
         ctx: C
-    ): Tuple2<Either<ParseError, List<T>>, Either<ParseError, List<T>>> {
+    ): Pair<Either<ParseError, List<T>>, Either<ParseError, List<T>>> {
         val badResult = badInput.generate(RandomSource.Default)
-            .take(testCount).toList().map { resolver.parse(ctx, it.value) }
-            .sequence(Either.applicative()).map { it.toList() }
+            .take(testCount).toList().map { resolver.parse(ctx, it.value) }.sequenceEither()
 
         val goodResult = goodInput.generate(RandomSource.Default)
-            .take(testCount).toList().map { resolver.parse(ctx, it.value) }
-            .sequence(Either.applicative()).map { it.toList() }
+            .take(testCount).toList().map { resolver.parse(ctx, it.value) }.sequenceEither()
 
-        return badResult toT goodResult
+        return badResult to goodResult
     }
 
     init {
         val fakeContext = object : CommandContext {
-            override val message: Identified<IMessage>
+            override val message: EagerIdentified<IMessage>
                 get() = error("Fake")
-            override val author: Identified<IUser>
+            override val author: EagerIdentified<IUser>
                 get() = error("Fake")
             override val commandArgs: Array<String>
                 get() = error("Fake")
-            override val channel: IdentifiedIO<IMessageChannel>
+            override val channel: DeferredIdentified<IMessageChannel>
                 get() = error("Fake")
         }
 

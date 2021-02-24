@@ -13,6 +13,7 @@ import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.json.response.GuildResponse
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
+import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.configure
 import org.tesserakt.diskordin.impl.core.entity.Guild
@@ -23,9 +24,9 @@ import org.tesserakt.diskordin.rest.WithoutRest
 class RoleHandlerTest : FunSpec({
     // many entities rely on discord client, for context, rest etc.
     runBlocking {
-        DiscordClientBuilder by WithoutRest configure {
+        (DiscordClientBuilder[WithoutRest] configure {
             +disableTokenVerification()
-        }
+        }).client
     }
 
     val guild = Guild(
@@ -74,7 +75,7 @@ class RoleHandlerTest : FunSpec({
         val handler = RoleUpdater
 
         test("Cache should be mutated after add") {
-            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild)).mutate()
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(guild.id to guild)).mutate()
             handler.handle(cache, fakeRole)
             val cachedGuild = cache.getGuild(guild.id) as? Guild
 
@@ -86,7 +87,7 @@ class RoleHandlerTest : FunSpec({
         test("Cache should be mutated after modify") {
             val newGuild = guild.copy { it.copy(roles = setOf(fakeRole.raw)) }
             val newRole = fakeRole.copy { it.copy(color = 2) } as Role
-            var cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(newGuild.id to newGuild)).mutate()
+            val cache = MemoryCacheSnapshot.empty().copy(guilds = mapOf(newGuild.id to newGuild)).mutate()
             val cachedGuild = cache.getGuild(newGuild.id)
 
             fakeRole.raw shouldNotBeSameInstanceAs newRole.raw

@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import io.ktor.client.*
 import io.ktor.client.request.*
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -19,10 +19,10 @@ class WebhookServiceImpl(private val ktor: HttpClient, private val discordApiUrl
         reasonHeader(reason)
     }
 
-    override suspend fun getChannelWebhooks(id: Snowflake): ListK<WebhookResponse> =
+    override suspend fun getChannelWebhooks(id: Snowflake): List<WebhookResponse> =
         ktor.get("$discordApiUrl/api/v6/channels/$id/webhooks")
 
-    override suspend fun getGuildWebhooks(id: Snowflake): ListK<WebhookResponse> =
+    override suspend fun getGuildWebhooks(id: Snowflake): List<WebhookResponse> =
         ktor.get("$discordApiUrl/api/v6/guilds/$id/webhooks")
 
     override suspend fun getWebhook(id: Snowflake): WebhookResponse = ktor.get("$discordApiUrl/api/v6/webhooks/$id")

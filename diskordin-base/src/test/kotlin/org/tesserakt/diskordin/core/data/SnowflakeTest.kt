@@ -1,8 +1,5 @@
 package org.tesserakt.diskordin.core.data
 
-import arrow.core.Either
-import arrow.core.extensions.either.applicativeError.applicativeError
-import arrow.core.fix
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
@@ -62,29 +59,21 @@ class SnowflakeTest : FunSpec() {
         context("Safe converts should wrap error in data-type") {
             test("Non-digit string should produce NotANumber") {
                 checkAll(Exhaustive.azstring(1..30)) {
-                    val snowflake = it.asSnowflakeSafe(Either.applicativeError()).fix()
-                    snowflake shouldBeLeft { err ->
-                        err shouldBe NotNumber
-                    }
+                    val snowflake = it.asSnowflakeEither()
+                    snowflake shouldBeLeft { err -> err shouldBe NotNumber }
                 }
             }
 
             test("Numbers, that less than $MIN_SNOWFLAKE") {
                 checkAll(arbitrary { it.random.nextLong(MIN_SNOWFLAKE) }) {
-                    val snowflake = it.toString()
-                        .asSnowflakeSafe(Either.applicativeError()).fix()
+                    val snowflake = it.toString().asSnowflakeEither()
 
-                    snowflake.shouldBeLeft { err ->
-                        err shouldBe LessThenDiscordEpoch
-                    }
+                    snowflake.shouldBeLeft { err -> err shouldBe LessThenDiscordEpoch }
                 }
             }
 
             test("Right snowflake should unwrap without errors") {
-                checkAll(snowflakes) {
-                    it.toString().asSnowflakeSafe(Either.applicativeError())
-                        .fix().shouldBeRight()
-                }
+                checkAll(snowflakes) { it.toString().asSnowflakeEither().shouldBeRight() }
             }
         }
     }

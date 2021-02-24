@@ -2,7 +2,7 @@
 
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
 import org.tesserakt.diskordin.core.data.json.request.WebhookEditRequest
@@ -15,9 +15,9 @@ interface WebhookService {
         reason: String?
     ): WebhookResponse
 
-    suspend fun getChannelWebhooks(id: Snowflake): ListK<WebhookResponse>
+    suspend fun getChannelWebhooks(id: Snowflake): List<WebhookResponse>
 
-    suspend fun getGuildWebhooks(id: Snowflake): ListK<WebhookResponse>
+    suspend fun getGuildWebhooks(id: Snowflake): List<WebhookResponse>
 
     suspend fun getWebhook(id: Snowflake): WebhookResponse
 

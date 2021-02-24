@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 inline class HttpClient(private val inner: Eval<OkHttpClient>) : BootstrapContext.ExtensionContext {
     companion object : BootstrapContext.PersistentExtension<HttpClient>
 
-    operator fun invoke() = inner.extract()
+    operator fun invoke() = inner.value()
 }
 
 @Suppress("NOTHING_TO_INLINE", "unused")
@@ -36,7 +36,7 @@ class RetrofitScope : DiscordClientBuilderScope() {
         +refineHttpClient { addInterceptor(AuthorityInterceptor(token)) }
         +install(HttpClient) { HttpClient(okHttpClient) }
         val retrofit by RetrofitService(okHttpClient, discordApiUrl)
-        restClient = RetrofitRestClient(retrofit::extract, restSchedule)
+        restClient = RetrofitRestClient({ retrofit.value() }, restSchedule)
         gatewayFactory = ScarletFactory(okHttpClient, backoffStrategy, gatewaySettings.coroutineContext, webSocketDebug)
 
         return DiscordClientSettings(

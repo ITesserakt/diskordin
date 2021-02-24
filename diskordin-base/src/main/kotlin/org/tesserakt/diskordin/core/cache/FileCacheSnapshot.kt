@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.core.cache
 
-import arrow.core.extensions.map.functor.map
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource
 import com.google.gson.JsonElement
@@ -20,20 +19,20 @@ import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 
-private fun SnowflakeMap<IGuild>.guildConverter() = map { guild ->
-    when (guild) {
-        is Guild -> TypedObject(guild.raw)
-        is PartialGuild -> TypedObject(guild.raw)
-        else -> throw IllegalArgumentException("Given `${guild::class.simpleName}`, but no guild found for this one")
+private fun SnowflakeMap<IGuild>.guildConverter() = mapValues { (_, a) ->
+    when (a) {
+        is Guild -> TypedObject<IGuild, GuildResponse>(a.raw)
+        is PartialGuild -> TypedObject<IGuild, UserGuildResponse>(a.raw)
+        else -> throw IllegalArgumentException("Given `${a::class.simpleName}`, but no guild found for this one")
     }
 }
 
-private fun SnowflakeMap<IUser>.userConverter() = map { user ->
-    when (user) {
-        is Self -> TypedObject(user.raw as UserResponse<IUser>)
-        is IdUser -> TypedObject(user.raw)
-        is MessageUser -> TypedObject(user.raw)
-        else -> throw IllegalArgumentException("Given `${user::class.simpleName}`, but no user found for this one")
+private fun SnowflakeMap<IUser>.userConverter() = mapValues { (_, a) ->
+    when (a) {
+        is Self -> TypedObject<IUser, UserResponse<IUser>>(a.raw as UserResponse<IUser>)
+        is IdUser -> TypedObject<IUser, IDUserResponse>(a.raw)
+        is MessageUser -> TypedObject<IUser, MessageUserResponse>(a.raw)
+        else -> throw IllegalArgumentException("Given `${a::class.simpleName}`, but no user found for this one")
     }
 }
 
@@ -61,32 +60,32 @@ private data class CacheRepresentation(
 )
 
 class FileCacheSnapshot private constructor(private val representation: CacheRepresentation) : CacheSnapshot {
-    override val privateChannels by lazy { representation.privateChannels.map { it.unwrap() } }
-    override val groupChannels by lazy { representation.groupPrivateChannels.map { it.unwrap() } }
+    override val privateChannels by lazy { representation.privateChannels.mapValues { (_, a) -> a.unwrap() } }
+    override val groupChannels by lazy { representation.groupPrivateChannels.mapValues { (_, a) -> a.unwrap() } }
     override val unavailableGuilds by lazy { representation.unavailableGuilds }
     override val guilds by lazy {
-        representation.guilds.map {
-            when (it.type) {
-                GuildResponse::class.simpleName -> it.parse<GuildResponse>()
-                UserGuildResponse::class.simpleName -> it.parse<UserGuildResponse>()
-                else -> throw IllegalArgumentException("Given `$it.type`, but no guild found for this one")
+        representation.guilds.mapValues { (_, a) ->
+            when (a.type) {
+                GuildResponse::class.simpleName -> a.parse<GuildResponse>()
+                UserGuildResponse::class.simpleName -> a.parse<UserGuildResponse>()
+                else -> throw IllegalArgumentException("Given `$a.type`, but no guild found for this one")
             }
         }
     }
-    override val messages by lazy { representation.messages.map { it.unwrap() } }
+    override val messages by lazy { representation.messages.mapValues { (_, a) -> a.unwrap() } }
     override val lastTypes: SnowflakeMap<SnowflakeMap<Instant>> by lazy { representation.lastTypes }
     override val users by lazy {
-        representation.users.map {
-            when (it.type) {
-                UserResponse::class.simpleName -> it.parse<UserResponse<ISelf>>()
-                IDUserResponse::class.simpleName -> it.parse<IDUserResponse>()
-                MessageUserResponse::class.simpleName -> it.parse<MessageUserResponse>()
-                else -> throw IllegalArgumentException("Given `$it.type`, but no user found for this one")
+        representation.users.mapValues { (_, a) ->
+            when (a.type) {
+                UserResponse::class.simpleName -> a.parse<UserResponse<ISelf>>()
+                IDUserResponse::class.simpleName -> a.parse<IDUserResponse>()
+                MessageUserResponse::class.simpleName -> a.parse<MessageUserResponse>()
+                else -> throw IllegalArgumentException("Given `$a.type`, but no user found for this one")
             }
         }
     }
     override val bans by lazy {
-        representation.bans.map { it.map(BanResponse::unwrap) }
+        representation.bans.mapValues { (_, a) -> a.mapValues { (_, a) -> a.unwrap() } }
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -110,14 +109,14 @@ class FileCacheSnapshot private constructor(private val representation: CacheRep
             if (snapshot is FileCacheSnapshot) return snapshot
 
             val representation = CacheRepresentation(
-                snapshot.privateChannels.map { (it as PrivateChannel).raw },
-                snapshot.groupChannels.map { (it as GroupPrivateChannel).raw },
+                snapshot.privateChannels.mapValues { (_, a) -> (a as PrivateChannel).raw },
+                snapshot.groupChannels.mapValues { (_, a) -> (a as GroupPrivateChannel).raw },
                 snapshot.unavailableGuilds,
                 snapshot.guilds.guildConverter(),
-                snapshot.messages.map { (it as Message).raw },
+                snapshot.messages.mapValues { (_, a) -> (a as Message).raw },
                 snapshot.lastTypes,
                 snapshot.users.userConverter(),
-                snapshot.bans.map { inner -> inner.map { (it as Ban).raw } }
+                snapshot.bans.mapValues { (_, a) -> a.mapValues { (_, a) -> (a as Ban).raw } }
             )
 
             return FileCacheSnapshot(representation)

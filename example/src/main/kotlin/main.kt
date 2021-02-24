@@ -1,17 +1,17 @@
 
+import io.ktor.client.engine.cio.*
 import io.ktor.util.*
 import org.tesserakt.diskordin.core.cache.FileCacheSnapshot
 import org.tesserakt.diskordin.core.client.InternalTestAPI
+import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.core.data.event.message.MessageCreateEvent
-import org.tesserakt.diskordin.core.data.invoke
 import org.tesserakt.diskordin.core.entity.cacheSnapshot
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
-import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.shard.Intents
 import org.tesserakt.diskordin.impl.core.client.DiscordClientBuilder
 import org.tesserakt.diskordin.impl.core.client.configure
-import org.tesserakt.diskordin.rest.integration.Retrofit
+import org.tesserakt.diskordin.rest.integration.Ktor
 import java.io.File
 
 @KtorExperimentalAPI
@@ -19,11 +19,11 @@ import java.io.File
 suspend fun main() {
     val file = File("cache.json")
 
-    val client = DiscordClientBuilder by Retrofit configure {
+    val client = DiscordClientBuilder by Ktor(CIO) configure {
         +gatewaySettings {
             +compressShards()
             +featureOverrides(Intents.all)
-            +gatewayInterceptor<TokenInterceptor.Context> { println(it.token) }
+            +gatewayInterceptor<EventInterceptor.Context> { println(it.event::class.simpleName) }
             +gatewayInterceptor(object : EventInterceptor() {
                 override suspend fun Context.messageCreate(event: MessageCreateEvent) {
                     when (event.message().content) {
@@ -39,9 +39,18 @@ suspend fun main() {
                         "!!~boom" -> error("test")
                     }
                 }
+
+//                override suspend fun Context.guildCreate(event: GuildCreateEvent) {
+//                    println("${event.guild.id} => ${event.guild().name}")
+//                }
+//
+//                override suspend fun Context.guildDelete(event: GuildDeleteEvent) {
+//                    println("${event.guildId} => ${event.guildId?.let { event.client.cacheSnapshot.getGuild(it) }?.name}")
+//                }
             })
         }
     }
 
+    client.self().leaveGuild(697833083201650689.asSnowflake())
     client.login()
 }

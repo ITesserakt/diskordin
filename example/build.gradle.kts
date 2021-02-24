@@ -15,7 +15,7 @@ fun arrow(module: String, version: String = arrowVersion): Any =
 dependencies {
     implementation(project(":diskordin-base"))
     implementation(project(":diskordin-commands"))
-    implementation(project(":diskordin-retrofit-integration"))
+    implementation(project(":diskordin-ktor-integration"))
 
     implementation(ktor("client-cio"))
     implementation(ktor("client-logging"))

@@ -15,11 +15,11 @@ class WebSocketFactory(private val client: Eval<HttpClient>, private val gateway
     Gateway.Factory() {
     override fun BootstrapContext.createGateway(): Gateway {
         val createLifecycle = { shardId: Int, client: Eval<HttpClient>, url: String ->
-            KtorWebSocketLifecycleManager(shardId, client.extract(), gatewayContext) { url(url) }
+            KtorWebSocketLifecycleManager(shardId, client.value(), gatewayContext) { url(url) }
         }
 
         val lifecycles: Eval<List<KtorWebSocketLifecycleManager>> = Eval.later {
-            (0 until this[ShardContext].shardCount.extract()).map {
+            (0 until this[ShardContext].shardCount.value()).map {
                 createLifecycle(
                     it,
                     client,
@@ -28,6 +28,6 @@ class WebSocketFactory(private val client: Eval<HttpClient>, private val gateway
             }
         }
 
-        return Gateway(this[GatewayContext].interceptors, gatewayContext, this[ShardContext], lifecycles.extract())
+        return Gateway(this[GatewayContext].interceptors, gatewayContext, this[ShardContext], lifecycles.value())
     }
 }

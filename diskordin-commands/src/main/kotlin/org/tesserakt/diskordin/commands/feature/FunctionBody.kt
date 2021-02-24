@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.commands.feature
 
-import arrow.Kind
 import arrow.core.Either
-import arrow.core.Nel
-import arrow.typeclasses.ApplicativeError
+import arrow.core.ValidatedNel
+import arrow.core.validNel
 import org.tesserakt.diskordin.commands.CommandContext
 import org.tesserakt.diskordin.commands.CommandModule
 import org.tesserakt.diskordin.commands.ValidationError
@@ -15,7 +14,7 @@ data class FunctionBody(
     val moduleType: KClass<CommandModule<*>>,
     val function: KFunction<Unit>
 ) : PersistentFeature<FunctionBody> {
-    override fun <G> validate(AE: ApplicativeError<G, Nel<ValidationError>>): Kind<G, FunctionBody> = AE.just(this)
+    override fun validate(): ValidatedNel<ValidationError, FunctionBody> = validNel()
 
     suspend operator fun <C : CommandContext> invoke(
         module: CommandModule<C>,

@@ -3,22 +3,19 @@
 package org.tesserakt.diskordin.impl.core.entity
 
 
-import arrow.core.Id
-import arrow.core.extensions.id.applicative.just
-import arrow.core.extensions.id.comonad.extract
-import arrow.core.extensions.id.functor.functor
 import org.tesserakt.diskordin.core.data.Permission
 import org.tesserakt.diskordin.core.data.Snowflake
-import org.tesserakt.diskordin.core.data.id
-import org.tesserakt.diskordin.core.data.identify
+import org.tesserakt.diskordin.core.data.deferred
 import org.tesserakt.diskordin.core.data.json.response.RoleResponse
 import org.tesserakt.diskordin.core.data.json.response.UnwrapContext
 import org.tesserakt.diskordin.core.data.json.response.unwrap
-import org.tesserakt.diskordin.core.entity.*
+import org.tesserakt.diskordin.core.entity.ICacheable
+import org.tesserakt.diskordin.core.entity.IRole
 import org.tesserakt.diskordin.core.entity.builder.RoleEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.instance
+import org.tesserakt.diskordin.core.entity.client
+import org.tesserakt.diskordin.core.entity.rest
 import org.tesserakt.diskordin.impl.util.typeclass.integral
-import org.tesserakt.diskordin.rest.call
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import java.awt.Color
 
@@ -27,10 +24,10 @@ class Role constructor(
     guildId: Snowflake
 ) : IRole, ICacheable<IRole, UnwrapContext.GuildContext, RoleResponse> {
     @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-    override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.call(guild.id, Id.functor()) {
+    override suspend fun edit(builder: RoleEditBuilder.() -> Unit) = rest.callRaw {
         val inst = builder.instance(::RoleEditBuilder)
-        guildService.editRole(guild.id, id, inst.create(), inst.reason).just()
-    }.extract()
+        guildService.editRole(guild.id, id, inst.create(), inst.reason)
+    }.unwrap(guild.id)
 
     override val permissions = ValuedEnum<Permission, Long>(raw.permissions, Long.integral())
 
@@ -44,7 +41,7 @@ class Role constructor(
 
     override val isEveryone: Boolean = id == guildId
 
-    override val guild = guildId.identify<IGuild> {
+    override val guild = guildId deferred {
         client.getGuild(it)
     }
 

@@ -1,8 +1,5 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Either
-import arrow.core.extensions.either.monadError.monadError
-import arrow.core.fix
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
@@ -13,9 +10,7 @@ import org.tesserakt.diskordin.core.data.asSnowflake
 import org.tesserakt.diskordin.impl.core.client.VerificationError.*
 
 class TokenVerificationTest : StringSpec() {
-    private val partial = { token: String ->
-        token.verify(Either.monadError()).fix()
-    }
+    private val partial = { token: String -> token.verify() }
 
     init {
         "Blank string should produce error" {

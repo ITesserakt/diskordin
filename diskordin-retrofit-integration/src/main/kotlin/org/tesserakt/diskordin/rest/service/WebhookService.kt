@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
+
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.WebhookCreateRequest
 import org.tesserakt.diskordin.core.data.json.request.WebhookEditRequest
@@ -16,10 +16,10 @@ interface WebhookServiceImpl : WebhookService {
     ): WebhookResponse
 
     @GET("/api/v6/channels/{id}/webhooks")
-    override suspend fun getChannelWebhooks(@Path("id") id: Snowflake): ListK<WebhookResponse>
+    override suspend fun getChannelWebhooks(@Path("id") id: Snowflake): List<WebhookResponse>
 
     @GET("/api/v6/guilds/{id}/webhooks")
-    override suspend fun getGuildWebhooks(@Path("id") id: Snowflake): ListK<WebhookResponse>
+    override suspend fun getGuildWebhooks(@Path("id") id: Snowflake): List<WebhookResponse>
 
     @GET("/api/v6/webhooks/{id}")
     override suspend fun getWebhook(@Path("id") id: Snowflake): WebhookResponse

@@ -1,7 +1,6 @@
 package org.tesserakt.diskordin.impl.core.client
 
 import arrow.fx.coroutines.Schedule
-import arrow.fx.coroutines.seconds
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.core.data.json.request.JsonRequest
@@ -9,6 +8,8 @@ import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 inline class ShardCount(val v: Int)
 
@@ -32,6 +33,8 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
     protected var cachingEnabled: Boolean = true
     protected var gatewaySettings: GatewayBuilder.GatewaySettings = GatewayBuilder().create()
         private set
+
+    @OptIn(ExperimentalTime::class)
     protected var restSchedule: Schedule<*, *> = (Schedule.spaced<Any>(1.seconds) and Schedule.recurs(5)).jittered()
         private set
     protected abstract val restClient: RestClient

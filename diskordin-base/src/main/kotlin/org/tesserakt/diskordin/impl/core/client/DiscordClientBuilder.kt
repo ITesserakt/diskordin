@@ -1,10 +1,10 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.*
+import arrow.core.Either
+import arrow.core.Eval
 import arrow.core.computations.either
-import arrow.core.extensions.either.monad.mproduct
-import arrow.core.extensions.either.monadError.monadError
-import arrow.core.extensions.eval.applicative.just
+import arrow.core.getOrHandle
+import arrow.core.mproduct
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.cache.handler.*
@@ -35,10 +35,10 @@ object DiscordClientBuilder {
         block: suspend S.() -> Unit
     ): Either<DomainError, IDiscordClient> = either {
         val builder = instance().apply { block() }.create()
-        val (globalContext, selfId) = formBootstrapContext(builder)()
+        val (globalContext, selfId) = formBootstrapContext(builder).bind()
         val gateway = builder.gatewayFactory.run { globalContext.createGateway() }
 
-        DiscordClient(selfId, gateway, globalContext)()
+        DiscordClient.invoke(selfId, gateway, globalContext).bind()
     }
 
     @JvmStatic
@@ -49,9 +49,9 @@ object DiscordClientBuilder {
 
     private suspend fun formBootstrapContext(
         builder: DiscordClientBuilderScope.DiscordClientSettings
-    ): Either<DomainError, Tuple2<BootstrapContext, Snowflake>> = either {
+    ): Either<DomainError, Pair<BootstrapContext, Snowflake>> = either {
         val (token, selfId) = Either.fromNullable(System.getenv("DISKORDIN_TOKEN") ?: builder.token)
-            .mapLeft { NoTokenProvided }.mproduct { it.verify(Either.monadError()) }()
+            .mapLeft { NoTokenProvided }.mproduct { it.verify() }.bind()
 
         val gatewayStats = Eval.later {
             runBlocking { builder.restClient.call { gatewayService.getGatewayBot() } }
@@ -92,7 +92,7 @@ object DiscordClientBuilder {
                 RestClient to builder.restClient,
                 CacheProcessor to processor
             ) + builder.extensions
-        ) toT selfId
+        ) to selfId
     }
 
     private fun formShardSettings(
@@ -101,7 +101,7 @@ object DiscordClientBuilder {
         gatewayInfo: Eval<IGatewayStats>
     ) = ShardContext(
         token,
-        builder.gatewaySettings.shardCount.takeIf { it != 0 }?.just() ?: gatewayInfo.map { it.shards },
+        builder.gatewaySettings.shardCount.takeIf { it != 0 }?.let { Eval.now(it) } ?: gatewayInfo.map { it.shards },
         builder.gatewaySettings.compressionStrategy,
         builder.gatewaySettings.guildSubscriptionsStrategy,
         builder.gatewaySettings.threshold,

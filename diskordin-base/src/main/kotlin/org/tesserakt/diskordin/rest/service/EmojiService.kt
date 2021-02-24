@@ -2,7 +2,6 @@
 
 package org.tesserakt.diskordin.rest.service
 
-import arrow.core.ListK
 import org.tesserakt.diskordin.core.data.Snowflake
 import org.tesserakt.diskordin.core.data.json.request.EmojiCreateRequest
 import org.tesserakt.diskordin.core.data.json.request.EmojiEditRequest
@@ -10,7 +9,7 @@ import org.tesserakt.diskordin.core.data.json.response.EmojiResponse
 import org.tesserakt.diskordin.core.entity.ICustomEmoji
 
 interface EmojiService {
-    suspend fun getGuildEmojis(id: Snowflake): ListK<EmojiResponse<ICustomEmoji>>
+    suspend fun getGuildEmojis(id: Snowflake): List<EmojiResponse<ICustomEmoji>>
 
     suspend fun getGuildEmoji(
         guildId: Snowflake,

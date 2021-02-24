@@ -20,7 +20,7 @@ import io.ktor.client.HttpClient as KHttpClient
 inline class HttpClient(private val inner: Eval<KHttpClient>) : BootstrapContext.ExtensionContext {
     companion object : BootstrapContext.PersistentExtension<HttpClient>
 
-    operator fun invoke() = inner.extract()
+    operator fun invoke() = inner.value()
 }
 
 @Suppress("unused")
