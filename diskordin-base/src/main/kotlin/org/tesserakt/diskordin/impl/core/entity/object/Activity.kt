@@ -9,7 +9,6 @@ import org.tesserakt.diskordin.impl.util.typeclass.integral
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @ExperimentalTime
 internal class Activity(raw: ActivityResponse) : IActivity {
@@ -29,7 +28,7 @@ internal class Activity(raw: ActivityResponse) : IActivity {
             if (end != null)
                 endPlaying = Instant.fromEpochSeconds(end)
             if (start != null && end != null)
-                duration = end.seconds - start.seconds
+                duration = Duration.seconds(end) - Duration.seconds(start)
         }
     }
 

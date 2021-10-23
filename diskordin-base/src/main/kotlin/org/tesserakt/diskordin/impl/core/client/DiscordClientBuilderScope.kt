@@ -8,10 +8,9 @@ import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
 import org.tesserakt.diskordin.gateway.Gateway
 import org.tesserakt.diskordin.rest.RestClient
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
-inline class ShardCount(val v: Int)
+@JvmInline
+value class ShardCount(val v: Int)
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
@@ -34,8 +33,7 @@ abstract class DiscordClientBuilderScope : BuilderBase<DiscordClientBuilderScope
     protected var gatewaySettings: GatewayBuilder.GatewaySettings = GatewayBuilder().create()
         private set
 
-    @OptIn(ExperimentalTime::class)
-    protected var restSchedule: Schedule<*, *> = (Schedule.spaced<Any>(1.seconds) and Schedule.recurs(5)).jittered()
+    protected var restSchedule: Schedule<*, *> = (Schedule.spaced<Any>(1e9) and Schedule.recurs(5)).jittered()
         private set
     protected abstract val restClient: RestClient
     protected abstract val gatewayFactory: Gateway.Factory

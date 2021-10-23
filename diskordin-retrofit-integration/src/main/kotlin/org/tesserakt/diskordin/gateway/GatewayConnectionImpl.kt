@@ -7,8 +7,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import mu.KotlinLogging
 import org.tesserakt.diskordin.gateway.json.Message
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.minutes
 
 interface GatewayConnectionImpl {
     @Send
@@ -43,10 +43,10 @@ fun GatewayConnectionImpl.unwrap(shardId: Int, job: Job): GatewayConnection = ob
             }
 
             override fun onNext(data: WebSocketEventWrap) {
-                dispatcher.offer(data)
+                dispatcher.trySend(data).exceptionOrNull()
             }
         }
         val disposable = this@unwrap.receive().start(observer)
         awaitClose { disposable.dispose() }
-    }.map { it.unwrap() }.shareIn(scope, SharingStarted.WhileSubscribed(replayExpiration = 5.minutes))
+    }.map { it.unwrap() }.shareIn(scope, SharingStarted.WhileSubscribed(replayExpiration = Duration.minutes(5)))
 }

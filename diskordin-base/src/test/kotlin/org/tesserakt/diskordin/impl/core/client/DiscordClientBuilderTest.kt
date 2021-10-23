@@ -1,9 +1,9 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
-import io.kotest.assertions.arrow.either.shouldNotBeLeft
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import org.tesserakt.diskordin.core.client.InternalTestAPI
 import org.tesserakt.diskordin.rest.WithoutRest
 import kotlin.time.ExperimentalTime
@@ -22,20 +22,20 @@ class DiscordClientBuilderTest : StringSpec() {
 
         "Single creation of DiscordClientBuilder should not produce error" {
             DiscordClientBuilder.test().shouldBeRight()
-            DiscordClient.getInitialized().shouldNotBeLeft()
+            DiscordClient.getInitialized().shouldBeRight()
         }
 
         "Twice creation without close should produce error" {
             DiscordClientBuilder.test()
-            DiscordClientBuilder.test() shouldBeLeft DiscordClient.AlreadyStarted
-            DiscordClient.getInitialized().shouldNotBeLeft()
+            DiscordClientBuilder.test().shouldBeLeft() shouldBe DiscordClient.AlreadyStarted
+            DiscordClient.getInitialized().shouldBeRight()
         }
 
         "Twice creation with close should not produce error" {
             val client = DiscordClientBuilder.test()
             client.map { it.logout() }
             DiscordClientBuilder.test().shouldBeRight()
-            DiscordClient.getInitialized().shouldNotBeLeft()
+            DiscordClient.getInitialized().shouldBeRight()
         }
     }
 }

@@ -6,15 +6,16 @@ import org.tesserakt.diskordin.core.entity.IMember
 import org.tesserakt.diskordin.core.entity.IUser
 import org.tesserakt.diskordin.impl.core.entity.Member
 
-class GuildMemberResponse(
+class JoinMemberResponse(
     user: UserResponse<IUser>,
     nick: String? = null,
     roles: Array<Snowflake>,
     joinedAt: Instant,
     deaf: Boolean,
-    mute: Boolean
-) : MemberResponse<UnwrapContext.GuildContext>(user, nick, roles, joinedAt, deaf, mute) {
-    override fun unwrap(ctx: UnwrapContext.GuildContext): IMember = Member(this, ctx.guildId)
+    mute: Boolean,
+    val guildId: Snowflake
+) : MemberResponse<UnwrapContext.EmptyContext>(user, nick, roles, joinedAt, deaf, mute) {
+    override fun unwrap(ctx: UnwrapContext.EmptyContext): IMember = Member(this, guildId)
     override fun copy(
         user: UserResponse<IUser>,
         nick: String?,
@@ -22,5 +23,5 @@ class GuildMemberResponse(
         joinedAt: Instant,
         deaf: Boolean,
         mute: Boolean
-    ) = GuildMemberResponse(user, nick, roles, joinedAt, deaf, mute)
+    ) = JoinMemberResponse(user, nick, roles, joinedAt, deaf, mute, guildId)
 }

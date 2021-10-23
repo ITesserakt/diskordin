@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.core.fproduct
 import arrow.fx.coroutines.parTraverse
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
@@ -44,7 +43,7 @@ class Gateway(
     private val controller = ShardController(shardContext, lifecycles, scope)
 
     internal suspend fun run() =
-        lifecycles.onEach { it.start() }.fproduct { it.connection.receive() }.withIndex().map { (index, it) ->
+        lifecycles.onEach { it.start() }.map { it to it.connection.receive() }.withIndex().map { (index, it) ->
             val (lifecycle, events) = it
             val shard = Shard(
                 shardContext.token,
@@ -82,7 +81,7 @@ class Gateway(
     }
 
     abstract class Factory {
-        private val gatewayVersion = 8
+        private val gatewayVersion = 9
         private val encoding = "json"
 
         protected val gatewayUrl = { start: String, compression: String ->

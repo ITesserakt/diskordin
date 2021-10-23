@@ -9,10 +9,10 @@ import org.tesserakt.diskordin.gateway.shard.Shard
 import org.tesserakt.diskordin.gateway.shard.ShardController
 import kotlin.reflect.KClass
 
-interface Interceptor<C : Interceptor.Context> {
+sealed interface Interceptor<C : Interceptor.Context> {
     companion object : KLogging()
 
-    abstract class Context constructor(
+    sealed class Context constructor(
         val controller: ShardController,
         val shard: Shard
     )

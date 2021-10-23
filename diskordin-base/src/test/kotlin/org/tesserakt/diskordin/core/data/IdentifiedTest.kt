@@ -2,8 +2,8 @@ package org.tesserakt.diskordin.core.data
 
 import arrow.core.Eval
 import arrow.core.Nel
-import io.kotest.assertions.arrow.nel.forAll
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe

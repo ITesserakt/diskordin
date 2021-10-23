@@ -2,7 +2,6 @@ package org.tesserakt.diskordin.rest
 
 import arrow.fx.coroutines.Schedule
 import arrow.fx.coroutines.retry
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.client.BootstrapContext
 import org.tesserakt.diskordin.core.data.Snowflake
@@ -12,7 +11,6 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.IDiscordObject
 import org.tesserakt.diskordin.core.entity.client
 import org.tesserakt.diskordin.rest.service.*
-import kotlin.experimental.ExperimentalTypeInference
 
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE", "unused")
 abstract class RestClient(
@@ -53,14 +51,11 @@ fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.GuildContext>> Res
     f: suspend RestClient.() -> Iterable<R>
 ) = kotlinx.coroutines.flow.flow { callRaw(f).map { it.unwrap(guildId) }.forEach { emit(it) } }
 
-@OptIn(ExperimentalTypeInference::class)
-@OverloadResolutionByLambdaReturnType
 fun <E : IDiscordObject, R : DiscordResponse<E, UnwrapContext.PartialGuildContext>> RestClient.flow(
     guildId: Snowflake?,
     f: suspend RestClient.() -> Iterable<R>
 ) = kotlinx.coroutines.flow.flow { callRaw(f).map { it.unwrap(guildId) }.forEach { emit(it) } }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.EmptyContext>, reified O : IDiscordObject> RestClient.callCaching(
     crossinline f: suspend RestClient.() -> R
 ) = callRaw { this.f() }.unwrap().also {
@@ -69,7 +64,6 @@ internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.EmptyContext>,
         processor.updateData(it)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal suspend inline fun <R : DiscordResponse<O, UnwrapContext.GuildContext>, reified O : IDiscordObject> RestClient.callCaching(
     guildId: Snowflake,
     crossinline f: suspend RestClient.() -> R

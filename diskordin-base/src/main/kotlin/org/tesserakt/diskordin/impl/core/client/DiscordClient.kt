@@ -1,9 +1,8 @@
 package org.tesserakt.diskordin.impl.core.client
 
-import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
-import arrow.fx.coroutines.ConcurrentVar
+import arrow.core.rightIfNotNull
+import arrow.fx.coroutines.Atomic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.joinAll
 import org.tesserakt.diskordin.core.client.BootstrapContext
@@ -31,19 +30,17 @@ internal class DiscordClient private constructor(
     object NotInitialized : DomainError()
 
     companion object {
-        private val client = ConcurrentVar.unsafeEmpty<IDiscordClient>()
+        private val client = Atomic.unsafe<IDiscordClient?>(null)
 
-        suspend fun getInitialized() =
-            Either.conditionally(client.isNotEmpty(), { NotInitialized }) { client.read() }
+        suspend fun getInitialized() = client.get().rightIfNotNull { NotInitialized }
 
         suspend operator fun invoke(selfId: Snowflake, gateway: Gateway, context: BootstrapContext) =
-            if (client.isEmpty()) {
-                client.put(DiscordClient(selfId, gateway, context))
-                client.read().right()
+            if (client.get() == null) {
+                client.updateAndGet { DiscordClient(selfId, gateway, context) }.rightIfNotNull { NotInitialized }
             } else AlreadyStarted.left()
 
         internal suspend fun removeState() {
-            client.tryTake()
+            client.set(null)
         }
     }
 

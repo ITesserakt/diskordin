@@ -5,7 +5,6 @@ import org.tesserakt.diskordin.core.data.json.response.unwrap
 import org.tesserakt.diskordin.core.entity.`object`.IGatewayStats
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 internal class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
     override val url: String = raw.url
@@ -15,8 +14,9 @@ internal class GatewayStats(raw: GatewayBotResponse) : IGatewayStats {
     class Session(raw: GatewayBotResponse.SessionStartLimit) : IGatewayStats.ISession {
         override val total: Int = raw.total
         override val remaining: Int = raw.remaining
+
         @ExperimentalTime
-        override val resetAfter: Duration = raw.resetAfter.milliseconds
+        override val resetAfter: Duration = Duration.milliseconds(raw.resetAfter)
 
         @ExperimentalTime
         override fun toString(): String {

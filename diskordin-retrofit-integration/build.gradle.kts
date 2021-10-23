@@ -7,7 +7,6 @@ val kotlinLoggingVersion: String by extra
 
 plugins {
     kotlin("jvm")
-    maven
 }
 
 fun arrow(module: String, version: String = arrowVersion): Any =
@@ -18,7 +17,7 @@ dependencies {
 
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.4.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.2")
 
     implementation("com.tinder.scarlet:scarlet:$scarletVersion")
     implementation("com.tinder.scarlet:protocol-websocket-okhttp:$scarletVersion")
@@ -29,7 +28,8 @@ dependencies {
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xlambdas=indy")
+        useOldBackend = true
     }
 }
 tasks.compileTestKotlin {

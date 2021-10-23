@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.core.data
 
-import arrow.syntax.function.andThen
-import arrow.syntax.function.bind
+import arrow.core.andThen
+import arrow.core.partially1
 import org.tesserakt.diskordin.core.entity.IEntity
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -33,5 +33,5 @@ data class DeferredIdentified<out E : IEntity>(val id: Snowflake, private val re
 
 inline infix fun <E : IEntity> Snowflake.eager(render: (Snowflake) -> E) = render(this).identified()
 infix fun <E : IEntity> Snowflake.deferred(render: suspend (Snowflake) -> E) = DeferredIdentified(this, render)
-infix fun <E : IEntity> Snowflake.lazy(render: (Snowflake) -> E) = LazyIdentified(render.bind(this))
+infix fun <E : IEntity> Snowflake.lazy(render: (Snowflake) -> E) = LazyIdentified(render.partially1(this))
 fun <E : IEntity> E.identified() = EagerIdentified(this)

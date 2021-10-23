@@ -33,7 +33,8 @@ object WebSocketEventAdapter : ProtocolSpecificEventAdapter {
     }
 }
 
-inline class WebSocketEventWrap(val event: WebSocketEvent) : ProtocolSpecificEvent
+@JvmInline
+value class WebSocketEventWrap(val event: WebSocketEvent) : ProtocolSpecificEvent
 
 fun WebSocketEvent.wrap() = WebSocketEventWrap(this)
 fun WebSocketEventWrap.unwrap() = event

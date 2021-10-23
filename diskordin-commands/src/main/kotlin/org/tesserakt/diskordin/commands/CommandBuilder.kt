@@ -4,6 +4,8 @@ package org.tesserakt.diskordin.commands
 
 import arrow.core.*
 import arrow.typeclasses.Semigroup
+import org.tesserakt.diskordin.commands.CommandBuilder.Validator.validateFeatures
+import org.tesserakt.diskordin.commands.CommandBuilder.Validator.validateName
 import org.tesserakt.diskordin.commands.feature.Feature
 import org.tesserakt.diskordin.core.entity.builder.Name
 
@@ -23,7 +25,11 @@ class CommandBuilder {
     inline fun CommandBuilder.features(values: Set<Feature<*>>) = values
 
     fun validate() = Validator.run {
-        Validated.mapN(Semigroup.nonEmptyList(), name.validateName(), validateFeatures(), ::CommandObject)
+        name.validateName().zip(Semigroup.nonEmptyList(), validateFeatures()).map { CommandObject(it.first, it.second) }
+    }
+
+    fun validateEither() = Either.run {
+        name.validateName().toEither().zip(validateFeatures().toEither()).map { CommandObject(it.first, it.second) }
     }
 
     object Validator {

@@ -10,8 +10,8 @@ import org.tesserakt.diskordin.core.data.Snowflake.ConstructionError.NotNumber
 @Suppress("EXPERIMENTAL_UNSIGNED_LITERALS")
 private const val DISCORD_EPOCH = 1420070400000u
 
-@OptIn(ExperimentalUnsignedTypes::class)
-inline class Snowflake(internal val id: ULong) : Comparable<Snowflake> {
+@JvmInline
+value class Snowflake(internal val id: ULong) : Comparable<Snowflake> {
     override fun toString(): String = "$id"
     override operator fun compareTo(other: Snowflake): Int = id.compareTo(other.id)
 
@@ -22,11 +22,9 @@ inline class Snowflake(internal val id: ULong) : Comparable<Snowflake> {
 }
 
 @Suppress("unused")
-@OptIn(ExperimentalUnsignedTypes::class)
 val Snowflake.timestamp
     get() = Instant.fromEpochMilliseconds(((id shr 22) + DISCORD_EPOCH).toLong())
 
-@OptIn(ExperimentalUnsignedTypes::class)
 fun String.asSnowflake(): Snowflake {
     val id = requireNotNull(this.toLongOrNull()) { "$this cannot be represented as Snowflake" }
     require(id >= 0) { "id must be greater than 0" }
@@ -34,7 +32,6 @@ fun String.asSnowflake(): Snowflake {
     return Snowflake(id.toULong())
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 fun Long.asSnowflake(): Snowflake {
     require(this >= 0) { "id must be greater than 0" }
     require((this shr 22) > 0) { "id must be greater than ${1 shl 22}" }
@@ -42,13 +39,11 @@ fun Long.asSnowflake(): Snowflake {
 }
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 fun ULong.asSnowflake(): Snowflake {
     require((this.toLong() shr 22) > 0) { "id must be greater than ${1 shl 22}" }
     return Snowflake(this)
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 fun String.asSnowflakeEither(): Either<Snowflake.ConstructionError, Snowflake> {
     val stringToConvert = this@asSnowflakeEither
 

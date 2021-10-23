@@ -2,10 +2,10 @@ val ktorVersion: String by extra
 val arrowVersion: String by extra
 val jvmVersion: String by extra
 val kotlinLoggingVersion: String by extra
+val coroutinesVersion: String by extra
 
 plugins {
     kotlin("jvm")
-    maven
 }
 
 fun ktor(module: String, version: String = ktorVersion) =
@@ -15,12 +15,10 @@ fun arrow(module: String, version: String = arrowVersion): Any =
     "io.arrow-kt:arrow-$module:$version"
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     implementation(ktor("client-core"))
     implementation(ktor("client-gson"))
-
-    implementation(arrow("syntax"))
 
     implementation(project(":diskordin-base"))
 
@@ -30,7 +28,8 @@ dependencies {
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xlambdas=indy")
+        useOldBackend = true
     }
 }
 tasks.compileTestKotlin {

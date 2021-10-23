@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.core.data
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -60,7 +60,7 @@ class SnowflakeTest : FunSpec() {
             test("Non-digit string should produce NotANumber") {
                 checkAll(Exhaustive.azstring(1..30)) {
                     val snowflake = it.asSnowflakeEither()
-                    snowflake shouldBeLeft { err -> err shouldBe NotNumber }
+                    snowflake.shouldBeLeft() shouldBe NotNumber
                 }
             }
 
@@ -68,7 +68,7 @@ class SnowflakeTest : FunSpec() {
                 checkAll(arbitrary { it.random.nextLong(MIN_SNOWFLAKE) }) {
                     val snowflake = it.toString().asSnowflakeEither()
 
-                    snowflake.shouldBeLeft { err -> err shouldBe LessThenDiscordEpoch }
+                    snowflake.shouldBeLeft() shouldBe LessThenDiscordEpoch
                 }
             }
 

@@ -29,5 +29,6 @@ internal class EntitySifter(intents: ValuedEnum<Intents, Short>, private val isE
     }
 
     @Suppress("TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING")
-    fun <T : Any> isAllowed(item: T) = item !is IEntity || item::class !in denied && isEnabled
+    fun <T : Any> isAllowed(item: T) =
+        item !is IEntity || denied.contains(item::class as KClass<out IEntity>) && isEnabled
 }

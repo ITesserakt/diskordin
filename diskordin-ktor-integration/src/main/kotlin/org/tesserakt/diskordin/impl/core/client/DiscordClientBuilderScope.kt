@@ -17,7 +17,8 @@ import org.tesserakt.diskordin.util.gsonBuilder
 import java.util.*
 import io.ktor.client.HttpClient as KHttpClient
 
-inline class HttpClient(private val inner: Eval<KHttpClient>) : BootstrapContext.ExtensionContext {
+@JvmInline
+value class HttpClient(private val inner: Eval<KHttpClient>) : BootstrapContext.ExtensionContext {
     companion object : BootstrapContext.PersistentExtension<HttpClient>
 
     operator fun invoke() = inner.value()

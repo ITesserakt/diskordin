@@ -22,7 +22,6 @@ import java.io.File
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @Suppress("UNCHECKED_CAST", "CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
 internal class Guild(override val raw: GuildResponse) : IGuild,
@@ -68,7 +67,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     override val bannerHash: String? = raw.banner
 
     override val premiumTier: IGuild.PremiumTier =
-        IGuild.PremiumTier.values().first { it.ordinal == raw.premium_tier ?: 0 }
+        IGuild.PremiumTier.values().first { it.ordinal == (raw.premium_tier ?: 0) }
 
     override val premiumSubscriptions: Int? = raw.premiumSubscribersCount
 
@@ -190,7 +189,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
         guildService.getBans(id)
     }
 
-    override val integrations = rest.flow(id) {
+    override val integrations = rest.flow<IIntegration, GuildIntegrationResponse>(id) {
         guildService.getIntegrations(id)
     }
 
@@ -212,7 +211,7 @@ internal class Guild(override val raw: GuildResponse) : IGuild,
     }
 
     @ExperimentalTime
-    override val afkChannelTimeout: Duration = raw.afk_timeout.seconds
+    override val afkChannelTimeout: Duration = Duration.seconds(raw.afk_timeout)
 
     override val verificationLevel =
         IGuild.VerificationLevel.values().first { it.ordinal == raw.verification_level }

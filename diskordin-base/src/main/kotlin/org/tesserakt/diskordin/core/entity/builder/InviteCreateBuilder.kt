@@ -2,22 +2,22 @@ package org.tesserakt.diskordin.core.entity.builder
 
 import org.tesserakt.diskordin.core.data.json.request.InviteCreateRequest
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @RequestBuilder
 @Suppress("NOTHING_TO_INLINE", "unused")
 class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
     @ExperimentalTime
     override fun create(): InviteCreateRequest = InviteCreateRequest(
-        maxAge.inSeconds.toInt(),
+        maxAge.toDouble(DurationUnit.SECONDS).toInt(),
         maxUses,
         isTemporary,
         isUnique
     )
 
     @ExperimentalTime
-    private var maxAge: Duration = 86400.seconds
+    private var maxAge: Duration = Duration.seconds(86400)
     private var maxUses = 0
     private var isTemporary = false
     private var isUnique = false
@@ -41,7 +41,7 @@ class InviteCreateBuilder : AuditLogging<InviteCreateRequest>() {
     }
 
     @ExperimentalTime
-    inline fun InviteCreateBuilder.maxAge(age: Duration = 86400.seconds) = age
+    inline fun InviteCreateBuilder.maxAge(age: Duration = Duration.seconds(86400)) = age
 
     inline fun InviteCreateBuilder.maxUses(value: Int) = MaxUses(value)
     inline fun InviteCreateBuilder.temporary(value: Boolean) = Temporary(value)

@@ -1,12 +1,14 @@
 val arrowVersion: String by extra
 val jvmVersion: String by extra
+val slf4jVersion: String by extra
+val ktorVersion: String by extra
 
 plugins {
     kotlin("jvm")
     application
 }
 
-fun ktor(module: String, version: String = "1.4.3") =
+fun ktor(module: String, version: String = ktorVersion) =
     "io.ktor:ktor-$module:$version"
 
 fun arrow(module: String, version: String = arrowVersion): Any =
@@ -20,7 +22,7 @@ dependencies {
     implementation(ktor("client-cio"))
     implementation(ktor("client-logging"))
 
-    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
+    implementation(group = "org.slf4j", name = "slf4j-api", version = slf4jVersion)
     implementation(group = "ch.qos.logback", name = "logback-core", version = "1.2.3")
     implementation(group = "ch.qos.logback", name = "logback-classic", version = "1.2.3")
 }
@@ -32,7 +34,8 @@ application {
 tasks.compileKotlin {
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xuse-experimental=kotlin.Experimental")
+        freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xlambdas=indy")
+        useOldBackend = true
     }
 }
 tasks.compileTestKotlin {

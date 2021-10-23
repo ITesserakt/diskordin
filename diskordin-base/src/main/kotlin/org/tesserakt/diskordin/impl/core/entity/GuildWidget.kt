@@ -13,12 +13,13 @@ import org.tesserakt.diskordin.core.entity.builder.GuildWidgetEditBuilder
 import org.tesserakt.diskordin.core.entity.builder.PresenceBuilder
 import org.tesserakt.diskordin.core.entity.builder.build
 import org.tesserakt.diskordin.core.entity.client
+import java.util.*
 
 class GuildWidget(raw: GuildWidgetResponse) : IGuildWidget {
     override val instantInviteUrl: IInvite = IInvite.typed(
         InviteResponse(
             raw.instantInvite.split('/')
-                .let { if (it.last().isEmpty()) it.dropLast(1).last() else it.last() } // discord.com/invites/{code}/
+                .let { it.last().ifEmpty { it.dropLast(1).last() } } // discord.com/invites/{code}/
         )
     )
     override val id: Snowflake = raw.id
@@ -71,6 +72,6 @@ class GuildWidget(raw: GuildWidgetResponse) : IGuildWidget {
         override val avatar: String? = raw.avatar
         override val avatarUrl: String? = raw.avatarUrl
         override val statusType: PresenceBuilder.StatusType = PresenceBuilder.StatusType.values()
-            .first { it.name.toLowerCase() == raw.status }
+            .first { it.name.lowercase(Locale.getDefault()) == raw.status }
     }
 }

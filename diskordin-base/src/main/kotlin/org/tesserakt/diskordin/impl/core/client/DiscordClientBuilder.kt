@@ -3,8 +3,8 @@ package org.tesserakt.diskordin.impl.core.client
 import arrow.core.Either
 import arrow.core.Eval
 import arrow.core.computations.either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
-import arrow.core.mproduct
 import kotlinx.coroutines.runBlocking
 import org.tesserakt.diskordin.core.cache.CacheProcessor
 import org.tesserakt.diskordin.core.cache.handler.*
@@ -19,7 +19,8 @@ import org.tesserakt.diskordin.rest.RestClient
 import org.tesserakt.diskordin.util.DomainError
 import org.tesserakt.diskordin.util.enums.ValuedEnum
 
-inline class BackendProvider<B : DiscordClientBuilderScope>(private val provider: () -> B) {
+@JvmInline
+value class BackendProvider<B : DiscordClientBuilderScope>(private val provider: () -> B) {
     suspend operator fun invoke(block: suspend B.() -> Unit) = DiscordClientBuilder.invoke(provider, block)
 }
 
@@ -51,7 +52,7 @@ object DiscordClientBuilder {
         builder: DiscordClientBuilderScope.DiscordClientSettings
     ): Either<DomainError, Pair<BootstrapContext, Snowflake>> = either {
         val (token, selfId) = Either.fromNullable(System.getenv("DISKORDIN_TOKEN") ?: builder.token)
-            .mapLeft { NoTokenProvided }.mproduct { it.verify() }.bind()
+            .mapLeft { NoTokenProvided }.flatMap { it.verify().map { id -> it to id } }.bind()
 
         val gatewayStats = Eval.later {
             runBlocking { builder.restClient.call { gatewayService.getGatewayBot() } }

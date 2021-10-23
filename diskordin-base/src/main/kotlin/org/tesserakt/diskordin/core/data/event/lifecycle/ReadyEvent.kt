@@ -13,5 +13,5 @@ class ReadyEvent(raw: Ready) : IEvent {
     val self = raw.user.id eager { raw.user.unwrap() }
     val guilds = raw.guilds
     val sessionId = raw.sessionId
-    val shardData: Pair<Current, Total> = raw.shard?.let { it[0] to it[1] } ?: 0 to 1
+    val shardData: Pair<Current, Total> = raw.shard?.let { it[0] to it[1] } ?: (0 to 1)
 }

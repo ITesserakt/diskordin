@@ -1,6 +1,5 @@
 package org.tesserakt.diskordin.commands.compiler
 
-import arrow.core.nonEmptyList
 import arrow.core.sequenceValidated
 import arrow.fx.coroutines.release
 import arrow.fx.coroutines.resource

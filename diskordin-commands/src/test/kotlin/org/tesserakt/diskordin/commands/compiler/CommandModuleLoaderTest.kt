@@ -1,7 +1,7 @@
 package org.tesserakt.diskordin.commands.compiler
 
 import io.github.classgraph.ClassGraph
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe

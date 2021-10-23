@@ -29,7 +29,7 @@ data class Shard(
     internal val _sequence = MutableStateFlow<Int?>(null)
     val sequence: StateFlow<Int?> = _sequence
 
-    @ExperimentalTime
+    @OptIn(ExperimentalTime::class)
     fun ping() = if (_heartbeatACKs.value != null && _heartbeats.value != null)
         (_heartbeatACKs.value!! - _heartbeats.value!!).absoluteValue
     else -Duration.INFINITE

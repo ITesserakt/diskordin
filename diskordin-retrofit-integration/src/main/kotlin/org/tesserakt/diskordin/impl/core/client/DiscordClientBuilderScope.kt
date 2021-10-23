@@ -16,7 +16,8 @@ import org.tesserakt.diskordin.rest.integration.RetrofitService
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-inline class HttpClient(private val inner: Eval<OkHttpClient>) : BootstrapContext.ExtensionContext {
+@JvmInline
+value class HttpClient(private val inner: Eval<OkHttpClient>) : BootstrapContext.ExtensionContext {
     companion object : BootstrapContext.PersistentExtension<HttpClient>
 
     operator fun invoke() = inner.value()

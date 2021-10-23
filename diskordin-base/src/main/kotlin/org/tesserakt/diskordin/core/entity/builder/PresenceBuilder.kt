@@ -5,6 +5,7 @@ import kotlinx.datetime.Instant
 import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.data.json.response.ActivityResponse
 import org.tesserakt.diskordin.core.entity.`object`.IActivity
+import java.util.*
 
 @Suppress("unused", "NOTHING_TO_INLINE", "MemberVisibilityCanBePrivate")
 @RequestBuilder
@@ -51,7 +52,7 @@ class PresenceBuilder : BuilderBase<UserStatusUpdateRequest>() {
         UserStatusUpdateRequest(
             idleSince?.toEpochMilliseconds(),
             game,
-            status.name.toLowerCase(),
+            status.name.lowercase(Locale.getDefault()),
             isAFK
         )
 }

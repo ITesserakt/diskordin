@@ -1,11 +1,6 @@
 package org.tesserakt.diskordin.commands
 
-import arrow.core.NonEmptyList
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.nel.forExactly
-import io.kotest.assertions.arrow.nel.shouldHaveSize
-import io.kotest.assertions.arrow.validation.shouldBeInvalid
-import io.kotest.assertions.arrow.validation.shouldBeValid
+import io.kotest.assertions.arrow.core.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.collections.shouldContainExactly
@@ -29,14 +24,13 @@ class CommandBuilderTest : FunSpec({
 
         val validated = command.validate()
 
-        validated shouldBeValid { (it: CommandObject) ->
-            it.name shouldBe "Test"
-            it.hasFeature<HiddenFeature>().shouldBeFalse()
-            it.requiredFeatures shouldContainExactly setOf(
-                DescriptionFeature("Test", "test"),
-                AliasesFeature("Test", listOf("help", "wanted"))
-            )
-        }
+        val it = validated.shouldBeValid()
+        it.name shouldBe "Test"
+        it.hasFeature<HiddenFeature>().shouldBeFalse()
+        it.requiredFeatures shouldContainExactly setOf(
+            DescriptionFeature("Test", "test"),
+            AliasesFeature("Test", listOf("help", "wanted"))
+        )
     }
 
     context("Invalid command builder") {
@@ -51,20 +45,18 @@ class CommandBuilderTest : FunSpec({
         test("Errors should accumulate with Validated") {
             val validated = command.validate()
 
-            validated shouldBeInvalid { (nel: NonEmptyList<ValidationError>) ->
-                nel shouldHaveSize 2
-                nel.toList() shouldHaveSingleElement { it is ValidationError.BlankName }
-                nel.toList() shouldHaveSingleElement { it is AliasesFeature.DuplicatedAliases }
-            }
+            val nel = validated.shouldBeInvalid()
+            nel shouldHaveSize 2
+            nel.toList() shouldHaveSingleElement { it is ValidationError.BlankName }
+            nel.toList() shouldHaveSingleElement { it is AliasesFeature.DuplicatedAliases }
         }
 
         test("Fail fast with Either") {
-            val validated = command.validate().toEither()
+            val validated = command.validateEither()
 
-            validated shouldBeLeft { nel ->
-                nel shouldHaveSize 1
-                nel.forExactly(1) { it is ValidationError.BlankName }
-            }
+            val nel = validated.shouldBeLeft()
+            nel shouldHaveSize 1
+            nel.forExactly<Any>(1) { it is ValidationError.BlankName }
         }
     }
 })

@@ -1,6 +1,7 @@
 package org.tesserakt.diskordin.core.entity.query
 
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
 @Suppress("NOTHING_TO_INLINE", "unused")
@@ -18,6 +19,6 @@ class BanQuery : IQuery {
 
     @ExperimentalTime
     override fun create() = mapOf(
-        "delete_message_days" to deleteMessageDays?.inDays.toString()
+        "delete_message_days" to deleteMessageDays?.toDouble(DurationUnit.DAYS).toString()
     )
 }

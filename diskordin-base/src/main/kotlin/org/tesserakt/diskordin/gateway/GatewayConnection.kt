@@ -1,6 +1,6 @@
 package org.tesserakt.diskordin.gateway
 
-import arrow.syntax.function.partially1
+import arrow.core.partially1
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharedFlow
 import org.tesserakt.diskordin.gateway.json.Message

@@ -2,10 +2,11 @@ package org.tesserakt.diskordin.commands.resolver
 
 import arrow.core.Either
 import arrow.core.sequenceEither
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainInOrder
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.property.Arb
@@ -33,10 +34,10 @@ class ResolversTest : FunSpec() {
         goodInput: Gen<String>,
         ctx: C
     ): Pair<Either<ParseError, List<T>>, Either<ParseError, List<T>>> {
-        val badResult = badInput.generate(RandomSource.Default)
+        val badResult = badInput.generate(RandomSource.default())
             .take(testCount).toList().map { resolver.parse(ctx, it.value) }.sequenceEither()
 
-        val goodResult = goodInput.generate(RandomSource.Default)
+        val goodResult = goodInput.generate(RandomSource.default())
             .take(testCount).toList().map { resolver.parse(ctx, it.value) }.sequenceEither()
 
         return badResult to goodResult
@@ -59,8 +60,8 @@ class ResolversTest : FunSpec() {
             val good = listOf("true", "TRuE", "FalSe", "false").exhaustive()
             val (fail, success) = test(BooleanResolver(), bad, good, fakeContext)
 
-            fail shouldBeLeft { it shouldBe beOfType<BooleanResolver.BooleanConversionError>() }
-            success shouldBeRight { it shouldContainInOrder listOf(true, true, false, false) }
+            fail.shouldBeLeft() should beOfType<BooleanResolver.BooleanConversionError>()
+            success.shouldBeRight() shouldContainInOrder listOf(true, true, false, false)
         }
 
         test("String resolver") {
@@ -77,7 +78,7 @@ class ResolversTest : FunSpec() {
             val good = Arb.stringPattern(".")
             val (fail, success) = test(CharResolver(), bad, good, fakeContext)
 
-            fail.shouldBeLeft { it shouldBe beOfType<CharResolver.LengthError>() }
+            fail.shouldBeLeft() shouldBe beOfType<CharResolver.LengthError>()
             success.shouldBeRight()
         }
 

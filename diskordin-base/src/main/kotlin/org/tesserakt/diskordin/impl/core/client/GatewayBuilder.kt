@@ -11,12 +11,13 @@ import org.tesserakt.diskordin.core.data.json.request.UserStatusUpdateRequest
 import org.tesserakt.diskordin.core.entity.builder.BuilderBase
 import org.tesserakt.diskordin.core.entity.builder.PresenceBuilder
 import org.tesserakt.diskordin.core.entity.builder.RequestBuilder
+import org.tesserakt.diskordin.gateway.interceptor.EventInterceptor
 import org.tesserakt.diskordin.gateway.interceptor.Interceptor
+import org.tesserakt.diskordin.gateway.interceptor.TokenInterceptor
 import org.tesserakt.diskordin.gateway.shard.*
 import org.tesserakt.diskordin.impl.gateway.interceptor.*
 import org.tesserakt.diskordin.util.enums.IValued
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
 
 @RequestBuilder
 class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
@@ -102,12 +103,18 @@ class GatewayBuilder : BuilderBase<GatewayBuilder.GatewaySettings>() {
     }
 
     inline fun GatewayBuilder.gatewayInterceptor(value: Interceptor<out Interceptor.Context>) = value
-    inline fun <reified C : Interceptor.Context> GatewayBuilder.gatewayInterceptor(crossinline block: suspend (C) -> Unit) =
-        object : Interceptor<C> {
-            override val selfContext: KClass<C> = C::class
+    inline fun GatewayBuilder.gatewayInterceptor(crossinline block: suspend (TokenInterceptor.Context) -> Unit) =
+        object : TokenInterceptor() {
             override val scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + Job() + exceptionHandler)
 
-            override suspend fun intercept(context: C) = block(context)
+            override suspend fun intercept(context: Context) = block(context)
+        }
+
+    inline fun GatewayBuilder.gatewayInterceptor(crossinline block: suspend (EventInterceptor.Context) -> Unit) =
+        object : EventInterceptor() {
+            override val scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + Job() + exceptionHandler)
+
+            override suspend fun intercept(context: Context) = block(context)
         }
 
     @Deprecated("Replaced with Intents", ReplaceWith("featureOverrides()"))
